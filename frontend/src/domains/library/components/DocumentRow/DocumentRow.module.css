@@ -1,0 +1,98 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-tile);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  transition: var(--transition-fast);
+}
+
+.row:hover {
+  border-color: var(--border-emphasis);
+}
+
+.thumb {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 42px;
+  height: 52px;
+  padding-bottom: 5px;
+  border-radius: var(--radius-thumb);
+  border: 1px solid var(--border-default);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--border-default) 0 13px,
+    var(--surface-elevated) 13px 26px
+  );
+  color: var(--text-muted);
+  font: 500 9px var(--font-mono);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.name {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  color: var(--text-muted);
+  font: 12px var(--font-mono);
+}
+
+.progress {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 150px;
+}
+
+.statusLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.pct {
+  color: var(--text-muted);
+  font: 11px var(--font-mono);
+}
+
+.track {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-bar);
+  background: var(--border-default);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .progress {
+    width: 96px;
+  }
+}

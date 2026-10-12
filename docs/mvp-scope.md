@@ -41,7 +41,7 @@ a tool ([ADR-0008](adr/adr-0008-own-auth-v1.md)).
 
 The differentiating capability. Upload → extract → index → retrieve.
 
-- Upload PDF, Markdown, and plain text
+- Upload PDF, Markdown, plain text, and DOCX (not legacy .doc)
 - Deterministic extraction (PyMuPDF / pdfplumber), chunking on paragraph and heading
   boundaries, PostgreSQL full-text **and** vector indexing (ADR-0014)
 - Deduplication by `sha256` — the same file uploaded twice is not processed twice

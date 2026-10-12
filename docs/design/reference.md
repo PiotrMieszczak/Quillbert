@@ -110,6 +110,10 @@ Google brand glyph colors (login only): `#4285F4`, `#34A853`, `#FBBC05`, `#EA433
 | `--radius-brand` | `17px` | Login brand tile |
 | `--radius-panel` | `18px` | Login card |
 | `--radius-rail` | `20px` | Nav rail, mobile sheet top |
+| `--radius-bar` | `4px` | Progress bars |
+| `--radius-thumb` | `7px` | Document type tile |
+| `--radius-tile` | `12px` | Document rows, icon tiles |
+| `--radius-zone` | `16px` | Upload drop zone |
 
 Assistant bubbles: `14px 14px 14px 4px` (assistant) / mirrored for user.
 

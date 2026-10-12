@@ -1,0 +1,87 @@
+.zone {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  border-radius: var(--radius-zone);
+  border: 1.5px dashed var(--border-emphasis);
+  background: var(--surface-sunken);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+/* Drag-over is undesigned; it reuses the designed hover state. */
+.zone:hover,
+.zone:focus-within,
+.dragging {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.zone:focus-within {
+  outline: 2px solid var(--accent-glow-soft);
+  outline-offset: 2px;
+}
+
+/* Visually hidden but still focusable, so the zone works from the keyboard. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-tile);
+  background: var(--surface-elevated);
+  color: var(--accent);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-input);
+  background: var(--accent);
+  color: var(--surface-app);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .zone {
+    flex-wrap: wrap;
+  }
+
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -42,7 +42,7 @@ expansion and panel defaults per viewport.
 
 The differentiator. Everything downstream depends on this being trustworthy.
 
-- Upload (PDF, Markdown, text) with the missing interaction designed first
+- Upload (PDF, Markdown, text, DOCX) with the missing interaction designed first
 - Deterministic extraction, chunking with headings and page spans
   ([ADR-0002](adr/adr-0002-deterministic-extraction.md))
 - Background worker with real per-page progress

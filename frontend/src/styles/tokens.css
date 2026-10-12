@@ -55,6 +55,10 @@
   --radius-button: 11px;
   --radius-card: 14px;
   --radius-rail: 20px;
+  --radius-bar: 4px;
+  --radius-thumb: 7px;
+  --radius-tile: 12px;
+  --radius-zone: 16px;
 
   /* Shadows */
   --shadow-rail-collapsed: 0 12px 30px rgba(0, 0, 0, 0.5);

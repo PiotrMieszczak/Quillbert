@@ -10,10 +10,16 @@ import styles from "./WorkspaceShell.module.css";
 type WorkspaceShellProps = {
   campaign: Campaign;
   activeView: string;
+  onNavigate: (id: string) => void;
   children: ReactNode;
 };
 
-export function WorkspaceShell({ campaign, activeView, children }: WorkspaceShellProps) {
+export function WorkspaceShell({
+  campaign,
+  activeView,
+  onNavigate,
+  children,
+}: WorkspaceShellProps) {
   useLayoutMode();
   const mob = useShellStore((state) => state.mob);
   const panelOpen = useShellStore((state) => state.panelOpen);
@@ -32,7 +38,7 @@ export function WorkspaceShell({ campaign, activeView, children }: WorkspaceShel
   return (
     <div className={[styles.shell, panelOpen && styles.panelOpen].filter(Boolean).join(" ")}>
       <Header campaign={campaign} />
-      <NavRail active={activeView} />
+      <NavRail active={activeView} onNavigate={onNavigate} />
       <main className={styles.main}>{children}</main>
       {mob && panelOpen && (
         <button
@@ -45,7 +51,7 @@ export function WorkspaceShell({ campaign, activeView, children }: WorkspaceShel
       <aside className={styles.panelSlot} aria-hidden={!panelOpen} inert={!panelOpen || undefined}>
         <AssistantPanel onClose={closePanel} />
       </aside>
-      <TabBar active={activeView} />
+      <TabBar active={activeView} onNavigate={onNavigate} />
       {!panelOpen && (
         <button type="button" className={styles.fab} onClick={openPanel}>
           <span aria-hidden>✦</span>

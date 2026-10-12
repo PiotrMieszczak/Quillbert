@@ -3,9 +3,10 @@ import styles from "./NavRail.module.css";
 
 type NavRailProps = {
   active: string;
+  onNavigate: (id: string) => void;
 };
 
-export function NavRail({ active }: NavRailProps) {
+export function NavRail({ active, onNavigate }: NavRailProps) {
   return (
     <nav className={styles.rail} aria-label="Workspace">
       {NAV_ITEMS.map((item) => {
@@ -16,6 +17,7 @@ export function NavRail({ active }: NavRailProps) {
             type="button"
             className={[styles.item, isActive && styles.active].filter(Boolean).join(" ")}
             aria-current={isActive ? "page" : undefined}
+            onClick={() => onNavigate(item.id)}
           >
             <span className={styles.glyph} aria-hidden>
               {item.glyph}

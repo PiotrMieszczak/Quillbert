@@ -4,12 +4,13 @@ import styles from "./TabBar.module.css";
 
 type TabBarProps = {
   active: string;
+  onNavigate: (id: string) => void;
 };
 
 const TABS = TAB_IDS.map((id) => NAV_ITEMS.find((item) => item.id === id)!);
 const OVERFLOW = NAV_ITEMS.filter((item) => !TAB_IDS.includes(item.id));
 
-export function TabBar({ active }: TabBarProps) {
+export function TabBar({ active, onNavigate }: TabBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   // A sheet that survives rotation into desktop width would be stranded,
@@ -44,6 +45,7 @@ export function TabBar({ active }: TabBarProps) {
               type="button"
               className={[styles.tab, isActive && styles.active].filter(Boolean).join(" ")}
               aria-current={isActive ? "page" : undefined}
+              onClick={() => onNavigate(item.id)}
             >
               <span className={styles.glyph} aria-hidden>
                 {item.glyph}
@@ -82,7 +84,10 @@ export function TabBar({ active }: TabBarProps) {
                 type="button"
                 className={styles.sheetItem}
                 aria-current={item.id === active ? "page" : undefined}
-                onClick={() => setMoreOpen(false)}
+                onClick={() => {
+                  setMoreOpen(false);
+                  onNavigate(item.id);
+                }}
               >
                 <span className={styles.glyph} aria-hidden>
                   {item.glyph}
