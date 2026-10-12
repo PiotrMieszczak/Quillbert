@@ -286,16 +286,17 @@ dropped connection.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/settings` | Profile and provider |
-| `PATCH` | `/settings` | Update profile fields or `provider` |
+| `GET` | `/settings` | Profile fields |
+| `PATCH` | `/settings` | Update profile fields |
 | `POST` | `/settings/avatar` | Multipart upload |
-| `GET` | `/settings/providers` | Available providers and reachability |
+| `GET` | `/settings/ai` | Gateway reachability and the active model (read-only) |
 
 ```jsonc
-// GET /settings/providers
-[{ "id": "claude", "label": "Claude", "available": true },
- { "id": "ollama", "label": "Ollama", "available": false,
-   "detail": "No response at http://localhost:11434" }]
+// GET /settings/ai — read-only; the model is admin/env config, not selectable here (ADR-0019)
+{ "model": "google-vertex/gemini-2.5-pro", "label": "Gemini 2.5 Pro (Vertex)",
+  "available": true }
 ```
 
-Switching providers takes effect on the next message with no restart (AC-004).
+There is no provider or model picker: the active model is set by admin/env configuration,
+and the Gateway only ever routes to a zero-retention (non-training) provider on the
+allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md), AC-004).

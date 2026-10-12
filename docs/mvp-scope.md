@@ -67,7 +67,9 @@ retrieved or invented.
 - A **Creative page** for drafting adventures, NPCs, factions, regions, and dialogue
 - **In-character chat** entered from a character page, with their portrait in the header
 - Retrieval grounded in the active campaign's indexed chunks, with citations
-- LLM Gateway abstracting provider; Ollama and Claude both selectable at runtime
+- LLM Gateway abstracting provider; OpenRouter is the single provider, restricted to a
+  zero-retention allowlist; the active model is admin/env config, not a user-facing
+  selector ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md))
 - Tool-call indicator chips (the design's green check rows) for every tool that runs
 - **Three request shapes** ([ADR-0011](adr/adr-0011-assistant-tools.md)):
   retrieve-and-answer ("what are opportunity attacks?"), fetch-and-transform
@@ -134,6 +136,8 @@ Rendered from real relationship data, not mock data.
 | **Automatic entity extraction on upload** | This is what [ADR-0002](adr/adr-0002-deterministic-extraction.md) forbids: a model in the ingestion path writing unreviewed. A hundred silently created NPCs of uncertain quality is worse than none. | Extraction accuracy is measurable against a fixture corpus |
 | **AG-UI beyond streaming** | Sub-agent composition, agent steering, generative UI, and shared-state sync are unused. The protocol is adopted for streaming only. | A second agent, or the UI needs to steer a running one |
 | **Managed auth provider (Supabase, Clerk)** | Auth is built by hand deliberately — the project is a learning exercise, and a provider hides the mechanism. See [ADR-0008](adr/adr-0008-own-auth-v1.md). | The maintenance burden outgrows its teaching value |
+| **Local self-hosting** | v1 is hosted-first; proving the product does not require proving a second deployment shape or its setup surface. PostgreSQL stays the single store so this is a deployment recipe, not a rewrite. See [ADR-0018](adr/adr-0018-hosted-first-local-v2.md). | v1 is proven and there is demand to run it fully on a GM's own hardware |
+| **Local model provider (Ollama)** | The offline justification depends on local deployment, which is itself deferred. v1 uses OpenRouter restricted to zero-retention backends. See [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md). | Local deployment is promoted, or a fully-offline path is needed |
 | **Automatic entity extraction from PDFs** | Auto-creating NPCs from a module is attractive and unreliable. Manual entry first; the extraction path stays open. | Extraction accuracy can be measured against a fixture corpus |
 | **Session recap generation** | Depends on a corpus of session logs existing first. | Session logs are in regular use |
 | **Plot analysis / suggestions** | Same dependency, plus a much fuzzier success criterion. | Core retrieval is trusted |
@@ -148,8 +152,9 @@ The MVP is done when all of the following hold:
   its source chunk.
 - **AC-003** Asking about material that was never indexed produces an explicit "not in
   your material" response, not a plausible invention.
-- **AC-004** Switching the provider between Claude and Ollama in Settings changes which
-  backend serves the next message, with no code change or restart.
+- **AC-004** The model is set by admin/env configuration, not a user-facing control;
+  changing it serves the next message from the new model with no code change, and the
+  Gateway only ever routes to a zero-retention (non-training) provider on the allowlist.
 - **AC-005** Characters, factions, and quests survive a restart (real persistence).
 - **AC-006** The knowledge graph renders actual relationships from stored data.
 - **AC-007** Every designed screen matches the spec's tokens, spacing, and states at both

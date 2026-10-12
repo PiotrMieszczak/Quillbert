@@ -14,7 +14,7 @@ Scaffold both applications and the token system.
 - CSS Modules pipeline, no Tailwind ([ADR-0004](adr/adr-0004-css-modules-over-tailwind.md))
 - Radix primitives wrapped in `ui/`: Button, Input, Dialog, Tabs, Card, Chip
 - Storybook covering each primitive with its designed states
-- PostgreSQL schema and migrations from [data-model.md](data-model.md); `docker compose` for local use ([ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md))
+- PostgreSQL schema and migrations from [data-model.md](data-model.md); `docker compose` for local development ([ADR-0018](adr/adr-0018-hosted-first-local-v2.md) retains the recipe; v1 deploys hosted)
 - Test harness: Vitest + Testing Library, pytest, Playwright
 
 **Exit gate.** A primitive rendered in Storybook is visually indistinguishable from the
@@ -59,12 +59,12 @@ for a known question against a fixture corpus.
 
 Retrieval becomes conversation.
 
-- LLM Gateway with Ollama and Claude behind one interface
-  ([ADR-0006](adr/adr-0006-llm-gateway.md))
+- LLM Gateway with OpenRouter behind one interface, routing only to a zero-retention
+  allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md))
 - Grounded prompting: retrieved context, refusal when context is insufficient
 - AG-UI event streaming over SSE ([ADR-0009](adr/adr-0009-ag-ui-protocol.md)); citations as a namespaced `dm.citation` custom event
 - AI panel: bubbles, tool chips, streaming cursor, typing dots, quick prompts, composer
-- Provider switching from Settings, effective without restart
+- Active model set by admin/env config (no user-facing picker); routing restricted to the zero-retention allowlist, enforced fail-closed
 - Citation rendering — requires the design gap to be closed first
 - The tool loop: search, session fetch, entity fetch, and `propose_*`
   ([ADR-0011](adr/adr-0011-assistant-tools.md)), bounded and hand-written
@@ -76,7 +76,8 @@ Retrieval becomes conversation.
   ([ADR-0012](adr/adr-0012-two-ai-modes.md))
 
 **Exit gate.** AC-002, AC-003, AC-004, AC-012, AC-013, AC-014 — grounded answers with
-visible citations, explicit refusal on unindexed topics, live provider switching, session
+visible citations, explicit refusal on unindexed topics, the configured model enforced
+against the zero-retention allowlist, session
 summaries drawn from records, and extraction that produces a **draft** rather than a saved
 row, with per-field sources. Refusal behaviour is verified
 against a set of deliberately-unanswerable questions, not assumed.

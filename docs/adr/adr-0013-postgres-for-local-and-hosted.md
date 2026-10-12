@@ -1,18 +1,24 @@
 ---
 title: "ADR-0013: PostgreSQL as the single store for both local and hosted deployment"
-status: "Accepted"
+status: "Superseded"
 date: "2026-09-15"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "storage", "database", "deployment"]
 supersedes: "ADR-0003"
-superseded_by: ""
+superseded_by: "ADR-0018"
 ---
 
 # ADR-0013: PostgreSQL as the single store for both local and hosted deployment
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
+
+> Superseded by [ADR-0018](adr-0018-hosted-first-local-v2.md). The PostgreSQL store
+> decision is **retained** — one engine, one dialect, one migration path, in whichever mode
+> ships. What changed is the deployment framing: the MVP now targets hosted only, and local
+> deployment (CON-001's co-equal second target) is deferred to v2. Keeping PostgreSQL rather
+> than reverting to SQLite is precisely what keeps that v2 local path cheap to add.
 
 ## Context
 
