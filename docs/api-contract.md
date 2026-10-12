@@ -103,7 +103,7 @@ An unknown `systemId` is a `422`.
 ```
 
 Uploading a file whose `sha256` already exists in the campaign returns the existing
-document rather than processing it again (ADR-0014 IMP-003).
+document rather than processing it again (ADR-0016 IMP-003).
 
 Upload returns `202 Accepted` immediately with `status: "queued"`. The client polls this
 list while any document is `queued` or `processing`, then stops (PRIN-003 — upload never
@@ -124,7 +124,7 @@ blocks).
 
 `score` is the fused RRF score, not a keyword rank — it is comparable between results of
 one query, not across queries. `matchedBy` says which retriever(s) surfaced the chunk,
-which is what makes a bad result diagnosable (ADR-0014 NEG-002).
+which is what makes a bad result diagnosable (ADR-0016 NEG-002).
 
 An empty array means nothing cleared the relevance floor. That is a real answer, not an
 error: Research mode refuses on it rather than answering from weak matches (AC-003).

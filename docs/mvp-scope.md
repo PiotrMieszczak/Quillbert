@@ -43,7 +43,7 @@ The differentiating capability. Upload → extract → index → retrieve.
 
 - Upload PDF, Markdown, plain text, and DOCX (not legacy .doc)
 - Deterministic extraction (PyMuPDF / pdfplumber), chunking on paragraph and heading
-  boundaries, PostgreSQL full-text **and** vector indexing (ADR-0014)
+  boundaries, PostgreSQL full-text **and** vector indexing (ADR-0016)
 - Deduplication by `sha256` — the same file uploaded twice is not processed twice
 - Scanned pages detected and routed to `awaiting OCR`, not `failed`
 - Background processing with live status: `Queued` → `Processing` (%) → `Indexed` / `Failed`
@@ -126,7 +126,7 @@ Rendered from real relationship data, not mock data.
 | Item | Why | Revisit when |
 |------|-----|--------------|
 | **Neo4j / graph database** | The domain is graph-shaped, but the *queries* are not — every one the design asks for is zero or one hop. A graph DB earns its cost on deep traversal, which nothing here does. The argument survives the move to PostgreSQL unchanged. See [ADR-0003 ALT-011](adr/adr-0003-sqlite-single-store.md). | Graph queries exceed 2 hops, or edge counts make the graph endpoint slow |
-| **Cross-encoder reranking** | Hybrid retrieval ships in v1 ([ADR-0014](adr/adr-0014-hybrid-retrieval.md)). Reranking is likely the next quality jump, but it puts a second model in the live query path (PRIN-003) and its gain over RRF is unmeasured here. | It beats plain RRF on the evaluation set (ADR-0014 IMP-004) |
+| **Cross-encoder reranking** | Hybrid retrieval ships in v1 ([ADR-0016](adr/adr-0016-voyage-embeddings.md)). Reranking is likely the next quality jump, but it puts a second model in the live query path (PRIN-003) and its gain over RRF is unmeasured here. | It beats plain RRF on the evaluation set (ADR-0016 IMP-004) |
 | **Dedicated vector database** | `pgvector` sits in the same row and transaction as the chunk text. A separate store reintroduces the multi-store consistency burden for corpus sizes where it is not the bottleneck. | Measured recall or latency problems, not scale anxiety |
 | **OCR for scanned PDFs** | Native-text PDFs cover the common case. OCR adds a heavy dependency chain. The design's `Queued` + "awaiting OCR" state is built; the processor is not. | Users upload scanned material in practice |
 | **Multi-agent orchestration** | One assistant with retrieval tools is simpler and easier to evaluate than five agents behind an intent router. | A single agent measurably underperforms on distinct task types |

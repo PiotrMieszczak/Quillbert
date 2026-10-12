@@ -21,8 +21,10 @@ knowing why it was made, it belongs in an ADR.
 | [0011](adr-0011-assistant-tools.md) | Assistant tools, and writes go through a proposal | Accepted |
 | [0012](adr-0012-two-ai-modes.md) | Two AI modes — Research and Creative — plus in-character roleplay | Accepted |
 | [0013](adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL as the single store for local and hosted | Accepted |
-| [0014](adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval with embedded chunks | Accepted |
+| [0014](adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval with embedded chunks | Superseded |
 | [0015](adr-0015-frontend-api-contract.md) | Generated API types and a frontend adapter layer | Accepted |
+| [0016](adr-0016-voyage-embeddings.md) | Hybrid retrieval with one fixed hosted embedding model (Voyage) | Accepted |
+| [0017](adr-0017-import-sources.md) | Google Drive as an import source; storage chosen per deployment | Accepted |
 
 ## Format
 

@@ -46,7 +46,7 @@ The differentiator. Everything downstream depends on this being trustworthy.
 - Deterministic extraction, chunking with headings and page spans
   ([ADR-0002](adr/adr-0002-deterministic-extraction.md))
 - Background worker with real per-page progress
-- Hybrid search: `tsvector` + `pgvector`, RRF fusion, relevance floor ([ADR-0014](adr/adr-0014-hybrid-retrieval.md))
+- Hybrid search: `tsvector` + `pgvector`, RRF fusion, relevance floor ([ADR-0016](adr/adr-0016-voyage-embeddings.md))
 - Chunk embedding at ingestion; `sha256` deduplication; scanned-page detection
 - Documents view with live status, progress bars, and a `Failed` state with retry
 - Structural test asserting `ingestion/` cannot import `gateway/` (BND-001)
@@ -142,4 +142,4 @@ Items in [mvp-scope.md](mvp-scope.md#out-of-scope-for-v1) each carry a revisit t
 None is scheduled. They become candidates only when their trigger is observed — in
 particular, a graph database waits on measured query cost. Vector search is no longer
 deferred: it ships in Phase 2 alongside keyword search
-([ADR-0014](adr/adr-0014-hybrid-retrieval.md)).
+([ADR-0016](adr/adr-0016-voyage-embeddings.md)).

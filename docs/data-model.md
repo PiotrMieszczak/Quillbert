@@ -351,7 +351,9 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `progress` | int | 0–100, drives the progress bar |
 | `error` | text? | populated on `failed` |
 | `storage_key` | text | opaque key into the `FileStore` — a path locally, an object key when hosted |
-| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0014 IMP-003) |
+| `source` | enum | `upload` \| `google_drive` — where it was imported from (ADR-0017) |
+| `source_ref` | text? | the Drive file id when `source = google_drive` |
+| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0016 IMP-003) |
 | `uploaded_at` | timestamp | |
 
 **`chunk`**
@@ -365,13 +367,24 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `heading` | text? | nearest section heading |
 | `content` | text | the indexed text |
 | `tsv` | tsvector | PostgreSQL full-text index over `content` |
-| `embedding` | vector(n) | embedded at ingestion by a local model (ADR-0014) |
+| `embedding` | vector(1024) | embedded at ingestion by the one fixed model (ADR-0016) |
 
 Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and the same
 transaction, then fused with reciprocal rank fusion
-([ADR-0014](adr/adr-0014-hybrid-retrieval.md)). Results below a relevance floor are treated
+([ADR-0016](adr/adr-0016-voyage-embeddings.md)). Results below a relevance floor are treated
 as no result, so Research mode still refuses rather than answering from weak matches
 (AC-003).
+
+**`embedding_space`** — one row, the model that produced every stored embedding.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `model` | text PK | `voyage-4` |
+| `dimensions` | int | `1024`; must match the `chunk.embedding` column |
+| `created_at` | timestamp | |
+
+The backend refuses to embed with a model other than the one recorded here, so vectors
+from two models can never mix. Changing model is a re-embed migration (ADR-0016).
 
 **DEC-012 — chunk text, keyword index, and embedding are one row.**
 Splitting them across stores would buy nothing here and cost cross-store consistency: a

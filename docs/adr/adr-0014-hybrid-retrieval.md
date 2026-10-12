@@ -1,18 +1,24 @@
 ---
 title: "ADR-0014: Hybrid keyword + vector retrieval with embedded source chunks"
-status: "Accepted"
+status: "Superseded"
 date: "2026-09-15"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "retrieval", "search", "embeddings"]
 supersedes: "ADR-0005"
-superseded_by: ""
+superseded_by: "ADR-0016"
 ---
 
 # ADR-0014: Hybrid keyword + vector retrieval with embedded source chunks
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
+
+> Superseded by [ADR-0016](adr-0016-voyage-embeddings.md). The hybrid design below carries
+> forward unchanged, with the same POS/NEG/IMP numbering. What changed is where embeddings
+> come from: a local model became one fixed hosted model, because the product targets
+> hosted multi-user use and every vector must come from the same model. Kept because the
+> retrieval reasoning is still the reasoning in force.
 
 ## Context
 

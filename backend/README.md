@@ -181,7 +181,7 @@ a migration of the other.
 
 **Local.** PostgreSQL runs beside the API — a container or an installed service
 (ADR-0013 IMP-001). There is no SQLite fallback. Uploaded files go to local disk through
-the `FileStore` port. Ollama can serve the model with no outbound API.
+the `FileStore` port. Ollama can serve the chat model with no outbound API; embeddings still call Voyage, so uploading needs the network and search without it is keyword-only ([ADR-0016](../docs/adr/adr-0016-voyage-embeddings.md)).
 
 **Hosted.** The same PostgreSQL, as a managed service or self-hosted on the operator's
 hardware. The backend image runs `alembic upgrade head` before it serves and needs

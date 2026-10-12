@@ -60,10 +60,12 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
 | [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted |
 | [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | Accepted |
-| [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | Accepted |
+| [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016** |
 | [0015](docs/adr/adr-0015-frontend-api-contract.md) | Generated API types; FE adapters, DTOs stay in `api/` | Accepted |
+| [0016](docs/adr/adr-0016-voyage-embeddings.md) | Hybrid retrieval; one fixed hosted embedding model (Voyage) | Accepted |
+| [0017](docs/adr/adr-0017-import-sources.md) | Google Drive as import source; storage per deployment | Accepted |
 
-Do not cite 0003, 0005, 0007, or 0010 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0007, 0010, or 0014 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 
