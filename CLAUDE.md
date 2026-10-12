@@ -16,6 +16,7 @@ on demand.
 | What v1 ships vs. defers | [docs/mvp-scope.md](docs/mvp-scope.md) | — |
 | Entities, fields, relationships | [docs/data-model.md](docs/data-model.md) | 472 lines; read the section, not the file |
 | System shape, stack, boundaries | [docs/architecture.md](docs/architecture.md) | — |
+| How v1 is deployed (host, DB, files, network) | [docs/deployment.md](docs/deployment.md) | Provider choices, not a decision record |
 | Folder layout, dependency rules | [docs/folder-structure.md](docs/folder-structure.md) | — |
 | Screens, layout, interaction | [docs/design/overview.md](docs/design/overview.md) | — |
 | Colors, type, spacing, radii | [docs/design/reference.md](docs/design/reference.md) | Token values only; look up, don't memorise |
