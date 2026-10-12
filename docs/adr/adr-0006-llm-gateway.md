@@ -1,18 +1,26 @@
 ---
 title: "ADR-0006: Centralized LLM Gateway with runtime provider switching"
-status: "Accepted"
+status: "Superseded"
 date: "2026-07-31"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "ai", "gateway", "providers"]
 supersedes: ""
-superseded_by: ""
+superseded_by: "ADR-0019"
 ---
 
 # ADR-0006: Centralized LLM Gateway with runtime provider switching
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
+
+> Superseded by [ADR-0019](adr-0019-openrouter-privacy-routing.md). The Gateway decision
+> itself — one interface, no SDK outside the Gateway (BND-002), the grounding prompt owned
+> in one place — is **retained**. What changed is the provider set: the MVP is hosted-first
+> ([ADR-0018](adr-0018-hosted-first-local-v2.md)), so the offline justification for Ollama
+> (CON-004) no longer holds in v1, and the binding requirement became data privacy. The
+> single provider is now OpenRouter with a zero-retention allowlist, which is the
+> "provider count grows substantially" revisit that ALT-004 named.
 
 ## Context
 

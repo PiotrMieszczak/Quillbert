@@ -123,8 +123,10 @@ Knowledge Graph, Sessions. Active item uses `--accent`; labels fade in only when
 
 Right column, `--surface-sunken`, left border `1px --border-subtle`.
 
-- Header: 34px spark tile, "Assistant" over "Grounded in indexed material", a provider
-  pill (mono, green dot, current provider — click switches), and a close button
+- Header: 34px spark tile, "Assistant" over "Grounded in indexed material", a mode pill
+  (mono, green dot, current mode — [ADR-0012](../adr/adr-0012-two-ai-modes.md) IMP-005),
+  and a close button. There is no provider pill — the provider is not a user choice
+  ([ADR-0019](../adr/adr-0019-openrouter-privacy-routing.md))
 - Message list: assistant bubbles `--surface-raised` with `14px 14px 14px 4px` radius;
   user bubbles mirrored. Tool-call chips render above content as a green check row in
   mono at 11.5px
@@ -169,10 +171,11 @@ collapses to one column ≤900px.
 - **Left — Account.** Card `--surface-raised`, `1px --border-subtle`, `--radius-card`.
   Avatar upload; inner `1fr 1fr` grid with Display name and Table/group paired, Email
   spanning `grid-column: 1/-1`. Inputs 40px, `--radius-input`.
-- **Right — AI Gateway.** Provider radio rows (Claude, Ollama) where the selected row
-  shows a 16px ring with a 5px `--accent` border; unselected shows `1.5px --border-emphasis`.
-  Below, a green-tinted callout (`--success-wash`, `--success-border`, check icon)
-  explaining gateway routing.
+- **Right — AI Gateway.** No provider selector — the LLM Gateway routes through OpenRouter
+  to a zero-retention allowlist, which is configuration rather than a user choice
+  ([ADR-0019](../adr/adr-0019-openrouter-privacy-routing.md)). A green-tinted callout
+  (`--success-wash`, `--success-border`, check icon) explains that requests route through
+  the gateway to privacy-safe models only.
 - Footer actions: Cancel (ghost) and Save changes (accent), right-aligned.
 
 ## 5. Knowledge Graph

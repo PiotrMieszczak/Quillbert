@@ -1,8 +1,8 @@
 # Data Model
 
 Derived from the entity shapes in the design prototype. Storage is a single PostgreSQL
-database in both local and hosted deployment
-([ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md)).
+database — hosted in v1, with local self-hosting as a v2 goal, the same store in both
+([ADR-0018](adr/adr-0018-hosted-first-local-v2.md)).
 
 ## Entity overview
 

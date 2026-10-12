@@ -22,9 +22,8 @@ flowchart TB
         GW["LLM Gateway"]
     end
 
-    subgraph EXT["Providers"]
-        OL["Ollama (local)"]
-        CL["Claude API"]
+    subgraph EXT["Provider"]
+        OR["OpenRouter<br/>zero-retention allowlist"]
     end
 
     subgraph DATA["Storage"]
@@ -43,8 +42,7 @@ flowchart TB
 
     API --> RET --> DB
     RET -->|"grounding context"| GW
-    GW --> OL
-    GW --> CL
+    GW --> OR
 
     style ING fill:#7FD4A0,color:#0A0C0F
     style GW fill:#E8B87A,color:#0A0C0F
@@ -66,12 +64,12 @@ place a model is invoked.
 | Styling | CSS Modules + CSS custom properties | [ADR-0004](adr/adr-0004-css-modules-over-tailwind.md) |
 | Component docs | Storybook | Primitives are documented as they are built |
 | Backend | Python 3.11+ / FastAPI | [ADR-0001](adr/adr-0001-react-vite-spa.md) |
-| Storage | PostgreSQL (`tsvector` + `pgvector`), local and hosted | [ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md) |
+| Storage | PostgreSQL (`tsvector` + `pgvector`); hosted in v1, local in v2 | [ADR-0018](adr/adr-0018-hosted-first-local-v2.md) |
 | Retrieval | Hybrid keyword + vector, RRF-fused | [ADR-0016](adr/adr-0016-voyage-embeddings.md) |
 | Embeddings | Voyage `voyage-4`, 1024 dims — one fixed model, not switchable | [ADR-0016](adr/adr-0016-voyage-embeddings.md) |
 | Import sources | Upload; Google Drive via Picker (`drive.file`) | [ADR-0017](adr/adr-0017-import-sources.md) |
 | Extraction | PyMuPDF, pdfplumber | Deterministic; [ADR-0002](adr/adr-0002-deterministic-extraction.md) |
-| LLM access | Gateway over Ollama + Claude | [ADR-0006](adr/adr-0006-llm-gateway.md) |
+| LLM access | Gateway over OpenRouter (zero-retention allowlist) | [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) |
 | Assistant streaming | AG-UI protocol over SSE | [ADR-0009](adr/adr-0009-ag-ui-protocol.md) |
 | Agent loop | Plain FastAPI — no framework, bounded tool loop | [ADR-0011](adr/adr-0011-assistant-tools.md) |
 | AI modes | Research (grounded) · Creative (invents) · In character | [ADR-0012](adr/adr-0012-two-ai-modes.md) |
@@ -103,7 +101,7 @@ dm_assistant/
 │   │   ├── application/      # use cases: assistant turn, upload, ingest, retrieval
 │   │   ├── adapters/
 │   │   │   ├── persistence/  # sqlalchemy (PostgreSQL, migrations) + memory
-│   │   │   ├── llm/          # the Gateway: claude, ollama, fake, prompts
+│   │   │   ├── llm/          # the Gateway: openrouter, fake, prompts
 │   │   │   ├── search/       # hybrid tsvector + pgvector
 │   │   │   ├── extraction/   # PyMuPDF, OCR (no LLM)
 │   │   │   └── files/        # FileStore: local disk, object store
@@ -210,7 +208,7 @@ flowchart TB
     end
 
     subgraph EXT["Provider — swappable"]
-        PROV["Ollama · Claude"]
+        PROV["OpenRouter<br/>allowlisted models"]
     end
 
     DB[("PostgreSQL<br/>tsvector + pgvector")]

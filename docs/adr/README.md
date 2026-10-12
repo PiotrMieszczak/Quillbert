@@ -13,18 +13,20 @@ knowing why it was made, it belongs in an ADR.
 | [0003](adr-0003-sqlite-single-store.md) | SQLite as the single data store; no graph database in v1 | Superseded |
 | [0004](adr-0004-css-modules-over-tailwind.md) | CSS Modules over design tokens; Tailwind excluded | Accepted |
 | [0005](adr-0005-fts5-before-vectors.md) | FTS5 keyword retrieval before semantic search | Superseded |
-| [0006](adr-0006-llm-gateway.md) | Centralized LLM Gateway with runtime provider switching | Accepted |
+| [0006](adr-0006-llm-gateway.md) | Centralized LLM Gateway with runtime provider switching | Superseded |
 | [0007](adr-0007-local-profile-auth.md) | Local profile in v1; Supabase Auth when hosting arrives | Superseded |
 | [0008](adr-0008-own-auth-v1.md) | Build authentication by hand in v1 | Accepted |
 | [0009](adr-0009-ag-ui-protocol.md) | AG-UI protocol for assistant streaming | Accepted |
 | [0010](adr-0010-no-agent-framework.md) | No agent framework; own the assistant loop | Superseded |
 | [0011](adr-0011-assistant-tools.md) | Assistant tools, and writes go through a proposal | Accepted |
 | [0012](adr-0012-two-ai-modes.md) | Two AI modes — Research and Creative — plus in-character roleplay | Accepted |
-| [0013](adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL as the single store for local and hosted | Accepted |
+| [0013](adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL as the single store for local and hosted | Superseded |
 | [0014](adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval with embedded chunks | Superseded |
 | [0015](adr-0015-frontend-api-contract.md) | Generated API types and a frontend adapter layer | Accepted |
 | [0016](adr-0016-voyage-embeddings.md) | Hybrid retrieval with one fixed hosted embedding model (Voyage) | Accepted |
 | [0017](adr-0017-import-sources.md) | Google Drive as an import source; storage chosen per deployment | Accepted |
+| [0018](adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
+| [0019](adr-0019-openrouter-privacy-routing.md) | OpenRouter as the single provider, zero-retention allowlist | Accepted |
 
 ## Format
 
@@ -88,3 +90,12 @@ outright; each named the measurement that would justify revisiting.
 ADR-0003 ALT-004 named its own revisit condition ("if the product ever becomes hosted or
 multi-user") and the product's target changed to include hosting. The premise moved, the
 reasoning held, and the conclusion inverted. That is the same shape as 0007 → 0008.
+
+**The same shape, a third time.** [ADR-0018](adr-0018-hosted-first-local-v2.md) and
+[ADR-0019](adr-0019-openrouter-privacy-routing.md) moved the premise again: the MVP is now
+hosted-first, so 0013's co-equal-deployment framing and 0006's offline-capable provider set
+no longer fit v1. In both the earlier conclusion is *retained, not reversed* — PostgreSQL
+stays the store (0018), the Gateway stays the one interface (0019) — and only the scope
+around it narrows. 0006 ALT-004 named its own revisit ("if the provider count grows
+substantially"); a privacy allowlist across several backends is that growth, met by one
+OpenRouter integration.

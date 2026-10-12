@@ -52,27 +52,29 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0003](docs/adr/adr-0003-sqlite-single-store.md) | SQLite single store, no graph DB in v1 | **Superseded by 0013** |
 | [0004](docs/adr/adr-0004-css-modules-over-tailwind.md) | CSS Modules + tokens; **no Tailwind** | Accepted |
 | [0005](docs/adr/adr-0005-fts5-before-vectors.md) | FTS5 before semantic search | **Superseded by 0014** |
-| [0006](docs/adr/adr-0006-llm-gateway.md) | One LLM Gateway, runtime provider switching | Accepted |
+| [0006](docs/adr/adr-0006-llm-gateway.md) | One LLM Gateway, runtime provider switching | **Superseded by 0019** |
 | [0007](docs/adr/adr-0007-local-profile-auth.md) | Local profile, deferred auth | **Superseded by 0008** |
 | [0008](docs/adr/adr-0008-own-auth-v1.md) | Build auth by hand in v1 | Accepted |
 | [0009](docs/adr/adr-0009-ag-ui-protocol.md) | AG-UI for assistant streaming | Accepted |
 | [0010](docs/adr/adr-0010-no-agent-framework.md) | No agent framework | **Superseded by 0011** |
 | [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
 | [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted |
-| [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | Accepted |
+| [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | **Superseded by 0018** |
 | [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016** |
 | [0015](docs/adr/adr-0015-frontend-api-contract.md) | Generated API types; FE adapters, DTOs stay in `api/` | Accepted |
 | [0016](docs/adr/adr-0016-voyage-embeddings.md) | Hybrid retrieval; one fixed hosted embedding model (Voyage) | Accepted |
 | [0017](docs/adr/adr-0017-import-sources.md) | Google Drive as import source; storage per deployment | Accepted |
+| [0018](docs/adr/adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
+| [0019](docs/adr/adr-0019-openrouter-privacy-routing.md) | OpenRouter single provider, zero-retention allowlist | Accepted |
 
-Do not cite 0003, 0005, 0007, 0010, or 0014 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0010, 0013, or 0014 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 
 1. **No model touches ingestion** (ADR-0002, BND-001). Citations are trustworthy only
    because extraction is deterministic.
-2. **All model calls go through the Gateway** (ADR-0006, BND-002). Provider switching is
-   configuration, not code.
+2. **All model calls go through the Gateway** (ADR-0019, BND-002). Provider switching is
+   configuration, not code; the Gateway routes only to a zero-retention allowlist.
 3. **No tool writes to the campaign** (ADR-0011, BND-007). AI output is a draft the GM
    accepts.
 4. **Research never invents; Creative never gets indexed** (ADR-0012, BND-008, AC-017).

@@ -23,7 +23,7 @@ flowchart TB
         APP["application/<br/>use cases<br/><i>never imports an adapter</i>"]
         PORTS["ports/<br/>repositories · search · llm<br/>extraction · files · clock"]
         DOM["domain/<br/>entities · value objects · invariants<br/><i>pure — no I/O, no framework</i>"]
-        ADP["adapters/<br/>persistence: sqlalchemy + memory<br/>search: hybrid + memory<br/>llm: claude · ollama · fake<br/>extraction: pymupdf · ocr"]
+        ADP["adapters/<br/>persistence: sqlalchemy + memory<br/>search: hybrid + memory<br/>llm: openrouter · fake<br/>extraction: pymupdf · ocr"]
         COMP["composition.py<br/><i>the ONLY module wiring<br/>ports to adapters</i>"]
 
         EP --> APP
@@ -124,8 +124,7 @@ backend/
 │   │   │   ├── hybrid.py          # tsvector + pgvector, RRF-fused
 │   │   │   └── memory.py
 │   │   ├── llm/
-│   │   │   ├── claude.py          # the only file importing the Anthropic SDK
-│   │   │   ├── ollama.py
+│   │   │   ├── openrouter.py      # the only file importing the OpenRouter client
 │   │   │   ├── prompts/           # one strategy per assistant mode
 │   │   │   └── fake.py            # scripted provider for deterministic tests
 │   │   ├── extraction/
@@ -190,9 +189,9 @@ codebase names both sides of a port.
 |------|---------------------|--------------|
 | `repositories` | SQLAlchemy, in-memory | Domain tests run with no database at all |
 | `search` | Hybrid (tsvector + pgvector), in-memory | Fusion strategy and relevance floor swap without touching callers |
-| `llm` | Claude, Ollama, fake | Provider is configuration; tests are deterministic |
+| `llm` | OpenRouter, fake | Provider is configuration; tests are deterministic |
 | `extraction` | PyMuPDF, OCR | A second parser is a new file, not a refactor |
-| `files` | local disk, object store | The hosted file provider is a deployment choice, not a schema one (ADR-0013 IMP-005) |
+| `files` | local disk, object store | The hosted file provider is a deployment choice, not a schema one |
 | `clock` | system, frozen | Time-dependent behaviour is testable without sleeping |
 
 Storage behind a port has a cost worth naming: the schema in `tables.py` is no longer the
