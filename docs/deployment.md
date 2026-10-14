@@ -12,73 +12,90 @@ Swapping any is a change *here*, not to a decision record.
 
 ## Shape
 
-One self-hosted server, managed through Openship:
+The app runs on one small server the maintainer owns; the database and auth are a **managed
+service**; files are object storage. Openship is the deploy manager, run **self-hosted**.
 
 | Layer | Choice | Notes |
 |-------|--------|-------|
-| Manager / dashboard | **Openship** (free tier, control-plane only) | Deploys and manages workloads on *your own* server. The free tier can manage a connected server; only workloads hosted on **Openship Cloud's own compute** need a paid plan (verified via host-fit: "static sites only"). |
-| Server | **Mikrus `ted106`** (plan 4.1 — 8 GB / 2 vCPU, Ubuntu 24.04, Docker) | Unprivileged LXC. Public ingress is **IPv6 port 80** (`ted106.mikrus.cloud`) + **two TCP ports `20106` / `30106`** (`ted106-20106.mikrus.cloud`). TLS is terminated by Mikrus — never bind 443. |
-| Data | **Supabase** (one-click Openship app) — Postgres + pgvector + Auth + Storage + Studio | Gives `pgvector` with zero doubt ([ADR-0016](adr/adr-0016-voyage-embeddings.md)). Advisory minimum 4 vCPU / 8 GB (~8 containers), so **tight on 2 vCPU**. |
-| Auth | **Supabase Auth** (GoTrue) | Bundled with the stack; the backend validates Supabase JWTs. Supersedes hand-built auth — [ADR-0020](adr/adr-0020-supabase-auth.md). |
-| Files | **Cloudflare R2** (S3-compatible, the `FileStore` object-store adapter) | Off-box, zero egress, presigned URLs. Supabase Storage is bundled as an alternative; R2 keeps files independent of the box. |
-| LLM | **OpenRouter**, zero-retention allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)) | Not hosted here; reached with `OPEN_ROUTER_API_KEY`. |
+| Deploy manager | **Openship, self-hosted** — the desktop app on the maintainer's Mac | Free, open-source control plane. It connects to `ted106` over SSH and deploys the app there; the `openship` CLI drives the same local control plane. **Openship Cloud is not used** — its free tier only rents managed servers and gates domain routing behind a paid plan, so the self-hosted control plane is the free path. |
+| App host | **Mikrus `ted106`** (8 GB / 2 vCPU, Ubuntu 24.04, Docker) | Unprivileged LXC, connected to Openship over SSH (IPv4 `37.27.111.248:10106`, key auth). Runs **only the DM app** (FastAPI + ingestion worker + the built frontend). Public ingress is IPv6:80 (`ted106.mikrus.cloud`) + two TCP ports `20106`/`30106` (`ted106-20106.mikrus.cloud`); TLS is terminated by Mikrus — never bind 443. |
+| Data + Auth + Storage | **Supabase Cloud** (free tier) — project `DM Assistant` (`zfhluuonhmexjfhjjghf`), region `eu-west-3`; Postgres 17 + **pgvector** + Auth (GoTrue) + Storage | Managed, so **zero load on `ted106`**. pgvector enabled ([ADR-0016](adr/adr-0016-voyage-embeddings.md)). The box now hosts only the app, which fits 2 vCPU / 8 GB comfortably. |
+| Auth | **Supabase Auth** (GoTrue, hosted) | The backend validates Supabase-issued JWTs. Supersedes hand-built auth — [ADR-0020](adr/adr-0020-supabase-auth.md). |
+| Files | **Cloudflare R2** (S3-compatible, the `FileStore` object-store adapter) | Off-box, zero egress, presigned URLs. Supabase Storage (free 1 GB) is an alternative; R2 keeps files independent. |
+| LLM | **OpenRouter**, zero-retention allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)) | Reached with `OPEN_ROUTER_API_KEY`. |
 
 ## How it's wired
 
-- **Openship manages, `ted106` is the compute.** Openship (free) is the external control
-  plane: you register `ted106` as a self-hosted server, and Openship deploys the Supabase
-  app and the DM Assistant onto it through its agent. Openship Cloud's own compute (the paid
-  tier) is not used — this is the "manager over your own box" path, not Cloud hosting.
-- **Publishing (Mikrus model).** With only two public TCP ports, the DM app takes one
-  (e.g. `20106` → `ted106-20106.mikrus.cloud`) and Supabase Studio/API the other; Postgres
-  (`5432`) stays internal to the box.
-- **Admin access.** Supabase Studio and the Openship dashboard carry their own logins; a
-  separate WireGuard admin VPN is impractical on an unprivileged Mikrus LXC (userspace-only,
-  no spare public port), so it is dropped. Admin goes through Openship + Studio auth, and
-  Postgres is never published.
+- **Openship (on the Mac) manages, `ted106` is the compute.** The self-hosted Openship
+  control plane runs on the maintainer's Mac and deploys the DM app onto `ted106` over SSH
+  (in Docker). The Mac must be on to deploy or manage; the deployed app keeps running on
+  `ted106` independently.
+- **The app talks to Supabase Cloud over the network** — Postgres (connection string /
+  pooler) for data, and the Supabase API (Auth, Storage) over HTTPS. Nothing
+  database-related runs on `ted106`.
+- **Publishing (Mikrus model).** Only the DM app needs a public endpoint: one Mikrus port
+  (`20106` → `ted106-20106.mikrus.cloud`). The second port and IPv6:80 stay free. Supabase
+  is reached as an external HTTPS service, not published from the box.
 
-## Resourcing reality
+## Environment & secrets
 
-`ted106` is **8 GB / 2 vCPU**; Supabase's advisory minimum is **4 vCPU / 8 GB**, and the DM
-backend + ingestion worker run alongside it. The advisory minimum does not hard-block a
-self-hosted deploy, so it will run, but expect it to be **tight** — plan to **upsize Mikrus
-(e.g. 4.2, 16 GB)** if ingestion/embeddings starve. Files on R2 keep disk off the box.
+Frontend variables are **public** (they ship in the browser bundle); backend values are
+**secret**. Never commit secrets.
 
-## Secrets
+**Public — frontend build (`VITE_` prefix, our Vite stack), fine as plain CI variables:**
 
-Environment variables via Openship's project env — never committed:
+| Variable | Value / source |
+|----------|----------------|
+| `VITE_SUPABASE_URL` | `https://zfhluuonhmexjfhjjghf.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` (Supabase → Settings → API) |
+
+Data is protected by Supabase **Row-Level Security**, not by hiding these — that's why they
+are safe in the bundle and in plain CI variables.
+
+**Secret — backend runtime (Openship project env) + CI secrets:**
 
 | Variable | Purpose |
 |----------|---------|
-| `OPEN_ROUTER_API_KEY` | LLM gateway ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)); in CI a GitHub **secret**, not a variable |
+| `DATABASE_URL` | Supabase Postgres connection string (Settings → Database) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Backend-only Supabase access (Settings → API) |
+| `SUPABASE_JWT_SECRET` | Validate Supabase JWTs ([ADR-0020](adr/adr-0020-supabase-auth.md); Settings → API) |
+| `OPEN_ROUTER_API_KEY` | LLM gateway ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)); a GitHub Actions **secret**, not a variable |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT` | Cloudflare R2 |
-| Supabase anon / service-role keys, JWT secret | App ↔ Supabase (database + Auth) |
+
+## Resourcing
+
+`ted106` (8 GB / 2 vCPU) now hosts **only the app** — comfortable, since the database's
+compute is Supabase's problem (Cloud). The limits to watch are on the **Supabase free
+tier**:
+
+- ~**500 MB** database — embeddings are what grow it; prune/trim as needed,
+- **1 GB** Storage — moot, files are on R2,
+- the project **pauses after ~7 days idle** (one click to resume) — a personal
+  weekly-session tool will hit this occasionally.
 
 ## Backups
 
-- **Postgres** (inside Supabase): scheduled `pg_dump` off-box; versioned migrations
+- **Database:** Supabase Cloud's own backups (free tier is limited — no PITR), plus a
+  periodic off-box `pg_dump` as the real safety net; migrations are versioned
   ([ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md) IMP-002).
-- **Files**: R2 bucket versioning.
-- Mikrus is best-effort hosting (no SLA), so the restore path is the safety net.
+- **Files:** R2 bucket versioning.
 
 ## Status (2026-10-14)
 
-- **`ted106`**: Ubuntu 24.04 LXC, Docker installed, **no workloads yet**, and **not yet
-  enrolled in Openship** (no agent/service/containers present).
-- **Openship**: workspace present, **zero projects**, free tier (Cloud hosting is
-  static-only on this plan).
-- **Next step**: register `ted106` as a self-hosted server in the Openship **dashboard**
-  (this mints an enroll command) — registering a server is **not** in the Openship API. Then
-  deploy Supabase, verify health, then the DM app. The enroll is also the live test of
-  whether Openship's agent runs on a Mikrus unprivileged LXC.
+- **Supabase Cloud:** project live, **pgvector enabled** ✅, MCP-managed.
+- **`ted106`:** connected to Openship (self-hosted on the Mac) as an SSH server, **Healthy**
+  (Docker / Git / rsync green). No workloads yet.
+- **App:** not built — the repo is pre-implementation, so **nothing is deployed to `ted106`
+  yet**.
+- **Next:** build the DM app (backend + frontend) against this foundation, then deploy it to
+  `ted106` via Openship and wire its env to Supabase Cloud + R2 + OpenRouter.
 
-## Open risks
+## Notes / risks
 
-Technical, not billing — all surface at or after enrollment:
-
-1. Openship's agent may not install cleanly on an **unprivileged LXC**.
-2. **2 vCPU** is under Supabase's advisory 4 — tight; upsize Mikrus if needed.
-3. **Two public ports** must cover both the app and Supabase's Studio/API.
+- Openship's control plane lives on the **Mac** — fine for a solo maintainer, but deploys
+  and management need the Mac on (the running app on `ted106` does not).
+- Mikrus is best-effort hosting (no SLA); `ted106` is an unprivileged LXC.
+- The Supabase free-tier **pause** and **500 MB** cap are the limits most likely to bite.
 
 ## References
 
