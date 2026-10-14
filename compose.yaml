@@ -1,35 +1,18 @@
 services:
-  db:
-    image: pgvector/pgvector:pg16
-    environment:
-      POSTGRES_USER: dm
-      POSTGRES_PASSWORD: dm # local development only
-      POSTGRES_DB: dm_assistant
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "dm", "-d", "dm_assistant"]
-      interval: 3s
-      timeout: 3s
-      retries: 20
-    ports:
-      - "5432:5432" # lets a database client on your machine connect
-
+  # Develop against a Supabase project (set DATABASE_URL in a .env file). There is no
+  # local Postgres on purpose: Supabase gives the same Auth, RLS and pgvector as
+  # production, so there is no "works locally, breaks in prod" divergence. Use a
+  # separate Supabase *dev* project once you have real data to protect.
   backend:
     build:
       context: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://dm:dm@db:5432/dm_assistant
-    command:
-      - sh
-      - -c
-      - >-
-        alembic upgrade head &&
-        python -m app.adapters.persistence.sqlalchemy.seed &&
-        exec uvicorn app.composition:build_app --factory --host 0.0.0.0 --port 8000
-    depends_on:
-      db:
-        condition: service_healthy
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL — a Supabase session-pooler URL (postgresql+psycopg://…)}
+      OPEN_ROUTER_API_KEY: ${OPEN_ROUTER_API_KEY:-}
+    # No command override: the image serves uvicorn. Migrations are NOT run on boot —
+    # apply them yourself with `alembic upgrade head` (and `python -m
+    # app.adapters.persistence.sqlalchemy.seed` for the dev campaign). Production
+    # migrates via the Migrate-database CI workflow.
     healthcheck:
       test:
         [
@@ -52,6 +35,3 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
-
-volumes:
-  pgdata:
