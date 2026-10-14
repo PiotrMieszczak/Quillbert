@@ -421,21 +421,22 @@ so a message's provenance stays readable after the fact
 
 ### User
 
-A real account. v1 authenticates ([ADR-0008](adr/adr-0008-own-auth-v1.md)).
+A real account. v1 authenticates with **Supabase Auth**
+([ADR-0020](adr/adr-0020-supabase-auth.md)): credentials — password, email verification,
+Google identity — live in Supabase's `auth` schema, not here. This record is the app-side
+**profile**, keyed to the Supabase Auth user; entities that reference an owner
+(`campaign.owner`, …) key off its `id`.
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | int PK | |
-| `email` | text UNIQUE | The login identifier |
-| `password_hash` | text? | **Nullable** — argon2. Null for Google-only accounts |
+| `id` | PK | The Supabase Auth user id |
+| `email` | text UNIQUE | Login identifier, from Supabase Auth |
 | `display_name` | text | "Game Master" |
 | `table_name` | text? | "The Ashfall Table" |
 | `avatar_path` | text? | Upload |
-| `email_verified` | bool | |
 | `created_at` | timestamp | |
 
-`password_hash` is nullable so an account created through Google has no password at all —
-storing a placeholder would be worse than storing nothing.
+No password or email-verification columns here — Supabase Auth owns them.
 
 **Supporting tables**
 

@@ -1,18 +1,24 @@
 ---
 title: "ADR-0008: Build authentication by hand in v1"
-status: "Accepted"
+status: "Superseded"
 date: "2026-09-02"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "auth", "learning", "security"]
 supersedes: "ADR-0007"
-superseded_by: ""
+superseded_by: "ADR-0020"
 ---
 
 # ADR-0008: Build authentication by hand in v1
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
+
+> Superseded by [ADR-0020](adr-0020-supabase-auth.md). This record's sole justification was
+> CON-001 — the project as a learning exercise. That premise was restated as tool-first
+> (learning a side effect), and Supabase became the datastore, so its bundled Auth (GoTrue)
+> is now the choice. Kept because the analysis is correct under its premise — the mirror of
+> how 0008 itself superseded 0007.
 
 ## Context
 

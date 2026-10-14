@@ -18,20 +18,20 @@ interface. The distinction is how much *behaviour* sits behind each screen in v1
 
 ### Authentication — Full
 
-Built by hand rather than delegated, because the project is a learning exercise as much as
-a tool ([ADR-0008](adr/adr-0008-own-auth-v1.md)).
+Through **Supabase Auth** (GoTrue), the auth bundled with the Supabase stack the deployment
+already runs ([ADR-0020](adr/adr-0020-supabase-auth.md)) — the project is tool-first, so
+auth is configured, not hand-built.
 
-- Signup, login, logout — argon2 password hashing
-- Sessions as signed JWTs in httpOnly, Secure, SameSite cookies
-- Google OAuth, full authorization-code flow with `state` validation
-- Password reset — single-use expiring tokens, sent by email
+- Signup, login, logout — Supabase Auth (password hashing is GoTrue's)
+- Sessions as Supabase-issued JWTs; the FastAPI backend validates them, mints none
+- Google OAuth via Supabase
+- Password reset via Supabase
 - Every route scoped to the authenticated owner (`BND-003`)
 
 ### Shell and navigation — Full
 
-- Login screen with **real authentication** ([ADR-0008](adr/adr-0008-own-auth-v1.md)):
-  email and password with argon2 hashing, JWT sessions in httpOnly cookies, Google OAuth,
-  and password reset
+- Login screen with **real authentication** ([ADR-0020](adr/adr-0020-supabase-auth.md)):
+  email and password, Google OAuth, and password reset, via Supabase Auth
 - Campaign picker with add-campaign modal (image + mandatory system)
 - App shell: 72px header, floating nav rail (60px ↔ 236px), AI panel column
 - Mobile shell ≤900px: bottom tab bar, More sheet, AI slide-over
@@ -135,7 +135,6 @@ Rendered from real relationship data, not mock data.
 | **Agent framework (LangChain, Pydantic AI)** | Three or four tools in one bounded loop is not framework territory, and a framework would own prompt assembly — moving the grounding rule out of the Gateway. See [ADR-0011](adr/adr-0011-assistant-tools.md). | Real branching or sub-agents. Reassess Pydantic AI first |
 | **Automatic entity extraction on upload** | This is what [ADR-0002](adr/adr-0002-deterministic-extraction.md) forbids: a model in the ingestion path writing unreviewed. A hundred silently created NPCs of uncertain quality is worse than none. | Extraction accuracy is measurable against a fixture corpus |
 | **AG-UI beyond streaming** | Sub-agent composition, agent steering, generative UI, and shared-state sync are unused. The protocol is adopted for streaming only. | A second agent, or the UI needs to steer a running one |
-| **Managed auth provider (Supabase, Clerk)** | Auth is built by hand deliberately — the project is a learning exercise, and a provider hides the mechanism. See [ADR-0008](adr/adr-0008-own-auth-v1.md). | The maintenance burden outgrows its teaching value |
 | **Local self-hosting** | v1 is hosted-first; proving the product does not require proving a second deployment shape or its setup surface. PostgreSQL stays the single store so this is a deployment recipe, not a rewrite. See [ADR-0018](adr/adr-0018-hosted-first-local-v2.md). | v1 is proven and there is demand to run it fully on a GM's own hardware |
 | **Local model provider (Ollama)** | The offline justification depends on local deployment, which is itself deferred. v1 uses OpenRouter restricted to zero-retention backends. See [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md). | Local deployment is promoted, or a fully-offline path is needed |
 | **Automatic entity extraction from PDFs** | Auto-creating NPCs from a module is attractive and unreliable. Manual entry first; the extraction path stays open. | Extraction accuracy can be measured against a fixture corpus |
@@ -160,8 +159,8 @@ The MVP is done when all of the following hold:
 - **AC-007** Every designed screen matches the spec's tokens, spacing, and states at both
   desktop and ≤900px.
 - **AC-008** Document processing never blocks the UI.
-- **AC-009** A user signs up, logs out, logs back in, and finds their campaigns. Passwords
-  are stored only as argon2 hashes.
+- **AC-009** A user signs up, logs out, logs back in, and finds their campaigns, through
+  Supabase Auth — password hashing and session issuance are Supabase's, not custom code.
 - **AC-010** One user cannot read another user's campaigns, characters, or documents —
   verified by test, not by inspection.
 - **AC-011** A password reset link works once and expires; requesting a reset for an

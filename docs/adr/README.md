@@ -15,7 +15,7 @@ knowing why it was made, it belongs in an ADR.
 | [0005](adr-0005-fts5-before-vectors.md) | FTS5 keyword retrieval before semantic search | Superseded |
 | [0006](adr-0006-llm-gateway.md) | Centralized LLM Gateway with runtime provider switching | Superseded |
 | [0007](adr-0007-local-profile-auth.md) | Local profile in v1; Supabase Auth when hosting arrives | Superseded |
-| [0008](adr-0008-own-auth-v1.md) | Build authentication by hand in v1 | Accepted |
+| [0008](adr-0008-own-auth-v1.md) | Build authentication by hand in v1 | Superseded |
 | [0009](adr-0009-ag-ui-protocol.md) | AG-UI protocol for assistant streaming | Accepted |
 | [0010](adr-0010-no-agent-framework.md) | No agent framework; own the assistant loop | Superseded |
 | [0011](adr-0011-assistant-tools.md) | Assistant tools, and writes go through a proposal | Accepted |
@@ -27,6 +27,7 @@ knowing why it was made, it belongs in an ADR.
 | [0017](adr-0017-import-sources.md) | Google Drive as an import source; storage chosen per deployment | Accepted |
 | [0018](adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
 | [0019](adr-0019-openrouter-privacy-routing.md) | OpenRouter as the single provider, zero-retention allowlist | Accepted |
+| [0020](adr-0020-supabase-auth.md) | Supabase Auth in v1; the project is tool-first | Accepted |
 
 ## Format
 
