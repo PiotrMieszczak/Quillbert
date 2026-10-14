@@ -55,7 +55,7 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0005](docs/adr/adr-0005-fts5-before-vectors.md) | FTS5 before semantic search | **Superseded by 0014** |
 | [0006](docs/adr/adr-0006-llm-gateway.md) | One LLM Gateway, runtime provider switching | **Superseded by 0019** |
 | [0007](docs/adr/adr-0007-local-profile-auth.md) | Local profile, deferred auth | **Superseded by 0008** |
-| [0008](docs/adr/adr-0008-own-auth-v1.md) | Build auth by hand in v1 | Accepted |
+| [0008](docs/adr/adr-0008-own-auth-v1.md) | Build auth by hand in v1 | **Superseded by 0020** |
 | [0009](docs/adr/adr-0009-ag-ui-protocol.md) | AG-UI for assistant streaming | Accepted |
 | [0010](docs/adr/adr-0010-no-agent-framework.md) | No agent framework | **Superseded by 0011** |
 | [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
@@ -67,8 +67,9 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0017](docs/adr/adr-0017-import-sources.md) | Google Drive as import source; storage per deployment | Accepted |
 | [0018](docs/adr/adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
 | [0019](docs/adr/adr-0019-openrouter-privacy-routing.md) | OpenRouter single provider, zero-retention allowlist | Accepted |
+| [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
 
-Do not cite 0003, 0005, 0006, 0007, 0010, 0013, or 0014 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, or 0014 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 

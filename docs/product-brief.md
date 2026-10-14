@@ -85,12 +85,13 @@ is a genuine, wanted goal, but it is **deferred to v2**, not a v1 gate
 both, so the v2 local path is a deployment recipe rather than a rewrite
 ([ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md), retained for its store
 decision). v1 has **real authentication** — signup, login, Google OAuth, and password
-reset, all built in the application rather than delegated to a provider
-([ADR-0008](adr/adr-0008-own-auth-v1.md)).
+reset — through **Supabase Auth**, the auth that ships with the Supabase stack the
+deployment already runs ([ADR-0020](adr/adr-0020-supabase-auth.md)).
 
-That auth choice is deliberate: this project is a learning exercise as well as a tool, and a
-managed auth provider would hide exactly the mechanism worth understanding. A paired
-consequence of hosting first is the model provider — v1 uses OpenRouter restricted to
+That choice follows from the project's purpose: it is **tool-first** — a personal
+replacement for NotebookLM and Claude Desktop for running campaigns — with learning a side
+effect, not the origin. A paired consequence of hosting first is the model provider — v1
+uses OpenRouter restricted to
 zero-retention backends, and the fully-offline local model (Ollama) defers to v2 with local
 deployment ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)).
 

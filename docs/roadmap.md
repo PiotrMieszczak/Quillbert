@@ -24,8 +24,8 @@ same element in the prototype, and every value it uses comes from a token.
 
 The frame everything else renders inside.
 
-- Real authentication ([ADR-0008](adr/adr-0008-own-auth-v1.md)): signup, login, logout,
-  argon2 hashing, JWT sessions in httpOnly cookies, Google OAuth, password reset
+- Real authentication via Supabase Auth ([ADR-0020](adr/adr-0020-supabase-auth.md)): signup,
+  login, logout, Google OAuth, password reset — configured, the backend validating Supabase JWTs
 - Login screen built as designed, including the Google button and "Forgot?" link
 - Campaign picker, campaign cards, add-campaign modal with mandatory system
 - Workspace shell: header, floating nav rail with hover/pin, AI panel column
