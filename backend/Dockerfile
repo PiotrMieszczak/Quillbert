@@ -9,5 +9,6 @@ RUN pip install --no-cache-dir .
 
 EXPOSE 8000
 
-# Schema first, then serve. Needs DATABASE_URL.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.composition:build_app --factory --host 0.0.0.0 --port 8000"]
+# Migrations run as a dedicated CI step (.github/workflows/migrate.yml), not on boot.
+# The app container only serves; the schema is already at head before it starts.
+CMD ["uvicorn", "app.composition:build_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

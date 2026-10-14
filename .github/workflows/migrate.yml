@@ -1,0 +1,50 @@
+name: Migrate database
+
+# Apply alembic migrations to the (Supabase) database as a dedicated, gated step.
+# Migrations do NOT run on app boot — backend/Dockerfile only serves. This keeps
+# schema changes deliberate and auditable, and lets the app container stay simple.
+#
+# Requires the repository secret DATABASE_URL (the Supabase *session-pooler*
+# connection string, port 5432, in postgresql+psycopg://… form — DDL needs the
+# session pooler, not the transaction pooler).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/app/adapters/persistence/sqlalchemy/migrations/**"
+      - "backend/alembic.ini"
+      - "backend/pyproject.toml"
+  workflow_dispatch: {}
+
+# Never cancel a migration mid-run.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    # Add required reviewers to the "production" environment to gate prod migrations.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend (brings alembic + psycopg)
+        working-directory: backend
+        run: pip install .
+
+      - name: alembic upgrade head
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set — add it in repo Settings → Secrets."
+            exit 1
+          fi
+          alembic upgrade head
