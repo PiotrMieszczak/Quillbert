@@ -21,9 +21,11 @@ hiding the publishable key — that's why it's public.
 | `SUPABASE_PUBLISHABLE_KEY` | **public** | **Variable** | ✓ | ✓ as `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API (publishable / anon) |
 | `OPEN_ROUTER_API_KEY` | **secret** | **Secret** | ✓ (backend) | ✗ | openrouter.ai → Keys |
 | `DATABASE_URL` | **secret** | **Secret** (for the migrate Action) | ✓ (backend) | ✗ | Supabase → Settings → Database (see note) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **secret** | — (not needed in CI) | ✓ (backend) | ✗ | Supabase → Settings → API |
-| `SUPABASE_JWT_SECRET` | **secret** | — | ✓ (backend) | ✗ | Supabase → Settings → API → JWT |
+| `SUPABASE_SERVICE_ROLE_KEY` | **secret** | — | ✓ backend *(optional)* | ✗ | Supabase → Settings → API — only if the backend calls Supabase's Auth-admin or Storage APIs; **not needed** with direct Postgres + JWKS + R2 |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT` | **secret** | — | ✓ (backend) | ✗ | Cloudflare → R2 → API tokens |
+
+**No JWT secret.** This project uses asymmetric signing keys, so there's no shared secret to
+store — see [Auth tokens](#auth-tokens-verified-via-jwks-no-secret) below.
 
 **So, directly:** `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are GitHub **variables**
 (public); `OPEN_ROUTER_API_KEY` is a GitHub **secret**.
@@ -32,6 +34,20 @@ hiding the publishable key — that's why it's public.
 > (port `5432`) — alembic runs DDL, which the transaction pooler (`6543`) does not support
 > well. And change the scheme from `postgresql://…` to **`postgresql+psycopg://…`** — the
 > backend uses the psycopg driver.
+
+## Auth tokens: verified via JWKS, no secret
+
+This project uses Supabase's **asymmetric JWT signing keys**, so there is **no shared JWT
+secret to store or paste anywhere**. The backend verifies Supabase-issued tokens against the
+public JWKS endpoint, derived from `SUPABASE_URL`:
+
+```
+<SUPABASE_URL>/auth/v1/.well-known/jwks.json
+```
+
+Those are verify-only public keys, so nothing secret is involved — consistent with
+[ADR-0020](adr/adr-0020-supabase-auth.md) IMP-001 ("JWKS / shared secret"). The legacy shared
+JWT secret (Settings → JWT Keys) is deprecated for new projects; don't use it.
 
 ## Database migrations run in CI, not on app boot
 
@@ -73,8 +89,9 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
 - Create a project for the repo (two services: `backend` and `frontend`, each from its
   `Dockerfile`), targeting the `mikrus ted106` server.
 - Set the project **env**:
-  - backend: `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`,
-    `OPEN_ROUTER_API_KEY`, the four `R2_*` — set these as secrets in Openship (not committed).
+  - backend: `DATABASE_URL`, `OPEN_ROUTER_API_KEY`, the four `R2_*` (plus
+    `SUPABASE_SERVICE_ROLE_KEY` only if you call Supabase's Auth-admin/Storage APIs) — set
+    these as secrets in Openship (not committed). No JWT secret — tokens verify via JWKS.
   - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public).
 - Public endpoint: route the app to a Mikrus port (`20106` → `ted106-20106.mikrus.cloud`).
   Keep nothing else public; Supabase is reached as an external HTTPS service.
