@@ -1,2 +1,7 @@
 # Claude Code worktrees
 .claude/worktrees/
+
+# Local environment — keep .env.example tracked
+.env
+.env.local
+!.env.example
