@@ -127,7 +127,7 @@ sequenceDiagram
     API->>API: sha256 — already indexed? return existing
     API->>DB: insert document (status=queued, progress=0)
     API-->>U: 202 + document id
-    Note over U,API: UI polls status; upload never blocks
+    Note over U,API: UI polls status — upload never blocks
 
     W->>DB: claim queued document
     W->>DB: status=processing
@@ -160,7 +160,7 @@ sequenceDiagram
     API-->>U: AG-UI: RunStarted
     API->>R: search(campaign, query)
     API-->>U: AG-UI: ToolCallStart
-    R->>R: embed the query (Voyage; keyword-only if unavailable)
+    R->>R: embed the query (Voyage, keyword-only if unavailable)
     R->>DB: tsvector match + pgvector ANN, one query
     DB-->>R: two ranked lists
     R->>R: fuse (RRF), apply relevance floor

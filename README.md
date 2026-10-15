@@ -15,13 +15,43 @@ fake LLM, with conversations stored in PostgreSQL (no provider SDKs yet).
 
 Start with [docs/README.md](docs/README.md).
 
-## Run it with Docker
+## Run it
 
-**You need** a Docker runtime with Compose v2: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-or, on macOS, [OrbStack](https://orbstack.dev/). Check with `docker compose version`.
-Nothing else: Python and Node run inside the containers.
+**Prerequisites**
 
-From the repository root:
+- A Docker runtime with Compose v2 — [OrbStack](https://orbstack.dev/) on macOS, or
+  [Docker Desktop](https://www.docker.com/products/docker-desktop/). Check with
+  `docker compose version`. Python and Node run inside the containers.
+- A **Supabase** project for the database. There is no local Postgres on purpose: you
+  develop against Supabase Cloud, so local and hosted share the same Auth, RLS, and
+  pgvector and nothing drifts between them
+  ([ADR-0018](docs/adr/adr-0018-hosted-first-local-v2.md),
+  [ADR-0020](docs/adr/adr-0020-supabase-auth.md)). Use your own or a dedicated dev
+  project — local runs write to whatever database `DATABASE_URL` names.
+
+**1. Configure.** Copy the template and fill in `DATABASE_URL`:
+
+```bash
+cp .env.example .env
+# DATABASE_URL = the Supabase *session pooler* string (port 5432),
+# scheme rewritten to postgresql+psycopg://  (Supabase → Settings → Database)
+```
+
+**2. Apply the schema** to that database once — migrations no longer run on container
+boot ([docs/setup-guide.md](docs/setup-guide.md); in the hosted deploy this is the
+**Migrate database** GitHub Action):
+
+```bash
+cd backend
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+export DATABASE_URL='postgresql+psycopg://…'            # same value as in .env; alembic reads it
+alembic upgrade head
+python -m app.adapters.persistence.sqlalchemy.seed      # optional: a demo campaign, `ashfall`
+cd ..
+```
+
+**3. Run both apps:**
 
 ```bash
 docker compose up --build
@@ -32,9 +62,8 @@ The first build takes a few minutes. When the logs settle:
 | URL | What |
 |-----|------|
 | http://localhost:8080 | The app. nginx serves the SPA and proxies `/api` to the backend |
-| http://localhost:8000/docs | The API contract, generated from the code: OpenAPI (Swagger UI), with "Try it out" |
-| http://localhost:8000/redoc | The same contract as a readable reference page; raw JSON at `/openapi.json` |
-| `localhost:5432` | PostgreSQL, user `dm`, password `dm`, database `dm_assistant` |
+| http://localhost:8000/docs | The API contract: OpenAPI (Swagger UI), with "Try it out" |
+| http://localhost:8000/redoc | The same contract as a reference page; raw JSON at `/openapi.json` |
 
 Everyday commands:
 
@@ -43,13 +72,39 @@ Everyday commands:
 | `docker compose up --build -d` | Start in the background (`-d`); rebuild after code changes |
 | `docker compose logs -f backend` | Follow one service's logs |
 | `docker compose ps` | What is running, and whether it is healthy |
-| `docker compose down` | Stop and remove the containers; the database volume is kept |
-| `docker compose down -v` | The same, and delete all database data |
+| `docker compose down` | Stop and remove the containers |
 
-Start-up order: the database becomes healthy, the backend applies migrations and seeds a
-demo campaign (`ashfall`), then the frontend starts. Conversations survive restarts. To
-browse the database or work on one app without containers, see
-[backend/README.md](backend/README.md#database) and `frontend/package.json`.
+Data lives in Supabase, so it survives restarts and a `docker compose down` never touches
+it.
+
+## Working on one app without Docker
+
+Most work needs neither containers nor a database: the backend falls back to an in-memory
+store (with a log warning) when `DATABASE_URL` is unset, and the assistant replies from a
+fake LLM until a provider is wired.
+
+**Backend** — Python 3.11+:
+
+```bash
+cd backend
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+ruff check app tests && lint-imports && pytest          # checks + tests; need no database
+uvicorn app.composition:build_app --factory --reload    # http://localhost:8000
+```
+
+Export `DATABASE_URL` first if you want conversations persisted to Supabase; leave it
+unset for a throwaway in-memory run. Schema changes and the Postgres contract tests are in
+[backend/README.md](backend/README.md).
+
+**Frontend** — Node 22 (the image builds on `node:22-alpine`):
+
+```bash
+cd frontend
+npm install
+npm run dev         # http://localhost:5173, Vite with hot reload
+npm run build       # production build   ·   npm run lint runs oxlint
+```
 
 ## Documentation
 
@@ -75,9 +130,9 @@ browse the database or work on one app without containers, see
 | Components | Radix UI primitives, documented in Storybook |
 | State | TanStack Query (server) + Zustand (UI) |
 | Backend | Python 3.11+ / FastAPI |
-| Storage | PostgreSQL — `tsvector` + `pgvector`, local and hosted |
+| Storage | PostgreSQL (Supabase Cloud) — `tsvector` + `pgvector` |
 | Extraction | PyMuPDF, pdfplumber — deterministic, no generative model |
-| AI | Gateway over Ollama and Claude |
+| AI | OpenRouter gateway, zero-retention providers only ([ADR-0019](docs/adr/adr-0019-openrouter-privacy-routing.md)) |
 
 See [ADR-0001](docs/adr/adr-0001-react-vite-spa.md) for the stack rationale.
 
