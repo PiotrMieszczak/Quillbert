@@ -95,7 +95,17 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public).
 - Public endpoint: route the app to a Mikrus port (`20106` → `ted106-20106.mikrus.cloud`).
   Keep nothing else public; Supabase is reached as an external HTTPS service.
-- Deploy and check health.
+- Deploy and check health (see **Check it's live** below).
+- **Deploy on merge:** `.github/workflows/deploy.yml` runs `openship deploy` after CI is
+  green on `main`. Openship lives on the Mac, so the job needs a **self-hosted runner on
+  the Mac** labelled `openship` (repo Settings → Actions → Runners → New self-hosted
+  runner, macOS; add the label `openship`; run it as a service). The runner user must be
+  logged in to Openship. Never let it run PR code — the workflow triggers on `main` only.
+
+**Check it's live**
+- Frontend: `http://37.27.111.248:20106/` → 200 (the SPA).
+- Backend: `http://37.27.111.248:30106/openapi.json` → 200 (also `/docs`). The same
+  backend is reachable through the frontend's proxy at `http://37.27.111.248:20106/openapi.json`.
 
 **5. Local development**
 - A gitignored `.env` with the **public** `VITE_*` values and a local/dev `DATABASE_URL`.
