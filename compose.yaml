@@ -9,6 +9,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL — a Supabase session-pooler URL (postgresql+psycopg://…)}
       OPEN_ROUTER_API_KEY: ${OPEN_ROUTER_API_KEY:-}
+      SUPABASE_URL: ${VITE_SUPABASE_URL:-}
     # No command override: the image serves uvicorn. Migrations are NOT run on boot —
     # apply them yourself with `alembic upgrade head` (and `python -m
     # app.adapters.persistence.sqlalchemy.seed` for the dev campaign). Production
@@ -30,6 +31,9 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-}
     depends_on:
       backend:
         condition: service_healthy

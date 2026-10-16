@@ -11,6 +11,7 @@ type WorkspaceShellProps = {
   campaign: Campaign;
   activeView: string;
   onNavigate: (id: string) => void;
+  onSignOut: () => void;
   children: ReactNode;
 };
 
@@ -18,6 +19,7 @@ export function WorkspaceShell({
   campaign,
   activeView,
   onNavigate,
+  onSignOut,
   children,
 }: WorkspaceShellProps) {
   useLayoutMode();
@@ -37,7 +39,7 @@ export function WorkspaceShell({
 
   return (
     <div className={[styles.shell, panelOpen && styles.panelOpen].filter(Boolean).join(" ")}>
-      <Header campaign={campaign} />
+      <Header campaign={campaign} onSignOut={onSignOut} />
       <NavRail active={activeView} onNavigate={onNavigate} />
       <main className={styles.main}>{children}</main>
       {mob && panelOpen && (

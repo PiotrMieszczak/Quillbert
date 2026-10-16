@@ -89,10 +89,12 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
 - Create a project for the repo (two services: `backend` and `frontend`, each from its
   `Dockerfile`), targeting the `mikrus ted106` server.
 - Set the project **env**:
-  - backend: `DATABASE_URL`, `OPEN_ROUTER_API_KEY`, the four `R2_*` (plus
+  - backend: `DATABASE_URL`, `SUPABASE_URL` (verifies login tokens; without it every
+    request is 401), `OPEN_ROUTER_API_KEY`, the four `R2_*` (plus
     `SUPABASE_SERVICE_ROLE_KEY` only if you call Supabase's Auth-admin/Storage APIs) — set
     these as secrets in Openship (not committed). No JWT secret — tokens verify via JWKS.
-  - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public).
+  - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public; passed as
+    Docker build args — the login screen throws at startup without them).
 - Public endpoint: route the app to a Mikrus port (`20106` → `ted106-20106.mikrus.cloud`).
   Keep nothing else public; Supabase is reached as an external HTTPS service.
 - Deploy and check health (see **Check it's live** below).
@@ -101,6 +103,13 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   the Mac** labelled `openship` (repo Settings → Actions → Runners → New self-hosted
   runner, macOS; add the label `openship`; run it as a service). The runner user must be
   logged in to Openship. Never let it run PR code — the workflow triggers on `main` only.
+
+**Supabase dashboard, once (Authentication)**
+- URL Configuration → **Site URL** and **Redirect URLs**: `http://37.27.111.248:20106` (and
+  `http://localhost:8080` for local compose). Sign-in with Google and password-reset links
+  return there; anything not listed is refused.
+- Providers → **Google**: enable it with a Google OAuth client whose redirect URI is
+  `<SUPABASE_URL>/auth/v1/callback`.
 
 **Check it's live**
 - Frontend: `http://37.27.111.248:20106/` → 200 (the SPA).

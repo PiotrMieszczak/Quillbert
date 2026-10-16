@@ -8,6 +8,7 @@
   --surface-raised: #12141a;
   --surface-elevated: #1a1d25;
   --surface-hover: #22262f;
+  --gradient-stop-b: #1a1e28;
 
   /* Borders */
   --border-subtle: #1e2027;
@@ -54,6 +55,8 @@
   --radius-input: 10px;
   --radius-button: 11px;
   --radius-card: 14px;
+  --radius-brand: 17px;
+  --radius-panel: 18px;
   --radius-rail: 20px;
   --radius-bar: 4px;
   --radius-thumb: 7px;
@@ -63,6 +66,7 @@
   /* Shadows */
   --shadow-rail-collapsed: 0 12px 30px rgba(0, 0, 0, 0.5);
   --shadow-rail-expanded: 0 30px 80px rgba(0, 0, 0, 0.75);
+  --shadow-card: 0 30px 80px rgba(0, 0, 0, 0.5);
   --shadow-accent: 0 6px 20px rgba(232, 184, 122, 0.28);
   --shadow-fab: 0 8px 28px rgba(232, 184, 122, 0.35);
   --shadow-fab-mobile: 0 10px 30px rgba(232, 184, 122, 0.4);

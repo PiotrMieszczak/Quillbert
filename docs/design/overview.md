@@ -80,8 +80,12 @@ Full-viewport, vertically centred card on the login radial gradient.
   hover border `--border-emphasis` → `#5A6270`
 - Footer: "New to Referee? Create a table"
 
-**Behaviour.** All three actions advance to the campaign picker. v1 has real auth built
-by hand ([ADR-0008](../adr/adr-0008-own-auth-v1.md)); the same screen serves local and
+**Behaviour.** Real authentication through Supabase Auth
+([ADR-0020](../adr/adr-0020-supabase-auth.md)). Sign in and Google advance to the app;
+"Create a table" switches the card to sign-up; "Forgot?" switches it to a reset request that
+shows the same confirmation whether or not the address exists (AC-011). Following a reset
+link shows a "New password" card until one is chosen. Until the campaign picker lands, a
+session goes straight to the workspace. The same screen serves local and
 hosted deployment (PRIN-004).
 
 ## 2. Campaign Picker
