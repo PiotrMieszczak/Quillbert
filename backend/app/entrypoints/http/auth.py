@@ -1,6 +1,10 @@
+import logging
+
 from fastapi import HTTPException, Request
 
 from app.ports.auth import Identity, InvalidToken, TokenVerifier
+
+logger = logging.getLogger(__name__)
 
 
 def require_identity(request: Request) -> Identity:
@@ -12,6 +16,7 @@ def require_identity(request: Request) -> Identity:
     try:
         return verifier.verify(token)
     except InvalidToken as error:
+        logger.warning("rejected bearer token: %s", error)
         raise _unauthorized("invalid token") from error
 
 

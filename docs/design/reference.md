@@ -25,6 +25,7 @@ reference tokens, never literals.
 | `--border-default` | `#22262F` | Inputs, chips |
 | `--border-strong` | `#262A33` | Nav rail, mobile sheet |
 | `--border-emphasis` | `#2E3340` | Raised buttons, hover borders |
+| `--border-emphasis-hover` | `#5A6270` | Login Google button, hover |
 
 ### Text
 

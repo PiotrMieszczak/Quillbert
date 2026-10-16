@@ -128,7 +128,7 @@
 }
 
 .google:hover:not(:disabled) {
-  border-color: #5a6270;
+  border-color: var(--border-emphasis-hover);
 }
 
 .primary:disabled,
