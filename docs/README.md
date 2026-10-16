@@ -1,7 +1,8 @@
-# DM Assistant — Documentation
+# Quillbert — Documentation
 
-MVP documentation for **DM Assistant** (working product name: *Referee*), an in-session
-workspace for tabletop RPG game masters.
+MVP documentation for **Quillbert** (earlier working names: *DM Assistant*, *Referee*), an
+in-session workspace for tabletop RPG game masters. Accepted ADRs keep the earlier names —
+records are immutable.
 
 This documentation set is the starting point for a fresh build. It supersedes the
 `referee-assistant` proof of concept, whose architecture, agent model, and technical

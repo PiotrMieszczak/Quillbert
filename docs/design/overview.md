@@ -67,8 +67,9 @@ Full-viewport, vertically centred card on the login radial gradient.
 
 - Card `max-width: 400px`, `--surface-raised`, `1px --border-subtle`,
   `--radius-panel`, `--shadow-card`, padding `26px 24px 24px`
-- Brand lockup above the card: 58×58 tile, `--radius-brand`, gradient fill, amber ✦ spark;
-  "Referee" 27px/600 Crimson Pro over "ASSISTANT" 11px, `letter-spacing .14em`, muted
+- Brand lockup above the card: 58×58 tile, `--radius-brand`, gradient fill, the gold Quillbert mark
+  (`frontend/public/quillbert-mark.svg`, 40px wide);
+  "Quillbert" 27px/600 Crimson Pro over "ASSISTANT" 11px, `letter-spacing .14em`, muted
 - "Sign in" heading 20px Crimson Pro; subtitle "Continue to your table"
 - Email and password inputs: 44px, `--radius-button`, `--surface-sunken`,
   `1px --border-default`; focus border `--accent`
@@ -78,7 +79,7 @@ Full-viewport, vertically centred card on the login radial gradient.
 - OR divider — hairline with centred "OR"
 - Google button: 44px, `--surface-elevated`, `1px --border-emphasis`, four-color G glyph,
   hover border `--border-emphasis` → `#5A6270`
-- Footer: "New to Referee? Create a table"
+- Footer: "New to Quillbert? Create a table"
 
 **Behaviour.** Real authentication through Supabase Auth
 ([ADR-0020](../adr/adr-0020-supabase-auth.md)). Sign in and Google advance to the app;
