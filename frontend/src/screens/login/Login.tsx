@@ -9,7 +9,7 @@ export function Login() {
           <img className={styles.mark} src="/quillbert-mark.svg" alt="" />
         </div>
         <div className={styles.name}>Quillbert</div>
-        <div className={styles.tagline}>ASSISTANT</div>
+        <div className={styles.tagline}>YOUR TTRPG ASSISTANT</div>
       </div>
       <LoginForm />
     </main>

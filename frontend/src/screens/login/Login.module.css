@@ -18,15 +18,15 @@
 .tile {
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
+  width: 84px;
+  height: 84px;
   border: 1px solid var(--border-emphasis);
   border-radius: var(--radius-brand);
   background: linear-gradient(135deg, var(--surface-elevated), var(--surface-raised));
 }
 
 .mark {
-  width: 40px;
+  width: 60px;
   height: auto;
 }
 

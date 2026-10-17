@@ -37,7 +37,7 @@ Two levels of routing. A top-level `screen`, and within the workspace, a `view`.
 ```mermaid
 stateDiagram-v2
     [*] --> Login
-    Login --> CampaignPicker: sign in / Google / create table
+    Login --> CampaignPicker: sign in / Google / create account
     CampaignPicker --> Login: sign out
     CampaignPicker --> Workspace: select campaign
     Workspace --> CampaignPicker: switch campaign
@@ -67,9 +67,9 @@ Full-viewport, vertically centred card on the login radial gradient.
 
 - Card `max-width: 400px`, `--surface-raised`, `1px --border-subtle`,
   `--radius-panel`, `--shadow-card`, padding `26px 24px 24px`
-- Brand lockup above the card: 58×58 tile, `--radius-brand`, gradient fill, the gold Quillbert mark
-  (`frontend/public/quillbert-mark.svg`, 40px wide);
-  "Quillbert" 27px/600 Crimson Pro over "ASSISTANT" 11px, `letter-spacing .14em`, muted
+- Brand lockup above the card: 84×84 tile, `--radius-brand`, gradient fill, the gold Quillbert mark
+  (`frontend/public/quillbert-mark.svg`, 60px wide);
+  "Quillbert" 27px/600 Crimson Pro over "YOUR TTRPG ASSISTANT" 11px, `letter-spacing .14em`, muted
 - "Sign in" heading 20px Crimson Pro; subtitle "Continue to your table"
 - Email and password inputs: 44px, `--radius-button`, `--surface-sunken`,
   `1px --border-default`; focus border `--accent`
@@ -79,11 +79,11 @@ Full-viewport, vertically centred card on the login radial gradient.
 - OR divider — hairline with centred "OR"
 - Google button: 44px, `--surface-elevated`, `1px --border-emphasis`, four-color G glyph,
   hover border `--border-emphasis` → `#5A6270`
-- Footer: "New to Quillbert? Create a table"
+- Footer: "New to Quillbert? Create account"
 
 **Behaviour.** Real authentication through Supabase Auth
 ([ADR-0020](../adr/adr-0020-supabase-auth.md)). Sign in and Google advance to the app;
-"Create a table" switches the card to sign-up; "Forgot?" switches it to a reset request that
+"Create account" switches the card to sign-up; "Forgot?" switches it to a reset request that
 shows the same confirmation whether or not the address exists (AC-011). Following a reset
 link shows a "New password" card until one is chosen. Until the campaign picker lands, a
 session goes straight to the workspace. The same screen serves local and

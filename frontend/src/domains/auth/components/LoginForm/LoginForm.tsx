@@ -14,7 +14,7 @@ type Message = { kind: "error" | "notice"; text: string };
 
 const TITLES: Record<Mode, [string, string]> = {
   signin: ["Sign in", "Continue to your table"],
-  signup: ["Create your table", "One account per game master"],
+  signup: ["Create your account", "One account per game master"],
   forgot: ["Reset password", "We'll email you a link"],
   recovery: ["New password", "Choose one to finish the reset"],
 };
@@ -135,13 +135,13 @@ export function LoginForm() {
           <>
             New to Quillbert?{" "}
             <button type="button" className={styles.link} onClick={() => go("signup")}>
-              Create a table
+              Create account
             </button>
           </>
         )}
         {mode === "signup" && (
           <>
-            Already have a table?{" "}
+            Already have an account?{" "}
             <button type="button" className={styles.link} onClick={() => go("signin")}>
               Sign in
             </button>
