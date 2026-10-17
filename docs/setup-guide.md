@@ -23,6 +23,8 @@ hiding the publishable key — that's why it's public.
 | `DATABASE_URL` | **secret** | **Secret** (for the migrate Action) | ✓ (backend) | ✗ | Supabase → Settings → Database (see note) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **secret** | — | ✓ backend *(optional)* | ✗ | Supabase → Settings → API — only if the backend calls Supabase's Auth-admin or Storage APIs; **not needed** with direct Postgres + JWKS + R2 |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT` | **secret** | — | ✓ (backend) | ✗ | Cloudflare → R2 → API tokens |
+| `FILE_STORE_PATH` | config | — | set by compose (`/data/files`) | ✗ | Where uploads live until the R2 adapter ships; a named volume (`files`) |
+| `MAX_UPLOAD_MB` | config | — | optional (default 200) | ✗ | Upload size limit. Behind Cloudflare Free the real cap is 100 MB |
 
 **No JWT secret.** This project uses asymmetric signing keys, so there's no shared secret to
 store — see [Auth tokens](#auth-tokens-verified-via-jwks-no-secret) below.

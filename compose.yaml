@@ -12,6 +12,8 @@ services:
       SUPABASE_URL: ${VITE_SUPABASE_URL:-}
       # Swagger UI and ReDoc; false unless your .env turns them on (never set in production).
       ENABLE_API_DOCS: ${ENABLE_API_DOCS:-false}
+      # Uploaded files (the local-disk FileStore); kept across restarts on a named volume.
+      FILE_STORE_PATH: /data/files
     # No command override: the image serves uvicorn. Migrations are NOT run on boot —
     # apply them yourself with `alembic upgrade head` (and `python -m
     # app.adapters.persistence.sqlalchemy.seed` for the dev campaign). Production
@@ -27,6 +29,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    volumes:
+      - files:/data/files
     ports:
       - "8000:8000"
 
@@ -41,3 +45,6 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
+
+volumes:
+  files:

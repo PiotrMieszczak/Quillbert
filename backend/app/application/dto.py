@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.domain.assistant import Mode, Role
+from app.domain.documents import DocumentKind, DocumentStatus
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,25 @@ class MessageView:
     created_at: datetime
     mode: Mode
     tool_label: str | None
+
+
+@dataclass(frozen=True)
+class DocumentView:
+    id: int
+    filename: str
+    kind: DocumentKind
+    page_count: int | None
+    meta: str | None
+    status: DocumentStatus
+    progress: int
+    error: str | None
+
+
+@dataclass(frozen=True)
+class UploadResult:
+    document: DocumentView
+    # False when the campaign already had these bytes and that document is returned.
+    created: bool
 
 
 @dataclass(frozen=True)

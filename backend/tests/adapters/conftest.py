@@ -6,10 +6,14 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
+from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
-from app.adapters.persistence.sqlalchemy.repositories import SqlConversationRepo
+from app.adapters.persistence.sqlalchemy.repositories import (
+    SqlConversationRepo,
+    SqlDocumentRepo,
+)
 from app.adapters.persistence.sqlalchemy.tables import CampaignRow
-from app.ports.repositories import ConversationRepo
+from app.ports.repositories import ConversationRepo, DocumentRepo
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -58,7 +62,10 @@ def sessions(migrated: str) -> Iterator[sessionmaker[Session]]:
     factory = create_session_factory(migrated)
     with factory.begin() as session:
         session.execute(
-            text("TRUNCATE message, conversation, campaign RESTART IDENTITY CASCADE")
+            text(
+                "TRUNCATE document, message, conversation, campaign "
+                "RESTART IDENTITY CASCADE"
+            )
         )
         # system rows are reference data from migration 0002 and are not truncated.
         session.add_all(
@@ -74,3 +81,10 @@ def conversation_repo(request: pytest.FixtureRequest) -> ConversationRepo:
     if request.param == "memory":
         return InMemoryConversationRepo(campaigns=CAMPAIGNS)
     return SqlConversationRepo(request.getfixturevalue("sessions"))
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def document_repo(request: pytest.FixtureRequest) -> DocumentRepo:
+    if request.param == "memory":
+        return InMemoryDocumentRepo(campaigns=CAMPAIGNS)
+    return SqlDocumentRepo(request.getfixturevalue("sessions"))

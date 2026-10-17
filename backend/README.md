@@ -6,12 +6,18 @@ every model call. The SPA in `frontend/` talks to it over HTTP; streaming uses
 
 ## What runs today
 
-A Research chat turn, stored in PostgreSQL, answered by a fake model.
+A Research chat turn, stored in PostgreSQL, answered by a fake model, and document upload.
 
 - `POST /api/v1/campaigns/{cid}/conversations` — start a conversation (`mode: research`)
 - `GET /api/v1/campaigns/{cid}/conversations/{id}/messages` — history
 - `POST /api/v1/campaigns/{cid}/conversations/{id}/messages` — send a message; response is
   `text/event-stream` (`RunStarted`, text deltas, `RunFinished`)
+- `POST /api/v1/campaigns/{cid}/documents` — upload a file (multipart field `file`): `202`
+  and a `queued` document, or `200` and the existing one when the campaign already has
+  those bytes. `GET .../documents` and `GET .../documents/{id}` list and poll. PDF,
+  Markdown, text and DOCX only, checked by extension *and* content; the limit is
+  `MAX_UPLOAD_MB` (200). Files go to the `FileStore` (`FILE_STORE_PATH`, a Docker volume in
+  compose); extraction and indexing are not built yet, so documents stay `queued`.
 
 The reply comes from `adapters/llm/fake.py`. Conversations live in PostgreSQL when
 `DATABASE_URL` is set, and in memory (with a warning in the log) when it is not. A
@@ -158,13 +164,15 @@ again in the test suite.
 
 ### Run the Postgres tests
 
-The tests empty the tables they use. Point them at a separate database, never at
-`dm_assistant`:
+The tests empty the tables they use, so never point them at a shared Supabase project. Use a
+throwaway pgvector container (the one CI uses):
 
 ```bash
-docker compose exec db createdb -U dm dm_test
-export TEST_DATABASE_URL=postgresql+psycopg://dm:dm@localhost:5432/dm_test
+docker run -d --rm --name test-pg -e POSTGRES_USER=dm -e POSTGRES_PASSWORD=dm \
+  -e POSTGRES_DB=dm_test -p 127.0.0.1:54329:5432 pgvector/pgvector:pg16
+export TEST_DATABASE_URL=postgresql+psycopg://dm:dm@127.0.0.1:54329/dm_test
 pytest -rs
+docker stop test-pg
 ```
 
 ### Start over

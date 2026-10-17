@@ -12,3 +12,9 @@ class Settings(BaseSettings):
 
     # Serve Swagger UI (/docs) and ReDoc (/redoc). Off unless set: private in prod.
     enable_api_docs: bool = False
+
+    # Where uploaded files live (the local-disk FileStore). Mount a volume here.
+    file_store_path: str = "./data/files"
+
+    # Largest accepted upload, in MB.
+    max_upload_mb: int = 200

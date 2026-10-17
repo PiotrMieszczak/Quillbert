@@ -2,7 +2,18 @@
 
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Identity, MetaData, Text, func
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Identity,
+    Integer,
+    MetaData,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Stable constraint names, so migrations can refer to them.
@@ -74,3 +85,36 @@ class MessageRow(Base):
     mode: Mapped[str] = mapped_column(Text)
     tool_label: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class DocumentRow(Base):
+    """An uploaded or imported file. See docs/data-model.md `document`."""
+
+    __tablename__ = "document"
+    __table_args__ = (
+        # One copy of a file per campaign (ADR-0016 IMP-003).
+        UniqueConstraint(
+            "campaign_id", "sha256", name="uq_document_campaign_id_sha256"
+        ),
+        CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
+        CheckConstraint(
+            "status IN ('queued', 'processing', 'indexed', 'failed')", name="status"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    campaign_id: Mapped[str] = mapped_column(
+        ForeignKey("campaign.id", ondelete="CASCADE"), index=True
+    )
+    filename: Mapped[str] = mapped_column(Text)
+    kind: Mapped[str] = mapped_column(Text)
+    page_count: Mapped[int | None] = mapped_column(Integer)
+    meta: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text)
+    progress: Mapped[int] = mapped_column(Integer, server_default="0")
+    error: Mapped[str | None] = mapped_column(Text)
+    storage_key: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(Text)
+    source_ref: Mapped[str | None] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(Text)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

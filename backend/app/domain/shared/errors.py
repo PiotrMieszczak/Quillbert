@@ -8,3 +8,11 @@ class NotFound(DomainError):
 
 class ValidationFailed(DomainError):
     pass
+
+
+class UnsupportedFileType(DomainError):
+    """The file's extension or content is not one the library accepts (415)."""
+
+
+class FileTooLarge(DomainError):
+    """The file exceeds the upload limit (413)."""
