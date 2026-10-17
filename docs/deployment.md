@@ -33,9 +33,13 @@ service**; files are object storage. Openship is the deploy manager, run **self-
 - **The app talks to Supabase Cloud over the network** — Postgres (connection string /
   pooler) for data, and the Supabase API (Auth, Storage) over HTTPS. Nothing
   database-related runs on `ted106`.
-- **Publishing (Mikrus model).** Only the DM app needs a public endpoint: one Mikrus port
-  (`20106` → `ted106-20106.mikrus.cloud`). The second port and IPv6:80 stay free. Supabase
-  is reached as an external HTTPS service, not published from the box.
+- **Publishing (Mikrus model).** Only Quillbert needs a public endpoint, through two free
+  Mikrus subdomains that proxy to the server's **IPv6** ports: `quillbert.mikrus.dev` →
+  frontend (`20106`) and `quillbertapi.mikrus.dev` → backend (`30106`). Mikrus validates an
+  HTTP server on the IPv6 address, so both services are published IPv6-only
+  (`:::20106:80`, `:::30106:8000` as Openship service port overrides): the raw IPv4 URLs
+  (`http://37.27.111.248:20106`) no longer answer. Supabase is reached as an external HTTPS
+  service, not published from the box.
 
 ## Environment & secrets
 
