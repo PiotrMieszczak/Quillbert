@@ -6,6 +6,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+# Public values, inlined into the bundle by Vite at build time.
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
 RUN npm run build
 
 FROM nginx:1.27-alpine

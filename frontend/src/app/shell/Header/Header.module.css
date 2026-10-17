@@ -21,6 +21,24 @@
   font-size: 12px;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.signOut {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.signOut:hover {
+  color: var(--text-primary);
+}
+
 .avatar {
   width: 40px;
   height: 40px;
