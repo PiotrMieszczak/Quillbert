@@ -33,13 +33,15 @@ service**; files are object storage. Openship is the deploy manager, run **self-
 - **The app talks to Supabase Cloud over the network** — Postgres (connection string /
   pooler) for data, and the Supabase API (Auth, Storage) over HTTPS. Nothing
   database-related runs on `ted106`.
-- **Publishing (Mikrus model).** Only Quillbert needs a public endpoint, through two free
-  Mikrus subdomains that proxy to the server's **IPv6** ports: `quillbert.mikrus.dev` →
-  frontend (`20106`) and `quillbertapi.mikrus.dev` → backend (`30106`). Mikrus validates an
-  HTTP server on the IPv6 address, so both services are published IPv6-only
-  (`:::20106:80`, `:::30106:8000` as Openship service port overrides): the raw IPv4 URLs
-  (`http://37.27.111.248:20106`) no longer answer. Supabase is reached as an external HTTPS
-  service, not published from the box.
+- **Publishing (Mikrus model).** Only Quillbert needs a public endpoint, and it is reached
+  over the server's **IPv6**. The frontend is published on IPv6 port 80 and the backend on
+  `30106` (`:::80:80`, `:::30106:8000` as Openship service port overrides), so the raw IPv4
+  URLs (`http://37.27.111.248:20106`) no longer answer. Three names point at it:
+  `quillbert.app` (Cloudflare `AAAA` → the server's IPv6, proxied, SSL mode **Flexible**:
+  Cloudflare reaches the origin over plain HTTP on port 80), `quillbert.mikrus.dev` (Mikrus
+  free subdomain → port 80) and `quillbertapi.mikrus.dev` (→ `30106`). The API is also
+  reachable through the frontend's proxy, so `quillbert.app` alone is enough. Supabase is
+  reached as an external HTTPS service, not published from the box.
 
 ## Environment & secrets
 

@@ -96,9 +96,11 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public; passed as
     Docker build args — the login screen throws at startup without them).
 - Public endpoint: override the service ports in Openship to bind IPv6 only
-  (`openship service update frontend <file>` with `{"ports":[":::20106:80"]}`, backend
-  `{"ports":[":::30106:8000"]}`; `[::]:…` is not parsed, use `:::`), then add two Mikrus
-  subdomains with the `domains` tool: `quillbert` → port `20106`, `quillbertapi` → port
+  (`openship service update frontend <file>` with `{"ports":[":::80:80"]}`, backend
+  `{"ports":[":::30106:8000"]}`; `[::]:…` is not parsed, use `:::`; one binding per container
+  port). Then, in Cloudflare, add an `AAAA` record `@` → the server's IPv6 (proxied) and set
+  SSL/TLS to **Flexible** (the origin serves plain HTTP; **Full** gives a 521). Optional
+  Mikrus subdomains via the `domains` tool: `quillbert` → port `80`, `quillbertapi` → port
   `30106`, zone `mikrus.dev`. Keep nothing else public; Supabase is reached as an external
   HTTPS service.
 - Deploy and check health (see **Check it's live** below).
@@ -109,16 +111,16 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   logged in to Openship. Never let it run PR code — the workflow triggers on `main` only.
 
 **Supabase dashboard, once (Authentication)**
-- URL Configuration → **Site URL** and **Redirect URLs**: `https://quillbert.mikrus.dev` (and
-  `http://localhost:8080` for local compose). Sign-in with Google and password-reset links
+- URL Configuration → **Site URL** and **Redirect URLs**: `https://quillbert.app` (plus
+  `https://quillbert.app/**`, and `http://localhost:8080` for local compose). Sign-in with Google and password-reset links
   return there; anything not listed is refused.
 - Providers → **Google**: enable it with a Google OAuth client whose redirect URI is
   `<SUPABASE_URL>/auth/v1/callback`.
 
 **Check it's live**
-- Frontend: `https://quillbert.mikrus.dev/` → 200 (the SPA).
+- Frontend: `https://quillbert.app/` → 200 (the SPA).
 - Backend: `https://quillbertapi.mikrus.dev/openapi.json` → 200 (also `/docs`). The same
-  backend is reachable through the frontend's proxy at `https://quillbert.mikrus.dev/openapi.json`.
+  backend is reachable through the frontend's proxy at `https://quillbert.app/openapi.json`.
 
 **5. Local development**
 - A gitignored `.env` with the **public** `VITE_*` values and a local/dev `DATABASE_URL`.
