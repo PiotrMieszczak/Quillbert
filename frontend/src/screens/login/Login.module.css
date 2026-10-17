@@ -23,8 +23,11 @@
   border: 1px solid var(--border-emphasis);
   border-radius: var(--radius-brand);
   background: linear-gradient(135deg, var(--surface-elevated), var(--surface-raised));
-  color: var(--accent);
-  font-size: 26px;
+}
+
+.mark {
+  width: 40px;
+  height: auto;
 }
 
 .name {

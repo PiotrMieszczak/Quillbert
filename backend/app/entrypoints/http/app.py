@@ -5,7 +5,7 @@ from app.entrypoints.http.routers.assistant import router as assistant_router
 
 
 def create_http_app() -> FastAPI:
-    app = FastAPI(title="DM Assistant")
+    app = FastAPI(title="Quillbert")
     register_error_handlers(app)
     app.include_router(assistant_router)
     return app

@@ -1,6 +1,6 @@
 # Backend
 
-FastAPI service for DM Assistant. It owns conversations, retrieval, ingestion, and
+FastAPI service for Quillbert. It owns conversations, retrieval, ingestion, and
 every model call. The SPA in `frontend/` talks to it over HTTP; streaming uses
 [AG-UI](https://docs.ag-ui.com/) over SSE ([ADR-0009](../docs/adr/adr-0009-ag-ui-protocol.md)).
 
