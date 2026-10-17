@@ -54,7 +54,10 @@
 }
 
 .input:focus {
+  /* The accent border is the focus ring; outline:none keeps the global :focus-visible ring
+     from drawing a second one around it. */
   border-color: var(--accent);
+  outline: none;
 }
 
 .link {
