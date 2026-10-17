@@ -133,7 +133,7 @@ export function LoginForm() {
       <p className={styles.footer}>
         {mode === "signin" && (
           <>
-            New to Referee?{" "}
+            New to Quillbert?{" "}
             <button type="button" className={styles.link} onClick={() => go("signup")}>
               Create a table
             </button>

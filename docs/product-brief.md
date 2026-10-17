@@ -19,7 +19,7 @@ books, which is worse than useless at the table.
 
 ## The product
 
-DM Assistant helps a game master **build** a campaign and **run** it, with an AI that does
+Quillbert helps a game master **build** a campaign and **run** it, with an AI that does
 both jobs without confusing them.
 
 Two modes, deliberately separate ([ADR-0012](adr/adr-0012-two-ai-modes.md)):

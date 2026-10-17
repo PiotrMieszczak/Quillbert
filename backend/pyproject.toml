@@ -1,7 +1,7 @@
 [project]
 name = "dm-assistant-backend"
 version = "0.0.0"
-description = "FastAPI backend for DM Assistant"
+description = "FastAPI backend for Quillbert"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",

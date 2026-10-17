@@ -1,4 +1,4 @@
-# dm_assistant
+# Quillbert
 
 An in-session workspace for tabletop RPG game masters: campaign material on the left,
 an assistant grounded in that material on the right.
