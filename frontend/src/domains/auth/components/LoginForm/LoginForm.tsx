@@ -7,12 +7,13 @@ import {
   signUp,
 } from "../../api";
 import { useAuthStore } from "../../store";
+import { CheckEmail } from "./CheckEmail";
 import styles from "./LoginForm.module.css";
 
-type Mode = "signin" | "signup" | "forgot" | "recovery";
+type Mode = "signin" | "signup" | "forgot" | "recovery" | "confirm";
 type Message = { kind: "error" | "notice"; text: string };
 
-const TITLES: Record<Mode, [string, string]> = {
+const TITLES: Record<Exclude<Mode, "confirm">, [string, string]> = {
   signin: ["Sign in", "Continue to your table"],
   signup: ["Create your account", "One account per game master"],
   forgot: ["Reset password", "We'll email you a link"],
@@ -30,12 +31,17 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<Message | null>(null);
   const [pending, setPending] = useState(false);
-  const [title, subtitle] = TITLES[mode];
 
   const go = (next: Mode) => {
     setMode(next);
     setMessage(null);
   };
+
+  // Sign-up with email confirmation on: a screen of its own, not a line under the form.
+  if (mode === "confirm") {
+    return <CheckEmail email={email} onBack={() => go("signin")} onChangeAddress={() => go("signup")} />;
+  }
+  const [title, subtitle] = TITLES[mode];
 
   async function run(action: () => Promise<Message | null | void>) {
     setPending(true);
@@ -54,8 +60,11 @@ export function LoginForm() {
     void run(async () => {
       if (mode === "signin") return void (await signIn(email, password));
       if (mode === "signup") {
-        const signedIn = await signUp(email, password);
-        return signedIn ? null : { kind: "notice", text: "Check your email to confirm your account." };
+        if (!(await signUp(email, password))) {
+          setPassword("");
+          setMode("confirm");
+        }
+        return null;
       }
       if (mode === "forgot") {
         await requestPasswordReset(email);

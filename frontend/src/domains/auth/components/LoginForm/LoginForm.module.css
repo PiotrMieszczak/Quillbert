@@ -118,7 +118,8 @@
   background: var(--border-default);
 }
 
-.google {
+.google,
+.secondary {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,12 +131,14 @@
   border-radius: var(--radius-button);
 }
 
-.google:hover:not(:disabled) {
+.google:hover:not(:disabled),
+.secondary:hover:not(:disabled) {
   border-color: var(--border-emphasis-hover);
 }
 
 .primary:disabled,
-.google:disabled {
+.google:disabled,
+.secondary:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -149,4 +152,32 @@
 
 .footer .link {
   font-size: 13px;
+}
+
+/* "Check your email" screen after sign-up */
+.centered {
+  text-align: center;
+}
+
+.sentIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-button);
+  color: var(--accent);
+}
+
+.address {
+  color: var(--text-primary);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.centered.error,
+.centered.notice {
+  margin-bottom: 14px;
 }

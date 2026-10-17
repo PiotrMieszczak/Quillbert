@@ -83,7 +83,10 @@ Full-viewport, vertically centred card on the login radial gradient.
 
 **Behaviour.** Real authentication through Supabase Auth
 ([ADR-0020](../adr/adr-0020-supabase-auth.md)). Sign in and Google advance to the app;
-"Create account" switches the card to sign-up; "Forgot?" switches it to a reset request that
+"Create account" switches the card to sign-up; when the project requires email confirmation,
+submitting it replaces the card with a **Check your email** screen (envelope tile, the
+address it was sent to, **Resend email**, and "Start over" / "Back to sign in") instead of
+an inline message; "Forgot?" switches it to a reset request that
 shows the same confirmation whether or not the address exists (AC-011). Following a reset
 link shows a "New password" card until one is chosen. Until the campaign picker lands, a
 session goes straight to the workspace. The same screen serves local and
