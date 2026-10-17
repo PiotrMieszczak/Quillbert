@@ -119,8 +119,11 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
 
 **Check it's live**
 - Frontend: `https://quillbert.app/` → 200 (the SPA).
-- Backend: `https://quillbertapi.mikrus.dev/openapi.json` → 200 (also `/docs`). The same
-  backend is reachable through the frontend's proxy at `https://quillbert.app/openapi.json`.
+- Backend: `https://quillbertapi.mikrus.dev/openapi.json` → 200. Swagger UI and ReDoc are
+  off in production (`/docs` and `/redoc` → 404 there): the `ENABLE_API_DOCS` variable is
+  unset, and the frontend nginx does not proxy `/docs`, `/redoc` or `/openapi.json`. The API
+  itself is reachable through the proxy at `https://quillbert.app/api/…`; without a token it
+  answers 401.
 
 **5. Local development**
 - A gitignored `.env` with the **public** `VITE_*` values and a local/dev `DATABASE_URL`.

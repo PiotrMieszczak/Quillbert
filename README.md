@@ -10,8 +10,11 @@ factions, a quest log, session records, and a knowledge graph of how everyone co
 
 ## Status
 
-Frontend workspace shell is in progress. The backend runs a Research chat turn against a
-fake LLM, with conversations stored in PostgreSQL (no provider SDKs yet).
+Live at **https://quillbert.app** (hosted on Mikrus behind Cloudflare; see
+[docs/deployment.md](docs/deployment.md)). Sign-in works through Supabase Auth, email and
+password or Google. The frontend workspace shell is in progress. The backend runs a Research
+chat turn against a fake LLM, with conversations stored in PostgreSQL (no provider SDKs yet).
+The API docs (Swagger UI) are served locally only, never on the public site.
 
 Start with [docs/README.md](docs/README.md).
 
@@ -29,13 +32,23 @@ Start with [docs/README.md](docs/README.md).
   [ADR-0020](docs/adr/adr-0020-supabase-auth.md)). Use your own or a dedicated dev
   project — local runs write to whatever database `DATABASE_URL` names.
 
-**1. Configure.** Copy the template and fill in `DATABASE_URL`:
+**1. Configure.** Copy the template and fill in the Supabase values:
 
 ```bash
 cp .env.example .env
 # DATABASE_URL = the Supabase *session pooler* string (port 5432),
-# scheme rewritten to postgresql+psycopg://  (Supabase → Settings → Database)
+#   scheme rewritten to postgresql+psycopg://  (Supabase → Settings → Database)
+# VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY = Supabase → Settings → API
+#   (public values; the login screen and token verification need them)
+# ENABLE_API_DOCS=true is already in the template: it turns on /docs and /redoc locally
 ```
+
+**Sign-in locally.** In the Supabase dashboard (Authentication → URL Configuration), add
+`http://localhost:8080` and `http://localhost:5173` to **Redirect URLs**. Email and password
+sign-up works as soon as the project allows it; **Continue with Google** needs the Google
+provider enabled (Authentication → Sign In / Providers) with an OAuth client — see
+[docs/setup-guide.md](docs/setup-guide.md). Without the two `VITE_SUPABASE_*` values the
+login page stays blank.
 
 **2. Apply the schema** to that database once — migrations no longer run on container
 boot ([docs/setup-guide.md](docs/setup-guide.md); in the hosted deploy this is the
@@ -64,6 +77,10 @@ The first build takes a few minutes. When the logs settle:
 | http://localhost:8080 | The app. nginx serves the SPA and proxies `/api` to the backend |
 | http://localhost:8000/docs | The API contract: OpenAPI (Swagger UI), with "Try it out" |
 | http://localhost:8000/redoc | The same contract as a reference page; raw JSON at `/openapi.json` |
+
+The API docs live on the backend port only and only while `ENABLE_API_DOCS=true`. The nginx
+on :8080 (and the public site) serves just the SPA and `/api/`, and deployed environments
+leave the variable unset.
 
 Everyday commands:
 
@@ -94,17 +111,27 @@ uvicorn app.composition:build_app --factory --reload    # http://localhost:8000
 ```
 
 Export `DATABASE_URL` first if you want conversations persisted to Supabase; leave it
-unset for a throwaway in-memory run. Schema changes and the Postgres contract tests are in
-[backend/README.md](backend/README.md).
+unset for a throwaway in-memory run. Export `SUPABASE_URL` (the same value as
+`VITE_SUPABASE_URL`) so the API can verify sign-in tokens; without it every authenticated
+route answers 401. `export ENABLE_API_DOCS=true` turns on `/docs` and `/redoc`. Schema
+changes and the Postgres contract tests are in [backend/README.md](backend/README.md).
 
 **Frontend** — Node 22 (the image builds on `node:22-alpine`):
 
 ```bash
 cd frontend
 npm install
+cat > .env.local <<'EOF'
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+EOF
 npm run dev         # http://localhost:5173, Vite with hot reload
 npm run build       # production build   ·   npm run lint runs oxlint
 ```
+
+Vite reads `frontend/.env.local` (gitignored), not the root `.env`. The dev server has no
+`/api` proxy yet, and the UI does not call the backend yet, so sign-in is the part you can
+exercise: use Docker (`:8080`) when you need the full path through nginx.
 
 ## Documentation
 
