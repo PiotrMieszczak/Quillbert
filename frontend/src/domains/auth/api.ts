@@ -17,6 +17,9 @@ export const signUp = async (email: string, password: string) => {
   return result.data.session !== null;
 };
 
+export const resendConfirmation = (email: string) =>
+  supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: redirectTo() } }).then(check);
+
 export const signInWithGoogle = () =>
   supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: redirectTo() } }).then(check);
 
