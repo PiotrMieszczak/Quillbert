@@ -9,3 +9,6 @@ class Settings(BaseSettings):
 
     # https://<project-ref>.supabase.co. Unset: every authenticated route returns 401.
     supabase_url: str | None = None
+
+    # Serve Swagger UI (/docs) and ReDoc (/redoc). Off unless set: private in prod.
+    enable_api_docs: bool = False

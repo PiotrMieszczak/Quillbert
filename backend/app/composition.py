@@ -66,7 +66,7 @@ def build_use_cases(
 
 def build_app(use_cases: UseCases | None = None) -> FastAPI:
     cases = use_cases or build_use_cases()
-    app = create_http_app()
+    app = create_http_app(api_docs=Settings().enable_api_docs)
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
     app.state.list_messages = cases.list_messages
