@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NAV_ITEMS, TAB_IDS } from "../navItems";
+import { NAV_ITEMS, TAB_COUNT, TAB_IDS } from "../navItems";
 import styles from "./TabBar.module.css";
 
 type TabBarProps = {
@@ -7,8 +7,12 @@ type TabBarProps = {
   onNavigate: (id: string) => void;
 };
 
-const TABS = TAB_IDS.map((id) => NAV_ITEMS.find((item) => item.id === id)!);
-const OVERFLOW = NAV_ITEMS.filter((item) => !TAB_IDS.includes(item.id));
+const BY_PRIORITY = [
+  ...NAV_ITEMS.filter((item) => TAB_IDS.includes(item.id)),
+  ...NAV_ITEMS.filter((item) => !TAB_IDS.includes(item.id)),
+];
+const TABS = BY_PRIORITY.slice(0, TAB_COUNT);
+const OVERFLOW = BY_PRIORITY.slice(TAB_COUNT);
 
 export function TabBar({ active, onNavigate }: TabBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
@@ -55,17 +59,19 @@ export function TabBar({ active, onNavigate }: TabBarProps) {
           );
         })}
 
-        <button
-          type="button"
-          className={[styles.tab, inOverflow && styles.active].filter(Boolean).join(" ")}
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen((open) => !open)}
-        >
-          <span className={styles.glyph} aria-hidden>
-            ⋯
-          </span>
-          <span className={styles.label}>More</span>
-        </button>
+        {OVERFLOW.length > 0 && (
+          <button
+            type="button"
+            className={[styles.tab, inOverflow && styles.active].filter(Boolean).join(" ")}
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen((open) => !open)}
+          >
+            <span className={styles.glyph} aria-hidden>
+              ⋯
+            </span>
+            <span className={styles.label}>More</span>
+          </button>
+        )}
       </nav>
 
       {moreOpen && (

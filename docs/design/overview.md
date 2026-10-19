@@ -126,6 +126,10 @@ expands to 236px on hover **or** when pinned. `--surface-raised`,
 
 Items, in order: Overview, NPCs, Players, Factions, Quest Log, Documents,
 Knowledge Graph, Sessions. Active item uses `--accent`; labels fade in only when expanded.
+Until a destination's view is built it is hidden from the rail and the tab bar, never shown
+leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The tab
+bar fills its four tabs from Home, NPCs, Party, Quests first, then any other built view, and
+shows **More** only when something is left over.
 
 ### AI panel
 
