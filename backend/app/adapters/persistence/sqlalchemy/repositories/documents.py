@@ -1,4 +1,4 @@
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -55,5 +55,17 @@ class SqlDocumentRepo:
             DocumentRow.campaign_id == campaign_id, DocumentRow.sha256 == sha256
         )
         with self._sessions() as session:
+            row = session.scalars(query).one_or_none()
+            return None if row is None else mappers.document_from_row(row)
+
+    def remove(self, campaign_id: str, document_id: int) -> Document | None:
+        query = (
+            delete(DocumentRow)
+            .where(
+                DocumentRow.id == document_id, DocumentRow.campaign_id == campaign_id
+            )
+            .returning(DocumentRow)
+        )
+        with self._sessions.begin() as session:
             row = session.scalars(query).one_or_none()
             return None if row is None else mappers.document_from_row(row)

@@ -156,7 +156,10 @@ When closed on desktop, a pill FAB ("✦ Assistant") appears bottom-right.
 | **Players** | Party cards showing character and player name, class, level; "Add Player" opens a form view |
 | **Factions** | Cards with name, type, influence, motto, member count, relationship colour |
 | **Quests** | Status tabs (Available / In progress / Completed / Failed / Inactive) over rows with gradient glyph tile, title, subquest line, progress bar, and actions. Failed and inactive quests offer Reactivate |
-| **Documents** | List with type badge, page count, meta line, status pill (`Indexed` green / `Processing` accent / `Queued` muted / `Failed` red) and a progress bar. Files upload as soon as they are dropped or picked: each shows an `Uploading` row until the API accepts it, then the real `Queued` row; a refused file stays as a red `Failed` row with the server's reason and a dismiss button; bytes the campaign already has show "already in the library as …" and add no row. The list polls while anything is queued or processing. Loading, load-error (with *Try again*) and empty states sit where the list goes |
+| **Documents** | List with type badge, page count, meta line, status pill (`Indexed` green / `Processing` accent / `Queued` muted / `Failed` red) and a progress bar. Files upload as soon as they are dropped or picked: each shows an `Uploading` row until the API accepts it, then the real `Queued` row; an `Uploading` row has **Cancel**, which aborts the request and drops the row;
+a refused file stays as a red `Failed` row with the server's reason and a dismiss button;
+a stored document has a remove (trash) button that turns into **Remove** / **Keep** before
+anything is deleted; bytes the campaign already has show "already in the library as …" and add no row. The list polls while anything is queued or processing. Loading, load-error (with *Try again*) and empty states sit where the list goes |
 | **Knowledge Graph** | Interactive node graph with relationship legend and search |
 | **Sessions** | Date-tile entries with title, duration, tags, and summary; a rich-text composer creates new entries |
 | **Settings** | Reached via avatar, not the rail |

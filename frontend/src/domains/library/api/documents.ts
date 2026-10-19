@@ -48,10 +48,16 @@ export function useDocuments(campaignId: string) {
   });
 }
 
-/** `duplicate` is true when the campaign already had these bytes (the API answers 200, not 202). */
-export async function uploadDocument(campaignId: string, file: File) {
+/** `duplicate` is true when the campaign already had these bytes (the API answers 200, not 202).
+ *  Aborting `signal` cancels the upload. */
+export async function uploadDocument(campaignId: string, file: File, signal?: AbortSignal) {
   const form = new FormData();
   form.append("file", file);
-  const { status, data } = await apiFetch<DocumentDto>(documentsPath(campaignId), { method: "POST", body: form });
+  const { status, data } = await apiFetch<DocumentDto>(documentsPath(campaignId), { method: "POST", body: form, signal });
   return { document: toDocument(data), duplicate: status === 200 };
+}
+
+/** Removes the document and its stored file. */
+export async function deleteDocument(campaignId: string, documentId: string) {
+  await apiFetch<null>(`${documentsPath(campaignId)}/${encodeURIComponent(documentId)}`, { method: "DELETE" });
 }

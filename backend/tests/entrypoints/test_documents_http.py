@@ -107,3 +107,27 @@ def test_every_documents_route_needs_a_token(anonymous_client: TestClient) -> No
     assert anonymous_client.get(URL).status_code == 401
     assert anonymous_client.get(f"{URL}/1").status_code == 401
     assert _upload(anonymous_client).status_code == 401
+
+
+def test_delete_returns_204_and_the_document_is_gone(client: TestClient) -> None:
+    created = _upload(client).json()
+
+    response = client.delete(f"{URL}/{created['id']}")
+
+    assert response.status_code == 204
+    assert response.content == b""
+    assert client.get(URL).json() == []
+    assert client.get(f"{URL}/{created['id']}").status_code == 404
+
+
+def test_deleting_a_missing_or_foreign_document_is_404(client: TestClient) -> None:
+    created = _upload(client).json()
+
+    assert client.delete(f"{URL}/99").status_code == 404
+    other = "/api/v1/campaigns/other/documents"
+    assert client.delete(f"{other}/{created['id']}").status_code == 404
+    assert len(client.get(URL).json()) == 1
+
+
+def test_delete_needs_a_token(anonymous_client: TestClient) -> None:
+    assert anonymous_client.delete(f"{URL}/1").status_code == 401

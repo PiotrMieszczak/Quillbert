@@ -32,6 +32,12 @@ class InMemoryDocumentRepo:
             key=lambda document: document.id,
         )
 
+    def remove(self, campaign_id: str, document_id: int) -> Document | None:
+        document = self.get(campaign_id, document_id)
+        if document is not None:
+            del self._documents[document_id]
+        return document
+
     def find_by_sha256(self, campaign_id: str, sha256: str) -> Document | None:
         for document in self.list_for_campaign(campaign_id):
             if document.sha256 == sha256:
