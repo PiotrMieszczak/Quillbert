@@ -2,7 +2,8 @@
 
 export type DocumentKind = "PDF" | "DOC" | "IMG";
 
-export type DocumentStatus = "Indexed" | "Processing" | "Queued";
+/** "Uploading" exists only in the browser, before the API has the file. */
+export type DocumentStatus = "Indexed" | "Processing" | "Queued" | "Failed" | "Uploading";
 
 export type LibraryDocument = {
   id: string;

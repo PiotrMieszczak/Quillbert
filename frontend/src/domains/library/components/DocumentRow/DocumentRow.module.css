@@ -54,6 +54,31 @@
   font: 12px var(--font-mono);
 }
 
+.metaError {
+  color: var(--rel-enemy);
+  font: 12px var(--font-mono);
+}
+
+.dismiss {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dismiss:hover {
+  border-color: var(--border-emphasis-hover);
+  color: var(--text-primary);
+}
+
 .progress {
   flex: none;
   display: flex;

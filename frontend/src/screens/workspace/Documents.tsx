@@ -1,3 +1,4 @@
+import { CAMPAIGN } from "../../domains/campaign";
 import { DocumentLibrary } from "../../domains/library";
 import { PageTitle } from "../../ui/components";
 import styles from "./Documents.module.css";
@@ -11,7 +12,8 @@ export function Documents() {
           Deterministic extraction · text, stat blocks, and rules indexed for search
         </p>
       </header>
-      <DocumentLibrary />
+      {/* shortcut: the fixture campaign until #7 routes /c/:campaignId; then read it from the URL. */}
+      <DocumentLibrary campaignId={CAMPAIGN.id} />
     </div>
   );
 }

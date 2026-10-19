@@ -5,16 +5,25 @@ const STATUS_TONE: Record<DocumentStatus, string> = {
   Indexed: "var(--success)",
   Processing: "var(--accent)",
   Queued: "var(--text-muted)",
+  Uploading: "var(--accent)",
+  Failed: "var(--rel-enemy)",
 };
 
-export function DocumentRow({ document }: { document: LibraryDocument }) {
+type DocumentRowProps = {
+  document: LibraryDocument;
+  /** Shown for a refused upload, so the user can clear it. */
+  onDismiss?: () => void;
+};
+
+export function DocumentRow({ document, onDismiss }: DocumentRowProps) {
   const tone = STATUS_TONE[document.status];
+  const failed = document.status === "Failed";
   return (
     <li className={styles.row}>
       <span className={styles.thumb}>{document.kind}</span>
       <span className={styles.body}>
         <span className={styles.name}>{document.name}</span>
-        <span className={styles.meta}>
+        <span className={failed ? styles.metaError : styles.meta}>
           {document.pages === null ? document.meta : `${document.pages} pp · ${document.meta}`}
         </span>
       </span>
@@ -23,7 +32,7 @@ export function DocumentRow({ document }: { document: LibraryDocument }) {
           <span className={styles.status} style={{ color: tone }}>
             {document.status}
           </span>
-          <span className={styles.pct}>{document.progress}%</span>
+          {document.status !== "Uploading" && !failed && <span className={styles.pct}>{document.progress}%</span>}
         </span>
         <span
           className={styles.track}
@@ -33,9 +42,14 @@ export function DocumentRow({ document }: { document: LibraryDocument }) {
           aria-valuemin={0}
           aria-valuemax={100}
         >
-          <span className={styles.fill} style={{ width: `${document.progress}%`, background: tone }} />
+          <span className={styles.fill} style={{ width: failed ? "100%" : `${document.progress}%`, background: tone }} />
         </span>
       </span>
+      {onDismiss && (
+        <button type="button" className={styles.dismiss} aria-label={`Dismiss ${document.name}`} onClick={onDismiss}>
+          ×
+        </button>
+      )}
     </li>
   );
 }
