@@ -18,3 +18,14 @@ class Settings(BaseSettings):
 
     # Largest accepted upload, in MB.
     max_upload_mb: int = 200
+
+    # OpenRouter key (OPEN_ROUTER_API_KEY). Unset: a fake embedder, no network.
+    open_router_api_key: str | None = None
+
+    # The one embedding model for every user and campaign (ADR-0021). Changing it is a
+    # re-embed migration, not a setting: the startup check refuses a mismatch.
+    embedding_model: str = "google/gemini-embedding-2"
+
+    # OpenRouter endpoint tag; must be a zero-retention one. google-vertex/eu is
+    # nearest the Supabase region.
+    embedding_provider: str = "google-vertex/eu"

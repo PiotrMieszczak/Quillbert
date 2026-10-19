@@ -69,6 +69,13 @@ def test_database_libraries_only_under_sqlalchemy_adapter() -> None:
         )
 
 
+def test_openrouter_is_only_named_under_llm_gateway() -> None:
+    """BND-002: no other module may know the provider's endpoint."""
+    for path in APP.rglob("*.py"):
+        if "adapters/llm" not in path.as_posix():
+            assert "openrouter.ai" not in path.read_text(), f"{path} names OpenRouter"
+
+
 def test_provider_sdks_only_under_llm_gateway() -> None:
     """BND-002: the Gateway is app.adapters.llm."""
     for path in APP.rglob("*.py"):

@@ -12,8 +12,11 @@ from app.adapters.auth.supabase_jwt import SupabaseJwtVerifier
 from app.adapters.clock.system import SystemClock
 from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
+from app.adapters.llm.fake_embedder import FakeEmbedder
+from app.adapters.llm.openrouter_embedder import OpenRouterEmbedder
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
+from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_space
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
     SqlConversationRepo,
@@ -30,6 +33,7 @@ from app.config import Settings
 from app.entrypoints.http.app import create_http_app
 from app.ports.auth import TokenVerifier
 from app.ports.clock import Clock
+from app.ports.embeddings import Embedder
 from app.ports.files import FileStore
 from app.ports.llm import LLMProvider
 from app.ports.repositories import ConversationRepo, DocumentRepo
@@ -46,6 +50,7 @@ class UseCases:
     list_documents: ListDocuments
     get_document: GetDocument
     delete_document: DeleteDocument
+    embedder: Embedder
     token_verifier: TokenVerifier
 
 
@@ -66,6 +71,17 @@ def _token_verifier(settings: Settings) -> TokenVerifier:
     return SupabaseJwtVerifier(settings.supabase_url)
 
 
+def _embedder(settings: Settings) -> Embedder:
+    if not settings.open_router_api_key:
+        logger.warning("OPEN_ROUTER_API_KEY is not set; embeddings are fake.")
+        return FakeEmbedder(settings.embedding_model)
+    return OpenRouterEmbedder(
+        api_key=settings.open_router_api_key,
+        model=settings.embedding_model,
+        provider=settings.embedding_provider,
+    )
+
+
 def build_use_cases(
     *,
     repo: ConversationRepo | None = None,
@@ -74,6 +90,7 @@ def build_use_cases(
     verifier: TokenVerifier | None = None,
     documents: DocumentRepo | None = None,
     files: FileStore | None = None,
+    embedder: Embedder | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
@@ -88,6 +105,9 @@ def build_use_cases(
     )
     store: FileStore = files or LocalDiskFileStore(Path(settings.file_store_path))
     provider = llm or FakeLLM()
+    embed = embedder or _embedder(settings)
+    if sessions is not None:
+        check_embedding_space(sessions, embed.model, embed.dimensions)
     time = clock or SystemClock()
     return UseCases(
         start_conversation=StartConversation(conversations, time),
@@ -102,6 +122,7 @@ def build_use_cases(
         list_documents=ListDocuments(document_repo),
         get_document=GetDocument(document_repo),
         delete_document=DeleteDocument(store, document_repo),
+        embedder=embed,
         token_verifier=verifier or _token_verifier(settings),
     )
 

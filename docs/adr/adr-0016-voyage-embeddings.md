@@ -1,18 +1,18 @@
 ---
 title: "ADR-0016: Hybrid retrieval with one fixed hosted embedding model (Voyage)"
-status: "Accepted"
+status: "Superseded"
 date: "2026-10-10"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "retrieval", "embeddings", "search"]
 supersedes: "ADR-0014"
-superseded_by: ""
+superseded_by: "ADR-0021"
 ---
 
 # ADR-0016: Hybrid retrieval with one fixed hosted embedding model (Voyage)
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
 
 ## Context
 

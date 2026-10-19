@@ -94,7 +94,7 @@ An unknown `systemId` is a `422`.
 | Status | When |
 |--------|------|
 | `202` | New document, `status: "queued"`, `progress: 0` |
-| `200` | Uploading a file whose `sha256` already exists in the campaign returns the existing document and stores nothing new (ADR-0016 IMP-003) |
+| `200` | Uploading a file whose `sha256` already exists in the campaign returns the existing document and stores nothing new (ADR-0021 IMP-003) |
 | `400` | Empty file, missing or over-long file name |
 | `413` | Larger than the limit |
 | `415` | Unsupported extension, or content that does not match it |
@@ -126,7 +126,7 @@ blocks).
 
 `score` is the fused RRF score, not a keyword rank — it is comparable between results of
 one query, not across queries. `matchedBy` says which retriever(s) surfaced the chunk,
-which is what makes a bad result diagnosable (ADR-0016 NEG-002).
+which is what makes a bad result diagnosable (ADR-0021 NEG-002).
 
 An empty array means nothing cleared the relevance floor. That is a real answer, not an
 error: Research mode refuses on it rather than answering from weak matches (AC-003).

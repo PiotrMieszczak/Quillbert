@@ -95,7 +95,7 @@ class DocumentRow(Base):
 
     __tablename__ = "document"
     __table_args__ = (
-        # One copy of a file per campaign (ADR-0016 IMP-003).
+        # One copy of a file per campaign (ADR-0021 IMP-003).
         UniqueConstraint(
             "campaign_id", "sha256", name="uq_document_campaign_id_sha256"
         ),
@@ -121,7 +121,7 @@ class DocumentRow(Base):
     source: Mapped[str] = mapped_column(Text)
     source_ref: Mapped[str | None] = mapped_column(Text)
     sha256: Mapped[str] = mapped_column(Text)
-    # tsvector config. 'simple' stems nothing (ADR-0016 IMP-011).
+    # tsvector config. 'simple' stems nothing (ADR-0021 IMP-011).
     language: Mapped[str] = mapped_column(
         Text, server_default="simple", default="simple"
     )
@@ -129,7 +129,7 @@ class DocumentRow(Base):
 
 
 class EmbeddingSpaceRow(Base):
-    """The one model that produced every stored vector (ADR-0016)."""
+    """The one model that produced every stored vector (ADR-0021)."""
 
     __tablename__ = "embedding_space"
     __table_args__ = (CheckConstraint("dimensions = 1024", name="dimensions"),)

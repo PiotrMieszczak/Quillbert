@@ -65,8 +65,8 @@ place a model is invoked.
 | Component docs | Storybook | Primitives are documented as they are built |
 | Backend | Python 3.11+ / FastAPI | [ADR-0001](adr/adr-0001-react-vite-spa.md) |
 | Storage | PostgreSQL (`tsvector` + `pgvector`); hosted in v1, local in v2 | [ADR-0018](adr/adr-0018-hosted-first-local-v2.md) |
-| Retrieval | Hybrid keyword + vector, RRF-fused | [ADR-0016](adr/adr-0016-voyage-embeddings.md) |
-| Embeddings | Voyage `voyage-4`, 1024 dims — one fixed model, not switchable | [ADR-0016](adr/adr-0016-voyage-embeddings.md) |
+| Retrieval | Hybrid keyword + vector, RRF-fused | [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) |
+| Embeddings | Gemini Embedding 2 via OpenRouter (zero-retention Vertex EU), 1024 dims — one fixed model, not switchable | [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) |
 | Import sources | Upload; Google Drive via Picker (`drive.file`) | [ADR-0017](adr/adr-0017-import-sources.md) |
 | Extraction | PyMuPDF, pdfplumber | Deterministic; [ADR-0002](adr/adr-0002-deterministic-extraction.md) |
 | LLM access | Gateway over OpenRouter (zero-retention allowlist) | [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) |
@@ -134,7 +134,7 @@ sequenceDiagram
     W->>W: extract text (PyMuPDF / pdfplumber)
     W->>W: near-zero characters? → status=awaiting_ocr, not failed
     W->>W: split on paragraph + heading boundaries
-    W->>W: embed each chunk (Voyage, batched)
+    W->>W: embed each chunk (Gemini via OpenRouter, one text per request)
     W->>DB: insert chunks + tsvector + embedding
     W->>DB: status=indexed, progress=100
 ```
@@ -144,7 +144,7 @@ so the design's percentage bar reflects real work.
 
 Embedding is part of this deterministic path: it derives a vector from the document's own
 text and invents nothing. BND-001 bars a **generative** model from ingestion, not every
-model ([ADR-0016](adr/adr-0016-voyage-embeddings.md) IMP-008).
+model ([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) IMP-008).
 
 ## Retrieval and grounding
 
@@ -160,7 +160,7 @@ sequenceDiagram
     API-->>U: AG-UI: RunStarted
     API->>R: search(campaign, query)
     API-->>U: AG-UI: ToolCallStart
-    R->>R: embed the query (Voyage, keyword-only if unavailable)
+    R->>R: embed the query (Gemini, keyword-only if unavailable)
     R->>DB: tsvector match + pgvector ANN, one query
     DB-->>R: two ranked lists
     R->>R: fuse (RRF), apply relevance floor
@@ -291,7 +291,7 @@ and wrong for the app: server data and UI chrome have different lifetimes.
 the ingestion use cases and `adapters/extraction/` have no import path to `adapters/llm/`
 (the Gateway). A test asserts this. The embedding model is
 not in scope: it derives vectors from the document's own text and writes no content
-([ADR-0016](adr/adr-0016-voyage-embeddings.md) IMP-008).
+([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) IMP-008).
 
 **BND-002 — All model calls go through the Gateway.** No provider SDK is imported outside
 `adapters/llm/`. Provider switching is configuration, not code.

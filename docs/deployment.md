@@ -19,7 +19,7 @@ service**; files are object storage. Openship is the deploy manager, run **self-
 |-------|--------|-------|
 | Deploy manager | **Openship, self-hosted** — the desktop app on the maintainer's Mac | Free, open-source control plane. It connects to `ted106` over SSH and deploys the app there; the `openship` CLI drives the same local control plane. **Openship Cloud is not used** — its free tier only rents managed servers and gates domain routing behind a paid plan, so the self-hosted control plane is the free path. |
 | App host | **Mikrus `ted106`** (8 GB / 2 vCPU, Ubuntu 24.04, Docker) | Unprivileged LXC, connected to Openship over SSH (IPv4 `37.27.111.248:10106`, key auth). Runs **only the DM app** (FastAPI + ingestion worker + the built frontend). Public ingress is IPv6:80 (`ted106.mikrus.cloud`) + two TCP ports `20106`/`30106` (`ted106-20106.mikrus.cloud`); TLS is terminated by Mikrus — never bind 443. |
-| Data + Auth + Storage | **Supabase Cloud** (free tier) — project `DM Assistant` (`zfhluuonhmexjfhjjghf`), region `eu-west-3`; Postgres 17 + **pgvector** + Auth (GoTrue) + Storage | Managed, so **zero load on `ted106`**. pgvector enabled ([ADR-0016](adr/adr-0016-voyage-embeddings.md)). The box now hosts only the app, which fits 2 vCPU / 8 GB comfortably. |
+| Data + Auth + Storage | **Supabase Cloud** (free tier) — project `DM Assistant` (`zfhluuonhmexjfhjjghf`), region `eu-west-3`; Postgres 17 + **pgvector** + Auth (GoTrue) + Storage | Managed, so **zero load on `ted106`**. pgvector enabled ([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md)). The box now hosts only the app, which fits 2 vCPU / 8 GB comfortably. |
 | Auth | **Supabase Auth** (GoTrue, hosted) | The backend validates Supabase-issued JWTs. Supersedes hand-built auth — [ADR-0020](adr/adr-0020-supabase-auth.md). |
 | Files | **Cloudflare R2** (S3-compatible, the `FileStore` object-store adapter) | Off-box, zero egress, presigned URLs. Supabase Storage (free 1 GB) is an alternative; R2 keeps files independent. **Today** uploads go through the local-disk `FileStore` onto the `files` Docker volume on `ted106` (`FILE_STORE_PATH`); the R2 adapter replaces it, and until then those files live only on the box. Cloudflare Free caps a proxied upload at 100 MB. |
 | LLM | **OpenRouter**, zero-retention allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)) | Reached with `OPEN_ROUTER_API_KEY`. |
@@ -107,6 +107,6 @@ tier**:
 
 - [ADR-0018](adr/adr-0018-hosted-first-local-v2.md) — hosted-first MVP
 - [ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md) — PostgreSQL store and the `FileStore` port
-- [ADR-0016](adr/adr-0016-voyage-embeddings.md) — embeddings / `pgvector`
+- [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) — embeddings / `pgvector`
 - [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) — OpenRouter provider and the API key
 - [ADR-0020](adr/adr-0020-supabase-auth.md) — Supabase Auth (supersedes ADR-0008)
