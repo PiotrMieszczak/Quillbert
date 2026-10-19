@@ -56,7 +56,8 @@ class UseCases:
     list_documents: ListDocuments
     get_document: GetDocument
     delete_document: DeleteDocument
-    worker: IngestionWorker
+    # None when nothing could embed real vectors: uploads then stay queued (#64).
+    worker: IngestionWorker | None
     token_verifier: TokenVerifier
 
 
@@ -77,15 +78,23 @@ def _token_verifier(settings: Settings) -> TokenVerifier:
     return SupabaseJwtVerifier(settings.supabase_url)
 
 
-def _embedder(settings: Settings) -> Embedder:
-    if not settings.open_router_api_key:
-        logger.warning("OPEN_ROUTER_API_KEY is not set; embeddings are fake.")
-        return FakeEmbedder(settings.embedding_model)
-    return OpenRouterEmbedder(
-        api_key=settings.open_router_api_key,
-        model=settings.embedding_model,
-        provider=settings.embedding_provider,
-    )
+def _embedder(settings: Settings, *, persistent: bool) -> Embedder | None:
+    if settings.open_router_api_key:
+        return OpenRouterEmbedder(
+            api_key=settings.open_router_api_key,
+            model=settings.embedding_model,
+            provider=settings.embedding_provider,
+        )
+    if persistent:
+        # Fake vectors in a real store would be unsearchable noise that no re-embed
+        # could find; better that uploads wait until the key is back.
+        logger.error(
+            "OPEN_ROUTER_API_KEY is not set; ingestion is off and uploads stay queued."
+        )
+        return None
+    logger.warning("OPEN_ROUTER_API_KEY is not set; embeddings are fake (in memory).")
+    # Labelled "fake", never as the real model.
+    return FakeEmbedder()
 
 
 def _extractor(settings: Settings) -> TextExtractor:
@@ -121,8 +130,8 @@ def build_use_cases(
     )
     store: FileStore = files or LocalDiskFileStore(Path(settings.file_store_path))
     provider = llm or FakeLLM()
-    embed = embedder or _embedder(settings)
-    if sessions is not None:
+    embed = embedder or _embedder(settings, persistent=sessions is not None)
+    if sessions is not None and embed is not None:
         check_embedding_space(sessions, embed.model, embed.dimensions)
     time = clock or SystemClock()
     return UseCases(
@@ -138,7 +147,9 @@ def build_use_cases(
         list_documents=ListDocuments(document_repo),
         get_document=GetDocument(document_repo),
         delete_document=DeleteDocument(store, document_repo),
-        worker=IngestionWorker(
+        worker=None
+        if embed is None
+        else IngestionWorker(
             IngestDocument(
                 store, document_repo, extractor or _extractor(settings), embed
             ),
