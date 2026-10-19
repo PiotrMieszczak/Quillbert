@@ -74,6 +74,9 @@ Retrieval becomes conversation.
   Creator in [design/overview.md](design/overview.md)
 - **In-character mode** opened from a character, with the panel restyled as that NPC
   ([ADR-0012](adr/adr-0012-two-ai-modes.md))
+- Jev support check and mode hint — only after a document reaches Indexed and a chat
+  reply streams with citations. Not part of this phase's exit gate
+  ([ADR-0022](adr/adr-0022-jev-after-chat-prototype.md))
 
 **Exit gate.** AC-002, AC-003, AC-004, AC-012, AC-013, AC-014 — grounded answers with
 visible citations, explicit refusal on unindexed topics, the configured model enforced

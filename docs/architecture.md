@@ -271,6 +271,10 @@ the Gateway, owning steps 5 through 8. The Gateway boundary is what keeps that s
 possible without touching the frontend, since AG-UI events would still be what reaches the
 wire.
 
+**Jev does not slot in there.** After the upload-and-chat prototype works, Jev may judge a
+finished Research answer and offer a link to Creative. It does not write the reply, own
+the loop, or change the mode ([ADR-0022](adr/adr-0022-jev-after-chat-prototype.md)).
+
 ## Frontend state
 
 Three distinct concerns, deliberately not merged:
