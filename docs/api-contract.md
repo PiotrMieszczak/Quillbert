@@ -87,8 +87,21 @@ An unknown `systemId` is a `422`.
 ]
 ```
 
-Uploading a file whose `sha256` already exists in the campaign returns the existing
-document rather than processing it again (ADR-0016 IMP-003).
+`POST` takes one multipart field, `file`. It accepts `.pdf`, `.md`, `.txt` and `.docx`
+(not legacy `.doc`), checked by extension **and** by the file's first bytes, up to
+`MAX_UPLOAD_MB` (default 200). A bare file name is kept; any client path is dropped.
+
+| Status | When |
+|--------|------|
+| `202` | New document, `status: "queued"`, `progress: 0` |
+| `200` | Uploading a file whose `sha256` already exists in the campaign returns the existing document and stores nothing new (ADR-0016 IMP-003) |
+| `400` | Empty file, missing or over-long file name |
+| `413` | Larger than the limit |
+| `415` | Unsupported extension, or content that does not match it |
+| `422` | No `file` part in the request |
+
+A document is only visible inside its campaign: another campaign's id answers `404`, and
+the same bytes in two campaigns are two documents.
 
 Upload returns `202 Accepted` immediately with `status: "queued"`. The client polls this
 list while any document is `queued` or `processing`, then stops (PRIN-003 — upload never

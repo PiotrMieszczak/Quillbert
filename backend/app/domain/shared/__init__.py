@@ -1,3 +1,15 @@
-from app.domain.shared.errors import DomainError, NotFound, ValidationFailed
+from app.domain.shared.errors import (
+    DomainError,
+    FileTooLarge,
+    NotFound,
+    UnsupportedFileType,
+    ValidationFailed,
+)
 
-__all__ = ["DomainError", "NotFound", "ValidationFailed"]
+__all__ = [
+    "DomainError",
+    "FileTooLarge",
+    "NotFound",
+    "UnsupportedFileType",
+    "ValidationFailed",
+]

@@ -1,9 +1,12 @@
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 from app.adapters.clock.frozen import FrozenClock
+from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
+from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
 from app.composition import UseCases, build_app, build_use_cases
 from app.ports.auth import Identity, InvalidToken
@@ -27,9 +30,28 @@ def repo() -> InMemoryConversationRepo:
 
 
 @pytest.fixture
-def use_cases(repo: InMemoryConversationRepo) -> UseCases:
+def document_repo() -> InMemoryDocumentRepo:
+    return InMemoryDocumentRepo()
+
+
+@pytest.fixture
+def file_store(tmp_path: Path) -> LocalDiskFileStore:
+    return LocalDiskFileStore(tmp_path / "files")
+
+
+@pytest.fixture
+def use_cases(
+    repo: InMemoryConversationRepo,
+    document_repo: InMemoryDocumentRepo,
+    file_store: LocalDiskFileStore,
+) -> UseCases:
     return build_use_cases(
-        repo=repo, llm=FakeLLM(), clock=FrozenClock(FROZEN), verifier=FakeVerifier()
+        repo=repo,
+        llm=FakeLLM(),
+        clock=FrozenClock(FROZEN),
+        verifier=FakeVerifier(),
+        documents=document_repo,
+        files=file_store,
     )
 
 

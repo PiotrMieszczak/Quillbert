@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
+from app.domain.documents import Document
 
 
 class ConversationRepo(Protocol):
@@ -15,3 +16,21 @@ class ConversationRepo(Protocol):
     def add_message(self, message: Message) -> None: ...
 
     def list_for_campaign(self, campaign_id: str) -> list[Conversation]: ...
+
+
+class DocumentRepo(Protocol):
+    """Every read takes the campaign id: a document shows only inside its campaign."""
+
+    def next_document_id(self) -> int: ...
+
+    def add(self, document: Document) -> None:
+        """Raises NotFound when the campaign does not exist."""
+        ...
+
+    def get(self, campaign_id: str, document_id: int) -> Document | None: ...
+
+    def list_for_campaign(self, campaign_id: str) -> list[Document]:
+        """Oldest first."""
+        ...
+
+    def find_by_sha256(self, campaign_id: str, sha256: str) -> Document | None: ...
