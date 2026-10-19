@@ -23,11 +23,12 @@ knowing why it was made, it belongs in an ADR.
 | [0013](adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL as the single store for local and hosted | Superseded |
 | [0014](adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval with embedded chunks | Superseded |
 | [0015](adr-0015-frontend-api-contract.md) | Generated API types and a frontend adapter layer | Accepted |
-| [0016](adr-0016-voyage-embeddings.md) | Hybrid retrieval with one fixed hosted embedding model (Voyage) | Accepted |
+| [0016](adr-0016-voyage-embeddings.md) | Hybrid retrieval with one fixed hosted embedding model (Voyage) | Superseded |
 | [0017](adr-0017-import-sources.md) | Google Drive as an import source; storage chosen per deployment | Accepted |
 | [0018](adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
 | [0019](adr-0019-openrouter-privacy-routing.md) | OpenRouter as the single provider, zero-retention allowlist | Accepted |
 | [0020](adr-0020-supabase-auth.md) | Supabase Auth in v1; the project is tool-first | Accepted |
+| [0021](adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval with Gemini Embedding 2, reached through OpenRouter | Accepted |
 | [0022](adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Accepted |
 
 ## Format

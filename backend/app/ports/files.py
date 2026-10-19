@@ -18,6 +18,10 @@ class FileStore(Protocol):
         """
         ...
 
+    def read(self, key: str) -> bytes:
+        """The stored file's bytes."""
+        ...
+
     def delete(self, key: str) -> None:
         """Remove a stored file. A key that is already gone is not an error."""
         ...

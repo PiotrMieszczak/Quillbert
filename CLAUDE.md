@@ -62,16 +62,17 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
 | [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted |
 | [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | **Superseded by 0018** |
-| [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016** |
+| [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016, then 0021** |
 | [0015](docs/adr/adr-0015-frontend-api-contract.md) | Generated API types; FE adapters, DTOs stay in `api/` | Accepted |
-| [0016](docs/adr/adr-0016-voyage-embeddings.md) | Hybrid retrieval; one fixed hosted embedding model (Voyage) | Accepted |
+| [0016](docs/adr/adr-0016-voyage-embeddings.md) | Hybrid retrieval; one fixed hosted embedding model (Voyage) | **Superseded by 0021** |
 | [0017](docs/adr/adr-0017-import-sources.md) | Google Drive as import source; storage per deployment | Accepted |
 | [0018](docs/adr/adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
 | [0019](docs/adr/adr-0019-openrouter-privacy-routing.md) | OpenRouter single provider, zero-retention allowlist | Accepted |
 | [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
+| [0021](docs/adr/adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval; Gemini Embedding 2 via OpenRouter, zero-retention pinned | Accepted |
 | [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Accepted |
 
-Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, or 0014 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, or 0016 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 

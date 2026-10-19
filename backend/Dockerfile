@@ -2,6 +2,12 @@ FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
+# Tesseract for scanned pages (ADR-0002 IMP-005), with English and Polish data.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr tesseract-ocr-eng tesseract-ocr-pol \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml README.md alembic.ini ./
 COPY app ./app
 

@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 
 import pytest
-from app.domain.documents import Document, DocumentKind, DocumentStatus
+from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
 from app.domain.shared import NotFound
 from app.ports.repositories import DocumentRepo
 
@@ -106,3 +106,86 @@ def test_remove_does_not_reach_into_another_campaign(
 
     assert document_repo.remove("other", added.id) is None
     assert document_repo.get("ashfall", added.id) is not None
+
+
+def test_claim_takes_the_oldest_queued_document_once(
+    document_repo: DocumentRepo,
+) -> None:
+    first = _document(document_repo, sha256="1" * 64)
+    second = _document(document_repo, sha256="2" * 64)
+
+    claimed = document_repo.claim_queued()
+
+    assert claimed is not None
+    assert claimed.id == first.id
+    assert claimed.status is DocumentStatus.PROCESSING
+    again = document_repo.claim_queued()
+    assert again is not None and again.id == second.id
+    assert document_repo.claim_queued() is None
+
+
+def test_update_persists_progress_fields(document_repo: DocumentRepo) -> None:
+    document = _document(document_repo)
+    claimed = document_repo.claim_queued()
+    assert claimed is not None
+
+    claimed.progress = 40
+    claimed.page_count = 312
+    document_repo.update(claimed)
+
+    read = document_repo.get("ashfall", document.id)
+    assert read is not None
+    assert (read.status, read.progress, read.page_count) == (
+        DocumentStatus.PROCESSING,
+        40,
+        312,
+    )
+
+
+def test_requeue_returns_interrupted_documents_to_the_queue(
+    document_repo: DocumentRepo,
+) -> None:
+    document = _document(document_repo)
+    assert document_repo.claim_queued() is not None
+
+    assert document_repo.requeue_processing() == 1
+
+    read = document_repo.get("ashfall", document.id)
+    assert read is not None and read.status is DocumentStatus.QUEUED
+    assert document_repo.requeue_processing() == 0
+
+
+def test_index_saves_the_document_state(document_repo: DocumentRepo) -> None:
+    document = _document(document_repo)
+    claimed = document_repo.claim_queued()
+    assert claimed is not None
+    claimed.status = DocumentStatus.INDEXED
+    claimed.progress = 100
+    claimed.meta = "1 passages"
+    chunk = Chunk(0, "Roll 2D.", page_from=1, page_to=1, heading="Skills")
+    chunk.embedding = [1.0] + [0.0] * 1023
+    chunk.embedding_model = "google/gemini-embedding-2"
+
+    document_repo.index(claimed, [chunk])
+
+    read = document_repo.get("ashfall", document.id)
+    assert read is not None
+    assert (read.status, read.progress, read.meta) == (
+        DocumentStatus.INDEXED,
+        100,
+        "1 passages",
+    )
+
+
+def test_index_of_a_deleted_document_is_a_no_op(document_repo: DocumentRepo) -> None:
+    document = _document(document_repo)
+    claimed = document_repo.claim_queued()
+    assert claimed is not None
+    document_repo.remove("ashfall", document.id)
+    chunk = Chunk(0, "Roll 2D.", page_from=1, page_to=1, heading=None)
+    chunk.embedding = [1.0] + [0.0] * 1023
+    chunk.embedding_model = "google/gemini-embedding-2"
+
+    document_repo.index(claimed, [chunk])
+
+    assert document_repo.get("ashfall", document.id) is None

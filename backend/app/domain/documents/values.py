@@ -12,7 +12,7 @@ class DocumentStatus(StrEnum):
     PROCESSING = "processing"
     INDEXED = "indexed"
     FAILED = "failed"
-    # A scan with no extractable text. Not a failure (ADR-0016 IMP-007).
+    # A scan with no extractable text. Not a failure (ADR-0021 IMP-007).
     AWAITING_OCR = "awaiting_ocr"
 
 

@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
+
 from fastapi import FastAPI
 
 from app.entrypoints.http.errors import register_error_handlers
@@ -5,9 +8,14 @@ from app.entrypoints.http.routers.assistant import router as assistant_router
 from app.entrypoints.http.routers.documents import router as documents_router
 
 
-def create_http_app(*, api_docs: bool = False) -> FastAPI:
+def create_http_app(
+    *,
+    api_docs: bool = False,
+    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]] | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="Quillbert",
+        lifespan=lifespan,
         docs_url="/docs" if api_docs else None,
         redoc_url="/redoc" if api_docs else None,
     )

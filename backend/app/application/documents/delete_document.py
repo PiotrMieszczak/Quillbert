@@ -4,8 +4,8 @@ from app.ports.repositories import DocumentRepo
 
 
 class DeleteDocument:
-    """Removes the document and its stored file. Chunks and index rows go with it once
-    extraction exists (their foreign key cascades)."""
+    """Removes the document and its stored file. Its chunks go with it (the foreign
+    key cascades)."""
 
     def __init__(self, files: FileStore, repo: DocumentRepo) -> None:
         self._files = files

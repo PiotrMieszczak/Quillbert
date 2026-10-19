@@ -17,7 +17,11 @@ A Research chat turn, stored in PostgreSQL, answered by a fake model, and docume
   those bytes. `GET .../documents` and `GET .../documents/{id}` list and poll. PDF,
   Markdown, text and DOCX only, checked by extension *and* content; the limit is
   `MAX_UPLOAD_MB` (200). Files go to the `FileStore` (`FILE_STORE_PATH`, a Docker volume in
-  compose); extraction and indexing are not built yet, so documents stay `queued`.
+  compose). A worker thread then takes each queued document through extraction
+  (PyMuPDF; Tesseract for scanned pages), chunking, embedding (Gemini via OpenRouter, or a
+  fake without `OPEN_ROUTER_API_KEY`) and indexing into `chunk`, ending `indexed`,
+  `failed`, or `awaiting_ocr`. Local OCR needs `brew install tesseract tesseract-lang`;
+  the Docker image ships it. `INGESTION_WORKER=false` turns the worker off.
 
 The reply comes from `adapters/llm/fake.py`. Conversations live in PostgreSQL when
 `DATABASE_URL` is set, and in memory (with a warning in the log) when it is not. A

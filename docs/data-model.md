@@ -348,13 +348,13 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `page_count` | int? | |
 | `meta` | text? | "stat blocks · rules" |
 | `status` | enum | `queued` \| `processing` \| `indexed` \| `failed` \| `awaiting_ocr` |
-| `language` | text | tsvector config for this document's chunks. `simple` stems nothing; an English rulebook uses `english` (ADR-0016 IMP-011) |
+| `language` | text | tsvector config for this document's chunks. `simple` stems nothing; an English rulebook uses `english` (ADR-0021 IMP-011) |
 | `progress` | int | 0–100, drives the progress bar |
 | `error` | text? | populated on `failed` |
 | `storage_key` | text | opaque key into the `FileStore` — a path locally, an object key when hosted |
 | `source` | enum | `upload` \| `google_drive` — where it was imported from (ADR-0017) |
 | `source_ref` | text? | the Drive file id when `source = google_drive` |
-| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0016 IMP-003) |
+| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0021 IMP-003) |
 | `uploaded_at` | timestamp | |
 
 **`chunk`**
@@ -369,11 +369,12 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `heading` | text? | nearest section heading |
 | `content` | text | the indexed text |
 | `tsv` | tsvector | set at insert with `to_tsvector(document.language, content)`, not a generated `english` column |
-| `embedding` | vector(1024) | embedded at ingestion by the one fixed model (ADR-0016) |
+| `embedding` | vector(1024) | embedded at ingestion by the one fixed model (ADR-0021) |
+| `embedding_model` | text? FK → `embedding_space.model` | the model that produced `embedding`; null exactly when `embedding` is null |
 
 Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and the same
 transaction, then fused with reciprocal rank fusion
-([ADR-0016](adr/adr-0016-voyage-embeddings.md)). Results below a relevance floor are treated
+([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md)). Results below a relevance floor are treated
 as no result, so Research mode still refuses rather than answering from weak matches
 (AC-003).
 
@@ -381,12 +382,16 @@ as no result, so Research mode still refuses rather than answering from weak mat
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `model` | text PK | `voyage-4` |
+| `model` | text PK | `google/gemini-embedding-2` |
 | `dimensions` | int | `1024`; must match the `chunk.embedding` column |
 | `created_at` | timestamp | |
 
 The backend refuses to embed with a model other than the one recorded here, so vectors
-from two models can never mix. Changing model is a re-embed migration (ADR-0016).
+from two models can never mix. Changing model is a re-embed migration (ADR-0021).
+Each chunk also names its own model (`chunk.embedding_model`). During a model change,
+the chunks whose `embedding_model` is not the new model are exactly the ones left to
+re-embed, so the migration can run in batches and resume. The foreign key has no
+`ON UPDATE CASCADE`: renaming a model here can never relabel vectors it did not produce.
 
 **DEC-012 — chunk text, keyword index, and embedding are one row.**
 Splitting them across stores would buy nothing here and cost cross-store consistency: a
