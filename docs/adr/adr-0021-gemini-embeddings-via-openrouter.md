@@ -159,6 +159,10 @@ New:
   *generative* model is reachable from ingestion (carried over).
 - **IMP-009**: `OPEN_ROUTER_API_KEY` comes from the environment, never the database or the
   client. With it unset, the backend uses the fake embedder and logs a warning.
+  *Amended 2026-10-19 (#64):* only with in-memory storage, where the fake's vectors are
+  labelled `fake`. With `DATABASE_URL` set and no key, ingestion is off, an error is
+  logged, and uploads stay `queued`, so fake vectors never reach a real store under the
+  real model's name.
 - **IMP-010**: Concurrency is bounded at eight requests; 429 and 5xx are retried three
   times with backoff, then surface as `EmbeddingUnavailable`. A 404 is a refusal and is not
   retried.
