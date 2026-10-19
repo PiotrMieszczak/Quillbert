@@ -20,7 +20,12 @@ from app.adapters.persistence.sqlalchemy.repositories import (
     SqlDocumentRepo,
 )
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
-from app.application.documents import GetDocument, ListDocuments, UploadDocument
+from app.application.documents import (
+    DeleteDocument,
+    GetDocument,
+    ListDocuments,
+    UploadDocument,
+)
 from app.config import Settings
 from app.entrypoints.http.app import create_http_app
 from app.ports.auth import TokenVerifier
@@ -40,6 +45,7 @@ class UseCases:
     upload_document: UploadDocument
     list_documents: ListDocuments
     get_document: GetDocument
+    delete_document: DeleteDocument
     token_verifier: TokenVerifier
 
 
@@ -95,6 +101,7 @@ def build_use_cases(
         ),
         list_documents=ListDocuments(document_repo),
         get_document=GetDocument(document_repo),
+        delete_document=DeleteDocument(store, document_repo),
         token_verifier=verifier or _token_verifier(settings),
     )
 
@@ -108,5 +115,6 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.upload_document = cases.upload_document
     app.state.list_documents = cases.list_documents
     app.state.get_document = cases.get_document
+    app.state.delete_document = cases.delete_document
     app.state.token_verifier = cases.token_verifier
     return app

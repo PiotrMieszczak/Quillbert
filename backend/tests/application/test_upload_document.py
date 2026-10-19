@@ -6,7 +6,12 @@ import pytest
 from app.adapters.clock.frozen import FrozenClock
 from app.adapters.files import LocalDiskFileStore
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
-from app.application.documents import GetDocument, ListDocuments, UploadDocument
+from app.application.documents import (
+    DeleteDocument,
+    GetDocument,
+    ListDocuments,
+    UploadDocument,
+)
 from app.domain.documents import DocumentKind, DocumentStatus
 from app.domain.shared import (
     FileTooLarge,
@@ -145,3 +150,30 @@ def test_campaigns_do_not_see_each_others_documents(
     assert getting.execute(campaign_id="ashfall", document_id=mine.id).id == mine.id
     with pytest.raises(NotFound):
         getting.execute(campaign_id="other", document_id=mine.id)
+
+
+def test_delete_removes_the_document_and_its_file(
+    upload: UploadDocument, repo: InMemoryDocumentRepo, root: Path
+) -> None:
+    added = _put(upload).document
+
+    DeleteDocument(LocalDiskFileStore(root), repo).execute(
+        campaign_id="ashfall", document_id=added.id
+    )
+
+    assert repo.get("ashfall", added.id) is None
+    assert _stored(root) == []
+    # The same bytes can be uploaded again afterwards.
+    assert _put(upload).created is True
+
+
+def test_delete_from_another_campaign_is_not_found_and_keeps_the_file(
+    upload: UploadDocument, repo: InMemoryDocumentRepo, root: Path
+) -> None:
+    added = _put(upload, cid="ashfall").document
+
+    with pytest.raises(NotFound):
+        DeleteDocument(LocalDiskFileStore(root), repo).execute(
+            campaign_id="other", document_id=added.id
+        )
+    assert len(_stored(root)) == 1

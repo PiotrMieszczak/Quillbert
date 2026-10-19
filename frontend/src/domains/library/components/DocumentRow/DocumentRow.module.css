@@ -54,6 +54,65 @@
   font: 12px var(--font-mono);
 }
 
+.metaError {
+  color: var(--rel-enemy);
+  font: 12px var(--font-mono);
+}
+
+.icon,
+.action,
+.danger {
+  flex: none;
+  height: 30px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.action,
+.danger {
+  padding: 0 10px;
+}
+
+.danger {
+  border-color: var(--rel-enemy);
+  color: var(--rel-enemy);
+}
+
+.icon:hover,
+.action:hover:not(:disabled) {
+  border-color: var(--border-emphasis-hover);
+  color: var(--text-primary);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.action:disabled,
+.danger:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.confirm {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
 .progress {
   flex: none;
   display: flex;

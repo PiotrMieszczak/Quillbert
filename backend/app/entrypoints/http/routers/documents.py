@@ -1,6 +1,11 @@
 from fastapi import APIRouter, Depends, File, Request, Response, UploadFile
 
-from app.application.documents import GetDocument, ListDocuments, UploadDocument
+from app.application.documents import (
+    DeleteDocument,
+    GetDocument,
+    ListDocuments,
+    UploadDocument,
+)
 from app.application.dto import DocumentView
 from app.entrypoints.http.auth import require_identity
 from app.entrypoints.http.schemas.documents import DocumentOut
@@ -20,6 +25,10 @@ def _list(request: Request) -> ListDocuments:
 
 def _get(request: Request) -> GetDocument:
     return request.app.state.get_document
+
+
+def _delete(request: Request) -> DeleteDocument:
+    return request.app.state.delete_document
 
 
 def _out(view: DocumentView) -> DocumentOut:
@@ -59,3 +68,9 @@ def list_documents(campaign_id: str, request: Request) -> list[DocumentOut]:
 @router.get("/documents/{document_id}", response_model=DocumentOut)
 def get_document(campaign_id: str, document_id: int, request: Request) -> DocumentOut:
     return _out(_get(request).execute(campaign_id=campaign_id, document_id=document_id))
+
+
+@router.delete("/documents/{document_id}", status_code=204)
+def delete_document(campaign_id: str, document_id: int, request: Request) -> Response:
+    _delete(request).execute(campaign_id=campaign_id, document_id=document_id)
+    return Response(status_code=204)

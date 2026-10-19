@@ -87,3 +87,22 @@ def test_the_same_file_may_live_in_two_campaigns(document_repo: DocumentRepo) ->
 def test_unknown_campaign_is_not_found(document_repo: DocumentRepo) -> None:
     with pytest.raises(NotFound):
         _document(document_repo, campaign_id="nowhere")
+
+
+def test_remove_deletes_and_returns_the_document(document_repo: DocumentRepo) -> None:
+    added = _document(document_repo)
+
+    removed = document_repo.remove("ashfall", added.id)
+
+    assert removed == added
+    assert document_repo.get("ashfall", added.id) is None
+    assert document_repo.find_by_sha256("ashfall", added.sha256) is None
+
+
+def test_remove_does_not_reach_into_another_campaign(
+    document_repo: DocumentRepo,
+) -> None:
+    added = _document(document_repo, campaign_id="ashfall")
+
+    assert document_repo.remove("other", added.id) is None
+    assert document_repo.get("ashfall", added.id) is not None

@@ -103,6 +103,10 @@ An unknown `systemId` is a `422`.
 A document is only visible inside its campaign: another campaign's id answers `404`, and
 the same bytes in two campaigns are two documents.
 
+`DELETE` answers `204` with no body and removes the row and its stored file (chunks and
+index rows go with it once extraction exists). A missing id, or one from another campaign,
+is `404`. Afterwards the same bytes can be uploaded again as a new document.
+
 Upload returns `202 Accepted` immediately with `status: "queued"`. The client polls this
 list while any document is `queued` or `processing`, then stops (PRIN-003 — upload never
 blocks).
