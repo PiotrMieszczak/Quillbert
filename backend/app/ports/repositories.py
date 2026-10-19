@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
-from app.domain.documents import Document
+from app.domain.documents import Chunk, Document
 
 
 class ConversationRepo(Protocol):
@@ -37,4 +38,28 @@ class DocumentRepo(Protocol):
 
     def remove(self, campaign_id: str, document_id: int) -> Document | None:
         """Delete and return the document, or None when that campaign has no such id."""
+        ...
+
+    def claim_queued(self) -> Document | None:
+        """Mark the oldest queued document `processing` and return it, or None when
+        nothing waits. Two workers never claim the same document."""
+        ...
+
+    def requeue_processing(self) -> int:
+        """Return every `processing` document to `queued`; how many there were.
+
+        For worker start-up: a document left `processing` was interrupted.
+        """
+        ...
+
+    def update(self, document: Document) -> None:
+        """Persist status, progress, page_count, meta and error."""
+        ...
+
+    def index(self, document: Document, chunks: Sequence[Chunk]) -> None:
+        """Replace the document's chunks and save the document, in one transaction.
+
+        Every chunk carries its embedding and the model that made it. Keyword vectors
+        use the document's language.
+        """
         ...

@@ -85,3 +85,17 @@ def test_provider_sdks_only_under_llm_gateway() -> None:
             continue
         location = path.as_posix()
         assert "adapters/llm" in location, f"{path} imports {hit} outside adapters/llm"
+
+
+def test_ingestion_cannot_reach_a_generative_model() -> None:
+    """BND-001: extraction and ingestion see an extractor and an embedder, never the
+    LLMProvider or a provider SDK."""
+    ingestion = [
+        APP / "application/documents/ingest_document.py",
+        *(APP / "adapters/extraction").rglob("*.py"),
+    ]
+    for path in ingestion:
+        imported = _imports(path)
+        assert "app.ports.llm" not in imported, f"{path} imports the LLM port"
+        assert not any(name.startswith("app.adapters.llm") for name in imported), path
+        assert not imported & FORBIDDEN_SDKS, path

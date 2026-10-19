@@ -46,6 +46,9 @@ class LocalDiskFileStore:
             raise
         return StoredFile(key=key, sha256=digest.hexdigest(), size=size)
 
+    def read(self, key: str) -> bytes:
+        return self._path(key).read_bytes()
+
     def delete(self, key: str) -> None:
         self._path(key).unlink(missing_ok=True)
 

@@ -157,6 +157,11 @@ class ChunkRow(Base):
             postgresql_with={"m": 16, "ef_construction": 64},
             postgresql_ops={"embedding": "vector_cosine_ops"},
         ),
+        # A vector always says which model made it, and only a vector does.
+        CheckConstraint(
+            "(embedding IS NULL) = (embedding_model IS NULL)",
+            name="embedding_model_with_embedding",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
@@ -174,6 +179,12 @@ class ChunkRow(Base):
     content: Mapped[str] = mapped_column(Text)
     tsv: Mapped[str] = mapped_column(TSVECTOR)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(1024))
+    # The model that produced `embedding`. After a model change, rows that do not name
+    # the new model are the ones left to re-embed. No ON UPDATE CASCADE: renaming a
+    # model in embedding_space must never relabel vectors it did not produce.
+    embedding_model: Mapped[str | None] = mapped_column(
+        ForeignKey("embedding_space.model")
+    )
 
 
 class CitationRow(Base):

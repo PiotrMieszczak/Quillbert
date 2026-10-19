@@ -1,6 +1,8 @@
 """The only module that names both sides of a port."""
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -10,6 +12,7 @@ from fastapi import FastAPI
 from app.adapters.auth.deny_all import DenyAllVerifier
 from app.adapters.auth.supabase_jwt import SupabaseJwtVerifier
 from app.adapters.clock.system import SystemClock
+from app.adapters.extraction import FileExtractor, TesseractOcr
 from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.llm.fake_embedder import FakeEmbedder
@@ -26,14 +29,17 @@ from app.application.assistant import ListMessages, RunAssistantTurn, StartConve
 from app.application.documents import (
     DeleteDocument,
     GetDocument,
+    IngestDocument,
     ListDocuments,
     UploadDocument,
 )
 from app.config import Settings
 from app.entrypoints.http.app import create_http_app
+from app.entrypoints.worker import IngestionWorker
 from app.ports.auth import TokenVerifier
 from app.ports.clock import Clock
 from app.ports.embeddings import Embedder
+from app.ports.extraction import TextExtractor
 from app.ports.files import FileStore
 from app.ports.llm import LLMProvider
 from app.ports.repositories import ConversationRepo, DocumentRepo
@@ -50,7 +56,7 @@ class UseCases:
     list_documents: ListDocuments
     get_document: GetDocument
     delete_document: DeleteDocument
-    embedder: Embedder
+    worker: IngestionWorker
     token_verifier: TokenVerifier
 
 
@@ -82,6 +88,15 @@ def _embedder(settings: Settings) -> Embedder:
     )
 
 
+def _extractor(settings: Settings) -> TextExtractor:
+    if not TesseractOcr.available():
+        logger.warning(
+            "tesseract is not installed; scanned PDFs will wait in awaiting_ocr."
+        )
+        return FileExtractor(ocr=None)
+    return FileExtractor(ocr=TesseractOcr(settings.ocr_languages))
+
+
 def build_use_cases(
     *,
     repo: ConversationRepo | None = None,
@@ -91,6 +106,7 @@ def build_use_cases(
     documents: DocumentRepo | None = None,
     files: FileStore | None = None,
     embedder: Embedder | None = None,
+    extractor: TextExtractor | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
@@ -122,14 +138,32 @@ def build_use_cases(
         list_documents=ListDocuments(document_repo),
         get_document=GetDocument(document_repo),
         delete_document=DeleteDocument(store, document_repo),
-        embedder=embed,
+        worker=IngestionWorker(
+            IngestDocument(
+                store, document_repo, extractor or _extractor(settings), embed
+            ),
+            document_repo,
+        ),
         token_verifier=verifier or _token_verifier(settings),
     )
 
 
 def build_app(use_cases: UseCases | None = None) -> FastAPI:
+    """The served app. The ingestion worker runs only on this path, the one uvicorn
+    takes (no use cases passed in) — never in tests that hand in their own."""
+    settings = Settings()
     cases = use_cases or build_use_cases()
-    app = create_http_app(api_docs=Settings().enable_api_docs)
+    worker = cases.worker if use_cases is None and settings.ingestion_worker else None
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        if worker is not None:
+            worker.start()
+        yield
+        if worker is not None:
+            worker.stop()
+
+    app = create_http_app(api_docs=settings.enable_api_docs, lifespan=lifespan)
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
     app.state.list_messages = cases.list_messages

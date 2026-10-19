@@ -128,8 +128,9 @@ backend/
 │   │   │   ├── prompts/           # one strategy per assistant mode
 │   │   │   └── fake.py            # scripted provider for deterministic tests
 │   │   ├── extraction/
-│   │   │   ├── pymupdf.py
-│   │   │   └── ocr.py
+│   │   │   ├── pymupdf.py     # PDF pages, headings by font size
+│   │   │   ├── ocr.py         # Tesseract, per-word confidence
+│   │   │   └── text.py        # Markdown, text, DOCX (stdlib)
 │   │   └── files/local.py
 │   │
 │   ├── entrypoints/               # Driving adapters. Transport, nothing else.
@@ -190,7 +191,7 @@ codebase names both sides of a port.
 | `repositories` | SQLAlchemy, in-memory | Domain tests run with no database at all |
 | `search` | Hybrid (tsvector + pgvector), in-memory | Fusion strategy and relevance floor swap without touching callers |
 | `llm` | OpenRouter, fake | Provider is configuration; tests are deterministic |
-| `extraction` | PyMuPDF, OCR | A second parser is a new file, not a refactor |
+| `extraction` | PyMuPDF, Tesseract OCR, stdlib text/DOCX | A second parser is a new file, not a refactor |
 | `files` | local disk, object store | The hosted file provider is a deployment choice, not a schema one |
 | `clock` | system, frozen | Time-dependent behaviour is testable without sleeping |
 

@@ -29,3 +29,9 @@ class Settings(BaseSettings):
     # OpenRouter endpoint tag; must be a zero-retention one. google-vertex/eu is
     # nearest the Supabase region.
     embedding_provider: str = "google-vertex/eu"
+
+    # Run the ingestion worker inside the API process (INGESTION_WORKER).
+    ingestion_worker: bool = True
+
+    # Tesseract language data for scanned pages; both must be installed.
+    ocr_languages: str = "eng+pol"

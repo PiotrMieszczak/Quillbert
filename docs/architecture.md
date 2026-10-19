@@ -68,7 +68,7 @@ place a model is invoked.
 | Retrieval | Hybrid keyword + vector, RRF-fused | [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) |
 | Embeddings | Gemini Embedding 2 via OpenRouter (zero-retention Vertex EU), 1024 dims — one fixed model, not switchable | [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) |
 | Import sources | Upload; Google Drive via Picker (`drive.file`) | [ADR-0017](adr/adr-0017-import-sources.md) |
-| Extraction | PyMuPDF, pdfplumber | Deterministic; [ADR-0002](adr/adr-0002-deterministic-extraction.md) |
+| Extraction | PyMuPDF for PDFs; Tesseract (`eng+pol`) for scanned pages; stdlib for Markdown, text, DOCX | Deterministic; [ADR-0002](adr/adr-0002-deterministic-extraction.md) IMP-005 |
 | LLM access | Gateway over OpenRouter (zero-retention allowlist) | [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) |
 | Assistant streaming | AG-UI protocol over SSE | [ADR-0009](adr/adr-0009-ag-ui-protocol.md) |
 | Agent loop | Plain FastAPI — no framework, bounded tool loop | [ADR-0011](adr/adr-0011-assistant-tools.md) |
@@ -131,16 +131,27 @@ sequenceDiagram
 
     W->>DB: claim queued document
     W->>DB: status=processing
-    W->>W: extract text (PyMuPDF / pdfplumber)
-    W->>W: near-zero characters? → status=awaiting_ocr, not failed
-    W->>W: split on paragraph + heading boundaries
+    W->>W: extract text per page (PyMuPDF; headings by font size)
+    W->>W: near-zero characters? → OCR the page (Tesseract)
+    W->>W: OCR confidence below the floor? → page left out, counted as unreadable
+    W->>W: drop repeated headers, footers, watermarks
+    W->>W: split on paragraph + heading boundaries, ~1,800 chars, ~200 overlap
     W->>W: embed each chunk (Gemini via OpenRouter, one text per request)
     W->>DB: insert chunks + tsvector + embedding
     W->>DB: status=indexed, progress=100
 ```
 
 Failure sets `status=failed` and records `error`. Progress is written per processed page
-so the design's percentage bar reflects real work.
+so the design's percentage bar reflects real work: reading pages fills 0–50%, embedding
+50–99%. If the embedder is down the document goes back to `queued` and the worker backs
+off (30 s doubling to 15 min); a provider outage never marks a document `failed`. If
+Tesseract is not installed, a scanned PDF waits in `awaiting_ocr`.
+
+The worker is a thread inside the API process (`entrypoints/worker/`), started by the
+app's lifespan. Claims use `FOR UPDATE SKIP LOCKED`, so two workers never take the same
+document, but start-up requeues every `processing` document, which is only safe with one
+process. Before running more than one replica, move the worker to its own process with a
+claim lease.
 
 Embedding is part of this deterministic path: it derives a vector from the document's own
 text and invents nothing. BND-001 bars a **generative** model from ingestion, not every

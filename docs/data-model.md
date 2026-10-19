@@ -370,6 +370,7 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `content` | text | the indexed text |
 | `tsv` | tsvector | set at insert with `to_tsvector(document.language, content)`, not a generated `english` column |
 | `embedding` | vector(1024) | embedded at ingestion by the one fixed model (ADR-0021) |
+| `embedding_model` | text? FK → `embedding_space.model` | the model that produced `embedding`; null exactly when `embedding` is null |
 
 Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and the same
 transaction, then fused with reciprocal rank fusion
@@ -387,6 +388,10 @@ as no result, so Research mode still refuses rather than answering from weak mat
 
 The backend refuses to embed with a model other than the one recorded here, so vectors
 from two models can never mix. Changing model is a re-embed migration (ADR-0021).
+Each chunk also names its own model (`chunk.embedding_model`). During a model change,
+the chunks whose `embedding_model` is not the new model are exactly the ones left to
+re-embed, so the migration can run in batches and resume. The foreign key has no
+`ON UPDATE CASCADE`: renaming a model here can never relabel vectors it did not produce.
 
 **DEC-012 — chunk text, keyword index, and embedding are one row.**
 Splitting them across stores would buy nothing here and cost cross-store consistency: a
