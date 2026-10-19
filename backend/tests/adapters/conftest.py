@@ -63,7 +63,7 @@ def sessions(migrated: str) -> Iterator[sessionmaker[Session]]:
     with factory.begin() as session:
         session.execute(
             text(
-                "TRUNCATE document, message, conversation, campaign "
+                "TRUNCATE citation, chunk, document, message, conversation, campaign "
                 "RESTART IDENTITY CASCADE"
             )
         )

@@ -8,6 +8,7 @@ const STATUS_TONE: Record<DocumentStatus, string> = {
   Queued: "var(--text-muted)",
   Uploading: "var(--accent)",
   Failed: "var(--rel-enemy)",
+  "Awaiting OCR": "var(--text-muted)",
 };
 
 type DocumentRowProps = {

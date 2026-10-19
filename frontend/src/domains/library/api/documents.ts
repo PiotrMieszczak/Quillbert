@@ -10,7 +10,7 @@ type DocumentDto = {
   kind: LibraryDocument["kind"];
   pageCount: number | null;
   meta: string | null;
-  status: "queued" | "processing" | "indexed" | "failed";
+  status: "queued" | "processing" | "indexed" | "failed" | "awaiting_ocr";
   progress: number;
   error: string | null;
 };
@@ -20,6 +20,7 @@ const STATUS: Record<DocumentDto["status"], DocumentStatus> = {
   processing: "Processing",
   indexed: "Indexed",
   failed: "Failed",
+  awaiting_ocr: "Awaiting OCR",
 };
 
 const toDocument = (dto: DocumentDto): LibraryDocument => ({
@@ -37,9 +38,13 @@ const documentsPath = (campaignId: string) => `/campaigns/${encodeURIComponent(c
 export const documentsKey = (campaignId: string) => ["documents", campaignId] as const;
 
 const moving = (documents: LibraryDocument[] | undefined) =>
-  documents?.some((document) => document.status === "Queued" || document.status === "Processing") ?? false;
+  documents?.some((document) =>
+    document.status === "Queued" ||
+    document.status === "Processing" ||
+    document.status === "Awaiting OCR",
+  ) ?? false;
 
-/** The campaign's library. Polls while anything is queued or processing, then stops (PRIN-003). */
+/** The campaign's library. Polls while anything is queued, processing, or awaiting OCR, then stops. */
 export function useDocuments(campaignId: string) {
   return useQuery({
     queryKey: documentsKey(campaignId),
