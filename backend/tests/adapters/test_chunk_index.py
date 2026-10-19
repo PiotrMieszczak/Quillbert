@@ -2,9 +2,11 @@
 
 from datetime import UTC, datetime
 
+import pytest
 from app.adapters.persistence.sqlalchemy.repositories import SqlDocumentRepo
 from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 
@@ -52,3 +54,25 @@ def test_index_replaces_chunks_with_keyword_and_vector_rows(
     ]
     assert rows[0][3] < rows[1][3]  # the vector search finds the matching chunk first
     assert {row[4] for row in rows} == {"google/gemini-embedding-2"}
+
+
+def test_a_vector_from_an_unknown_model_is_rejected(
+    sessions: sessionmaker[Session],
+) -> None:
+    """The foreign key to embedding_space keeps fake or stray vectors out (#64)."""
+    repo = SqlDocumentRepo(sessions)
+    document = Document(
+        id=repo.next_document_id(),
+        campaign_id="ashfall",
+        filename="Core.pdf",
+        kind=DocumentKind.PDF,
+        sha256="d" * 64,
+        storage_key="0" * 32,
+        uploaded_at=datetime(2026, 10, 19, tzinfo=UTC),
+    )
+    repo.add(document)
+    chunk = _chunk(0, "text")
+    chunk.embedding_model = "fake"
+
+    with pytest.raises(IntegrityError):
+        repo.index(document, [chunk])
