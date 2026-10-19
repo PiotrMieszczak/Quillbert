@@ -108,7 +108,7 @@ index rows go with it once extraction exists). A missing id, or one from another
 is `404`. Afterwards the same bytes can be uploaded again as a new document.
 
 Upload returns `202 Accepted` immediately with `status: "queued"`. The client polls this
-list while any document is `queued` or `processing`, then stops (PRIN-003 — upload never
+list while any document is `queued`, `processing`, or `awaiting_ocr`, then stops (PRIN-003 — upload never
 blocks).
 
 ## Search

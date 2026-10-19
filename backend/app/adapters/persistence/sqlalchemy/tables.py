@@ -2,18 +2,21 @@
 
 from datetime import date, datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
     Identity,
+    Index,
     Integer,
     MetaData,
     Text,
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Stable constraint names, so migrations can refer to them.
@@ -98,7 +101,8 @@ class DocumentRow(Base):
         ),
         CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
         CheckConstraint(
-            "status IN ('queued', 'processing', 'indexed', 'failed')", name="status"
+            "status IN ('queued', 'processing', 'indexed', 'failed', 'awaiting_ocr')",
+            name="status",
         ),
     )
 
@@ -117,4 +121,73 @@ class DocumentRow(Base):
     source: Mapped[str] = mapped_column(Text)
     source_ref: Mapped[str | None] = mapped_column(Text)
     sha256: Mapped[str] = mapped_column(Text)
+    # tsvector config. 'simple' stems nothing (ADR-0016 IMP-011).
+    language: Mapped[str] = mapped_column(
+        Text, server_default="simple", default="simple"
+    )
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class EmbeddingSpaceRow(Base):
+    """The one model that produced every stored vector (ADR-0016)."""
+
+    __tablename__ = "embedding_space"
+    __table_args__ = (CheckConstraint("dimensions = 1024", name="dimensions"),)
+
+    model: Mapped[str] = mapped_column(Text, primary_key=True)
+    dimensions: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class ChunkRow(Base):
+    """Indexed passage. Text, keyword index, and vector are one row (DEC-012)."""
+
+    __tablename__ = "chunk"
+    __table_args__ = (
+        UniqueConstraint(
+            "document_id", "ordinal", name="uq_chunk_document_id_ordinal"
+        ),
+        Index("ix_chunk_tsv", "tsv", postgresql_using="gin"),
+        Index(
+            "ix_chunk_embedding",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_with={"m": 16, "ef_construction": 64},
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    document_id: Mapped[int] = mapped_column(
+        ForeignKey("document.id", ondelete="CASCADE"), index=True
+    )
+    # Copied from the document. A document does not move between campaigns.
+    campaign_id: Mapped[str] = mapped_column(
+        ForeignKey("campaign.id", ondelete="CASCADE"), index=True
+    )
+    ordinal: Mapped[int] = mapped_column(Integer)
+    page_from: Mapped[int | None] = mapped_column(Integer)
+    page_to: Mapped[int | None] = mapped_column(Integer)
+    heading: Mapped[str | None] = mapped_column(Text)
+    content: Mapped[str] = mapped_column(Text)
+    tsv: Mapped[str] = mapped_column(TSVECTOR)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1024))
+
+
+class CitationRow(Base):
+    """An assistant message's source. The chunk is the source of truth."""
+
+    __tablename__ = "citation"
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    message_id: Mapped[int] = mapped_column(
+        ForeignKey("message.id", ondelete="CASCADE"), index=True
+    )
+    chunk_id: Mapped[int] = mapped_column(
+        ForeignKey("chunk.id", ondelete="CASCADE"), index=True
+    )
+    # The label the model was shown, such as S1.
+    label: Mapped[str] = mapped_column(Text)
+    quote: Mapped[str | None] = mapped_column(Text)

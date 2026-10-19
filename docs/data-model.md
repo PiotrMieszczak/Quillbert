@@ -347,7 +347,8 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `kind` | enum | `PDF` \| `DOC` \| `IMG` |
 | `page_count` | int? | |
 | `meta` | text? | "stat blocks · rules" |
-| `status` | enum | `queued` \| `processing` \| `indexed` \| `failed` |
+| `status` | enum | `queued` \| `processing` \| `indexed` \| `failed` \| `awaiting_ocr` |
+| `language` | text | tsvector config for this document's chunks. `simple` stems nothing; an English rulebook uses `english` (ADR-0016 IMP-011) |
 | `progress` | int | 0–100, drives the progress bar |
 | `error` | text? | populated on `failed` |
 | `storage_key` | text | opaque key into the `FileStore` — a path locally, an object key when hosted |
@@ -362,11 +363,12 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 |-------|------|-------|
 | `id` | int PK | |
 | `document_id` | int FK | |
-| `ordinal` | int | position within document |
+| `campaign_id` | text FK | copied from the document; a document does not move campaigns |
+| `ordinal` | int | position within document. Unique with `document_id` |
 | `page_from`, `page_to` | int? | for citations |
 | `heading` | text? | nearest section heading |
 | `content` | text | the indexed text |
-| `tsv` | tsvector | PostgreSQL full-text index over `content` |
+| `tsv` | tsvector | set at insert with `to_tsvector(document.language, content)`, not a generated `english` column |
 | `embedding` | vector(1024) | embedded at ingestion by the one fixed model (ADR-0016) |
 
 Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and the same
@@ -412,7 +414,7 @@ Session bodies are chunked and indexed like documents, so past sessions are retr
 |--------|-----------|
 | `conversation` | `id`, `campaign_id`, `mode`, `started_at` |
 | `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode`, `created_at`, `tool_label?` |
-| `citation` | `id`, `message_id`, `chunk_id`, `quote?` |
+| `citation` | `id`, `message_id`, `chunk_id`, `label`, `quote?` |
 
 Citations satisfy AC-002 and make grounding auditable. `mode` (`research` today;
 `creative` and in-character to follow) is stored on both the conversation and each message,

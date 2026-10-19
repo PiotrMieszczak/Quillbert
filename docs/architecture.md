@@ -132,7 +132,7 @@ sequenceDiagram
     W->>DB: claim queued document
     W->>DB: status=processing
     W->>W: extract text (PyMuPDF / pdfplumber)
-    W->>W: near-zero characters? → awaiting OCR, not failed
+    W->>W: near-zero characters? → status=awaiting_ocr, not failed
     W->>W: split on paragraph + heading boundaries
     W->>W: embed each chunk (Voyage, batched)
     W->>DB: insert chunks + tsvector + embedding
