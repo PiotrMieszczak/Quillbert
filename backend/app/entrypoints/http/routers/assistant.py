@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
 from app.application.dto import ConversationView, MessageView
-from app.entrypoints.http.auth import require_identity
+from app.entrypoints.http.auth import require_campaign
 from app.entrypoints.http.schemas.assistant import (
     ConversationOut,
     CreateConversationBody,
@@ -15,7 +15,7 @@ from app.entrypoints.http.schemas.assistant import (
 from app.entrypoints.http.streaming import ag_ui_frame
 
 router = APIRouter(
-    prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_identity)]
+    prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_campaign)]
 )
 
 

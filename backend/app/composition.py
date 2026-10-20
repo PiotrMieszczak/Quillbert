@@ -17,17 +17,27 @@ from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.llm.fake_embedder import FakeEmbedder
 from app.adapters.llm.openrouter_embedder import OpenRouterEmbedder
+from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
 from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_space
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
+    SqlCampaignRepo,
     SqlChunkSearch,
     SqlConversationRepo,
     SqlDocumentRepo,
 )
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
+from app.application.campaigns import (
+    CreateCampaign,
+    GetCampaign,
+    GetCampaignImage,
+    ListCampaigns,
+    ListSystems,
+    SetCampaignImage,
+)
 from app.application.documents import (
     DeleteDocument,
     GetDocument,
@@ -44,14 +54,23 @@ from app.ports.embeddings import Embedder
 from app.ports.extraction import TextExtractor
 from app.ports.files import FileStore
 from app.ports.llm import LLMProvider
-from app.ports.repositories import ConversationRepo, DocumentRepo
+from app.ports.repositories import CampaignRepo, ConversationRepo, DocumentRepo
 from app.ports.search import ChunkSearch
 
 logger = logging.getLogger(__name__)
 
+# A banner is shown at card size; nothing needs more than this.
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
 
 @dataclass(frozen=True)
 class UseCases:
+    list_systems: ListSystems
+    list_campaigns: ListCampaigns
+    create_campaign: CreateCampaign
+    get_campaign: GetCampaign
+    set_campaign_image: SetCampaignImage
+    get_campaign_image: GetCampaignImage
     start_conversation: StartConversation
     run_turn: RunAssistantTurn
     list_messages: ListMessages
@@ -70,7 +89,8 @@ class UseCases:
 def _sessions(settings: Settings) -> Any | None:
     if settings.database_url is None:
         logger.warning(
-            "DATABASE_URL is not set; conversations and documents are kept in memory."
+            "DATABASE_URL is not set; campaigns, conversations and documents are kept "
+            "in memory."
         )
         return None
     return create_session_factory(settings.database_url)
@@ -121,10 +141,14 @@ def build_use_cases(
     files: FileStore | None = None,
     embedder: Embedder | None = None,
     extractor: TextExtractor | None = None,
+    campaigns: CampaignRepo | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
-    sessions = None if repo and documents else _sessions(settings)
+    sessions = None if repo and documents and campaigns else _sessions(settings)
+    campaign_repo: CampaignRepo = campaigns or (
+        InMemoryCampaignRepo() if sessions is None else SqlCampaignRepo(sessions)
+    )
     conversations: ConversationRepo = repo or (
         InMemoryConversationRepo()
         if sessions is None
@@ -145,6 +169,14 @@ def build_use_cases(
     )
     time = clock or SystemClock()
     return UseCases(
+        list_systems=ListSystems(campaign_repo),
+        list_campaigns=ListCampaigns(campaign_repo),
+        create_campaign=CreateCampaign(campaign_repo, time),
+        get_campaign=GetCampaign(campaign_repo),
+        set_campaign_image=SetCampaignImage(
+            store, campaign_repo, max_bytes=MAX_IMAGE_BYTES
+        ),
+        get_campaign_image=GetCampaignImage(store, campaign_repo),
         start_conversation=StartConversation(conversations, time),
         run_turn=RunAssistantTurn(conversations, provider, time),
         list_messages=ListMessages(conversations),
@@ -186,6 +218,12 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
             worker.stop()
 
     app = create_http_app(api_docs=settings.enable_api_docs, lifespan=lifespan)
+    app.state.list_systems = cases.list_systems
+    app.state.list_campaigns = cases.list_campaigns
+    app.state.create_campaign = cases.create_campaign
+    app.state.get_campaign = cases.get_campaign
+    app.state.set_campaign_image = cases.set_campaign_image
+    app.state.get_campaign_image = cases.get_campaign_image
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
     app.state.list_messages = cases.list_messages

@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
+from app.domain.campaigns import Campaign, System
 from app.domain.documents import Chunk, Document
 
 
@@ -62,4 +63,27 @@ class DocumentRepo(Protocol):
         Every chunk carries its embedding and the model that made it. Keyword vectors
         use the document's language.
         """
+        ...
+
+
+class CampaignRepo(Protocol):
+    """Every campaign read takes the owner id (DEC-005, BND-003): another user's
+    campaign is indistinguishable from a missing one."""
+
+    def systems(self) -> list[System]:
+        """Every system a campaign may be played in, by name."""
+        ...
+
+    def add(self, campaign: Campaign) -> None: ...
+
+    def get(self, owner_id: str, campaign_id: str) -> Campaign | None: ...
+
+    def list_for_owner(self, owner_id: str) -> list[Campaign]:
+        """Most recently played first, then newest."""
+        ...
+
+    def set_image(
+        self, owner_id: str, campaign_id: str, image_key: str | None
+    ) -> str | None:
+        """Replace the banner key and return the previous one. Raises NotFound."""
         ...

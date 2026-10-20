@@ -1,9 +1,9 @@
-import { CAMPAIGN } from "../../domains/campaign";
+import type { Campaign } from "../../domains/campaign";
 import { DocumentLibrary } from "../../domains/library";
 import { PageTitle } from "../../ui/components";
 import styles from "./Documents.module.css";
 
-export function Documents() {
+export function Documents({ campaign }: { campaign: Campaign }) {
   return (
     <div className={styles.view}>
       <header className={styles.header}>
@@ -12,8 +12,7 @@ export function Documents() {
           Deterministic extraction · text, stat blocks, and rules indexed for search
         </p>
       </header>
-      {/* shortcut: the fixture campaign until #7 routes /c/:campaignId; then read it from the URL. */}
-      <DocumentLibrary campaignId={CAMPAIGN.id} />
+      <DocumentLibrary campaignId={campaign.id} />
     </div>
   );
 }

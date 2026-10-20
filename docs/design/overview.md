@@ -88,8 +88,7 @@ submitting it replaces the card with a **Check your email** screen (envelope til
 address it was sent to, **Resend email**, and "Start over" / "Back to sign in") instead of
 an inline message; "Forgot?" switches it to a reset request that
 shows the same confirmation whether or not the address exists (AC-011). Following a reset
-link shows a "New password" card until one is chosen. Until the campaign picker lands, a
-session goes straight to the workspace. The same screen serves local and
+link shows a "New password" card until one is chosen. A session lands on the Campaign Picker. The same screen serves local and
 hosted deployment (PRIN-004).
 
 ## 2. Campaign Picker
@@ -97,15 +96,37 @@ hosted deployment (PRIN-004).
 Full-viewport scroll on the landing radial gradient.
 
 - Header row: brand lockup left; right cluster is "Sign out" plus a 40px avatar
-  (`--radius-button`) that opens Settings
-- Responsive grid of campaign cards: banner (uploaded image or tint gradient), title in
-  Crimson Pro, system badge ("D&D 2024", "Traveller 2e"), meta line
-  `Session {n} · {system}`
-- An "Add campaign" affordance opens the add-campaign modal
+  (`--radius-button`) showing the account's initial; it opens Settings once that screen
+  exists
+- "Your Campaigns" title; the subtitle reads "No campaigns yet. Start your first table."
+  when the list is empty
+- Responsive grid of campaign cards (`minmax(280px, 1fr)`, one column on a phone): a 150px
+  banner (uploaded image, or the campaign's tint washed over the placeholder stripes),
+  system badge top-left in the tint ("D&D 2014", "D&D 2024", "Traveller 2e"), title in
+  Crimson Pro, meta line `Session {n} · {system}`, or `No sessions yet · {system}`
+- A dashed "New campaign" tile, always last, opens the add-campaign modal
+- Selecting a card enters that campaign's workspace. The workspace header shows the
+  campaign's name and system; clicking it returns to the picker
 
-**Add-campaign modal.** Image upload plus a **mandatory** system choice. Create is
-disabled until both a name and a system are set. On create, the campaign is added and the
-app enters the workspace at Overview.
+**Add-campaign modal.** A native modal dialog (Escape and Cancel close it):
+
+- **Banner upload** — a full-width 150px dashed drop target ("Add a banner image",
+  PNG/JPG/WebP, max 10 MB, optional). Once an image is chosen it becomes a live preview of the card
+  banner: the image, the system badge in its tint, the name typed so far, and **Change** /
+  **Remove** chips. Wrong type or over 10 MB is refused inline before anything uploads
+- **Campaign name** — required
+- **Game system** — **mandatory**, one of the systems from `GET /systems`, as option
+  tiles with an edition line (D&D 2014 "5e · 2014 rules", D&D 2024 "5e · 2024 revision",
+  Traveller 2e "Mongoose 2nd ed."); three across on desktop, stacked on a phone. The
+  system sets the campaign's tint: D&D 2014 `--rel-enemy`, D&D 2024 `--accent`,
+  Traveller 2e `--rel-professional`
+- Create is disabled until both a name and a system are set. On create, the campaign is
+  added, the banner uploaded, and the app enters the workspace. If the banner upload
+  fails after the campaign exists, the modal says so and the button retries just the
+  upload (or opens the campaign once the image is removed)
+
+Prototype: the Campaign Picker and New Campaign modal in the
+[design artifact](https://claude.ai/code/artifact/a7d4de30-0826-4747-b295-a584fe6f0f28).
 
 ## 3. Workspace shell
 

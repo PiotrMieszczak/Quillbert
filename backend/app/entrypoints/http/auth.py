@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 
 from app.ports.auth import Identity, InvalidToken, TokenVerifier
 
@@ -18,6 +18,17 @@ def require_identity(request: Request) -> Identity:
     except InvalidToken as error:
         logger.warning("rejected bearer token: %s", error)
         raise _unauthorized("invalid token") from error
+
+
+def require_campaign(
+    campaign_id: str, request: Request, identity: Identity = Depends(require_identity)
+) -> Identity:
+    """Dependency for routes under /campaigns/{campaign_id}: the caller must own it,
+    or the route answers 404 as if it did not exist (DEC-005)."""
+    request.app.state.get_campaign.execute(
+        owner_id=identity.user_id, campaign_id=campaign_id
+    )
+    return identity
 
 
 def _unauthorized(detail: str) -> HTTPException:

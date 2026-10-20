@@ -15,9 +15,8 @@ services:
       # Uploaded files (the local-disk FileStore); kept across restarts on a named volume.
       FILE_STORE_PATH: /data/files
     # No command override: the image serves uvicorn. Migrations are NOT run on boot —
-    # apply them yourself with `alembic upgrade head` (and `python -m
-    # app.adapters.persistence.sqlalchemy.seed` for the dev campaign). Production
-    # migrates via the Migrate-database CI workflow.
+    # apply them yourself with `alembic upgrade head`. Production migrates via the
+    # "Migrate database" CI workflow.
     healthcheck:
       test:
         [

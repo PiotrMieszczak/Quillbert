@@ -60,7 +60,6 @@ python3.11 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 export DATABASE_URL='postgresql+psycopg://…'            # same value as in .env; alembic reads it
 alembic upgrade head
-python -m app.adapters.persistence.sqlalchemy.seed      # optional: a demo campaign, `ashfall`
 cd ..
 ```
 

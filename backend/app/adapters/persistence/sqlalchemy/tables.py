@@ -43,11 +43,14 @@ class SystemRow(Base):
 
 
 class CampaignRow(Base):
-    """owner_id arrives with auth (ADR-0008, DEC-005). No owner scope until then."""
+    """Owned by one Supabase Auth user (DEC-005). NULL owner_id: a campaign made
+    before ownership existed, which nobody sees until it is claimed."""
 
     __tablename__ = "campaign"
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)
+    # The Supabase Auth user id (a JWT `sub`); that table lives in another schema.
+    owner_id: Mapped[str | None] = mapped_column(Text, index=True)
     name: Mapped[str] = mapped_column(Text)
     # Exactly one system per campaign; a system in use cannot be deleted.
     system_id: Mapped[str] = mapped_column(
@@ -59,6 +62,8 @@ class CampaignRow(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+    system: Mapped[SystemRow] = relationship()
 
 
 class ConversationRow(Base):
@@ -146,9 +151,7 @@ class ChunkRow(Base):
 
     __tablename__ = "chunk"
     __table_args__ = (
-        UniqueConstraint(
-            "document_id", "ordinal", name="uq_chunk_document_id_ordinal"
-        ),
+        UniqueConstraint("document_id", "ordinal", name="uq_chunk_document_id_ordinal"),
         Index("ix_chunk_tsv", "tsv", postgresql_using="gin"),
         Index(
             "ix_chunk_embedding",

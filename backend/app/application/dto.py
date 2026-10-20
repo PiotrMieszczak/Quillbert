@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 from app.domain.assistant import Mode, Role
+from app.domain.campaigns import System
 from app.domain.documents import DocumentKind, DocumentStatus
 
 
@@ -21,6 +22,24 @@ class MessageView:
     created_at: datetime
     mode: Mode
     tool_label: str | None
+
+
+@dataclass(frozen=True)
+class CampaignView:
+    id: str
+    name: str
+    system: System
+    tint: str
+    # Changes whenever the banner does; None when there is no banner.
+    image_version: str | None
+    session_count: int
+    last_played_at: date | None
+
+
+@dataclass(frozen=True)
+class CampaignImage:
+    data: bytes
+    media_type: str
 
 
 @dataclass(frozen=True)

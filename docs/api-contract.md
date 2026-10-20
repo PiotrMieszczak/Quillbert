@@ -6,7 +6,7 @@ scope server-side (BND-003).
 
 ## Conventions
 
-- IDs are integers except `campaign.id`, which is a slug
+- IDs are integers except `campaign.id`, an opaque string (random, not derived from the name)
 - All endpoints require a Supabase bearer token (see Auth)
 - Timestamps are ISO 8601 UTC
 - Errors: `{ "detail": "message" }` with a conventional status code
@@ -41,30 +41,47 @@ not `403` — a `403` confirms the resource exists.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/campaigns` | List for the picker |
-| `POST` | `/campaigns` | Create — `name` and `systemId` required |
-| `GET` | `/campaigns/{id}` | Single campaign |
-| `PATCH` | `/campaigns/{id}` | Rename, change image or tint |
-| `DELETE` | `/campaigns/{id}` | Delete campaign and all contents |
+| Method | Path | Purpose | Status |
+|--------|------|---------|--------|
+| `GET` | `/campaigns` | The caller's campaigns for the picker, most recently played first, then newest | Built |
+| `POST` | `/campaigns` | Create — `name` and `systemId` required | Built |
+| `GET` | `/campaigns/{id}` | Single campaign | Built |
+| `POST` | `/campaigns/{id}/image` | Set or replace the banner (multipart, field `file`) | Built |
+| `GET` | `/campaigns/{id}/image` | The banner bytes | Built |
+| `PATCH` | `/campaigns/{id}` | Rename, change tint | Planned |
+| `DELETE` | `/campaigns/{id}` | Delete campaign and all contents | Planned |
 
 ```jsonc
 // POST /campaigns
-{ "name": "Ashfall Reach", "systemId": "dnd-2024", "tint": "#E8B87A" }
+{ "name": "Ashfall Reach", "systemId": "dnd-2014", "tint": "#EF7777" }
 // 201
-{ "id": "ashfall", "name": "Ashfall Reach",
-  "system": { "id": "dnd-2024", "name": "D&D 2024" },
-  "tint": "#E8B87A", "imageUrl": null, "sessionCount": 0, "lastPlayedAt": null }
+{ "id": "3f0c9a…", "name": "Ashfall Reach",
+  "system": { "id": "dnd-2014", "name": "D&D 2014" },
+  "tint": "#EF7777", "imageUrl": null, "sessionCount": 0, "lastPlayedAt": null }
 ```
 
-An unknown `systemId` is a `422`.
+- A missing `systemId` is a `422` (request validation); an unknown one is a `422` with
+  `{ "detail": "unknown system '…'" }`.
+- `name` is trimmed and whitespace-collapsed; empty or over 120 characters is a `400`.
+- `tint` is optional (default `#E8B87A`) and must be `#RRGGBB`, else `400`. The SPA picks it
+  from the system: D&D 2014 `#EF7777`, D&D 2024 `#E8B87A`, Traveller 2e `#7BA3D6`.
+- `sessionCount` is `0` until sessions exist.
+- Every campaign belongs to the caller (DEC-005). Another user's campaign is a `404`, here
+  and on every route under `/campaigns/{id}/…` (documents, conversations).
 
-`POST /campaigns/{id}/image` — multipart, sets the banner.
+**Banner.** `POST /campaigns/{id}/image` accepts PNG, JPEG or WebP, judged by the bytes,
+up to 10 MB: anything else is `415`, larger is `413`. It answers `200` with the campaign.
+Replacing a banner deletes the old file. `imageUrl` is the API path of the image with a
+version query (`/api/v1/campaigns/{id}/image?v=…`) that changes with each upload, so the
+response may be cached forever. It needs the bearer token like any other route, so the SPA
+fetches it and shows it from a blob URL rather than pointing an `<img>` at it.
 
-`GET /systems` — the systems the add-campaign picker offers.
+`GET /systems` — the systems the add-campaign picker offers, by name.
 
 ```jsonc
 // GET /systems
-[{ "id": "dnd-2024", "name": "D&D 2024" }, { "id": "traveller-2e", "name": "Traveller 2e" }]
+[{ "id": "dnd-2014", "name": "D&D 2014" }, { "id": "dnd-2024", "name": "D&D 2024" },
+ { "id": "traveller-2e", "name": "Traveller 2e" }]
 ```
 
 ## Documents
