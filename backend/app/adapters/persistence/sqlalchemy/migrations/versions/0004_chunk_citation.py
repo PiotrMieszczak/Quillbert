@@ -29,9 +29,7 @@ def upgrade() -> None:
         ),
     )
     # 0003's name is passed through the naming convention, so the real name is doubled.
-    op.execute(
-        "ALTER TABLE document DROP CONSTRAINT ck_document_ck_document_status"
-    )
+    op.execute("ALTER TABLE document DROP CONSTRAINT ck_document_ck_document_status")
     op.create_check_constraint(
         "status",
         "document",
