@@ -55,7 +55,7 @@ The top-level isolation boundary. Everything else belongs to exactly one campaig
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | text PK | Random hex, not a slug of the name. Older rows may hold slugs such as `ashfall` |
+| `id` | text PK | Random hex, not a slug of the name. Rows created earlier keep their slug ids (e.g. `ashfall`); no migration rewrites them |
 | `owner_id` | text? | The Supabase Auth user id (JWT `sub`) that owns it (DEC-005). Null only on rows created before ownership; nobody sees those |
 | `name` | text | "Ashfall Reach" |
 | `system_id` | text FK | **Required.** → `system.id`; exactly one per campaign (DEC-013) |

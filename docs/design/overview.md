@@ -111,7 +111,7 @@ Full-viewport scroll on the landing radial gradient.
 **Add-campaign modal.** A native modal dialog (Escape and Cancel close it):
 
 - **Banner upload** — a full-width 150px dashed drop target ("Add a banner image",
-  PNG/JPG/WebP, optional). Once an image is chosen it becomes a live preview of the card
+  PNG/JPG/WebP, max 10 MB, optional). Once an image is chosen it becomes a live preview of the card
   banner: the image, the system badge in its tint, the name typed so far, and **Change** /
   **Remove** chips. Wrong type or over 10 MB is refused inline before anything uploads
 - **Campaign name** — required
