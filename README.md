@@ -128,9 +128,10 @@ npm run dev         # http://localhost:5173, Vite with hot reload
 npm run build       # production build   ·   npm run lint runs oxlint
 ```
 
-Vite reads `frontend/.env.local` (gitignored), not the root `.env`. The dev server has no
-`/api` proxy yet, and the UI does not call the backend yet, so sign-in is the part you can
-exercise: use Docker (`:8080`) when you need the full path through nginx.
+Vite reads `frontend/.env.local` (gitignored), not the root `.env`. The dev server proxies
+`/api` to the backend on `http://localhost:8000`, so run the backend alongside it
+(`uvicorn app.composition:build_app --factory --reload` in `backend/`). If that port is
+taken, add `--port 8001` to uvicorn and start Vite with `API_URL=http://localhost:8001`.
 
 ## Documentation
 

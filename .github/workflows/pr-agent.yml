@@ -41,6 +41,9 @@ jobs:
           CONFIG__AI_TIMEOUT: "600"
           # No fallback: a free fallback model hid every failed review before.
           CONFIG__FALLBACK_MODELS: "[]"
+          # Post the generated summary as its own comment; never rewrite the
+          # author's PR description.
+          PR_DESCRIPTION__PUBLISH_DESCRIPTION_AS_COMMENT: "true"
 
           # LiteLLM does not carry a context window for every GLM id, so
           # state it explicitly rather than letting the call fail.

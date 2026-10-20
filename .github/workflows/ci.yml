@@ -98,6 +98,11 @@ jobs:
         working-directory: backend
         run: ruff check app tests
 
+      - name: Format
+        if: steps.check.outputs.present == 'true'
+        working-directory: backend
+        run: ruff format --check app tests
+
       - name: Import contracts
         if: steps.check.outputs.present == 'true'
         working-directory: backend
