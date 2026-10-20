@@ -24,6 +24,7 @@ on demand.
 | HTTP surface | [docs/api-contract.md](docs/api-contract.md) | — |
 | Delivery phases, gates | [docs/roadmap.md](docs/roadmap.md) | — |
 | Why a decision was made | [docs/adr/README.md](docs/adr/README.md) → the specific ADR | Never read them all |
+| What PR review checks | [.pr_agent.toml](.pr_agent.toml) | Rules for the PR Agent reviewer |
 
 **Order of operations for a non-trivial task:** read this file → read the one or two `docs/`
 pages the task touches → read a specific ADR only if you are about to contradict it. Stop
