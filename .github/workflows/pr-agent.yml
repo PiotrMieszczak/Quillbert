@@ -2,7 +2,7 @@ name: PR Agent
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, reopened, synchronize]
   issue_comment:
     types: [created]
 
@@ -37,6 +37,8 @@ jobs:
           # GLM-5.x always reasons and accepts only low, high or max; pr-agent's
           # default (medium) is rejected with a 400.
           CONFIG__REASONING_EFFORT: high
+          # High reasoning over a large diff outlasts the 120 s default.
+          CONFIG__AI_TIMEOUT: "600"
           # No fallback: a free fallback model hid every failed review before.
           CONFIG__FALLBACK_MODELS: "[]"
 
