@@ -26,13 +26,19 @@ jobs:
           # ZAI__KEY — the double underscore is pr-agent's nested-setting
           # syntax ([zai] key), so env var and secret share the name.
           ZAI__KEY: ${{ secrets.ZAI__KEY }}
+          # The GLM Coding Plan is consumed only through its own endpoint; the
+          # default (/api/paas/v4) bills pay-as-you-go credit, which is empty.
+          ZAI_API_BASE: https://api.z.ai/api/coding/paas/v4
 
           # Model id is a repository variable, not a secret, so it can be
           # changed without touching this file. Set PR_AGENT_MODEL under
           # Settings → Secrets and variables → Actions → Variables.
-          # Falls back to glm-4.5-flash, the id LiteLLM documents today.
-          CONFIG__MODEL: ${{ vars.PR_AGENT_MODEL || 'zai/glm-4.5-flash' }}
-          CONFIG__FALLBACK_MODELS: '["zai/glm-4.5-flash"]'
+          CONFIG__MODEL: ${{ vars.PR_AGENT_MODEL || 'zai/glm-5.3' }}
+          # GLM-5.x always reasons and accepts only low, high or max; pr-agent's
+          # default (medium) is rejected with a 400.
+          CONFIG__REASONING_EFFORT: high
+          # No fallback: a free fallback model hid every failed review before.
+          CONFIG__FALLBACK_MODELS: "[]"
 
           # LiteLLM does not carry a context window for every GLM id, so
           # state it explicitly rather than letting the call fail.
