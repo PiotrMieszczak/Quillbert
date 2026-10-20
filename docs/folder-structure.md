@@ -116,13 +116,10 @@ backend/
 │   │   │   ├── sqlalchemy/
 │   │   │   │   ├── tables.py      # PostgreSQL schema — mapped to domain, not equal to it
 │   │   │   │   ├── mappers.py     # row ↔ entity translation
-│   │   │   │   ├── repositories/  # one per repository port
+│   │   │   │   ├── repositories/  # one per repository port; chunk_search.py is hybrid retrieval
 │   │   │   │   ├── unit_of_work.py
 │   │   │   │   └── migrations/
 │   │   │   └── memory/            # in-memory repos — the fast test double
-│   │   ├── search/
-│   │   │   ├── hybrid.py          # tsvector + pgvector, RRF-fused
-│   │   │   └── memory.py
 │   │   ├── llm/
 │   │   │   ├── openrouter.py      # the only file importing the OpenRouter client
 │   │   │   ├── prompts/           # one strategy per assistant mode

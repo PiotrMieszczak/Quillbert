@@ -376,7 +376,10 @@ Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and t
 transaction, then fused with reciprocal rank fusion
 ([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md)). Results below a relevance floor are treated
 as no result, so Research mode still refuses rather than answering from weak matches
-(AC-003).
+(AC-003). Built as the `ChunkSearch` port (`ports/search.py`), one SQL statement in
+`SqlChunkSearch`: the keyword leg admits only chunks matching the query, the vector leg
+only those at or above `retrieval_floor` cosine similarity, and both are scoped to the
+campaign's `indexed` documents (BND-003). With no query vector it runs keyword-only.
 
 **`embedding_space`** — one row, the model that produced every stored embedding.
 
