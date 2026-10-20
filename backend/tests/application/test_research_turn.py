@@ -42,9 +42,7 @@ def test_turn_persists_user_and_assistant(
 def test_unknown_conversation_is_not_found(run_turn: RunAssistantTurn) -> None:
     with pytest.raises(NotFound):
         next(
-            run_turn.execute(
-                campaign_id="ashfall", conversation_id=99, content="hello"
-            )
+            run_turn.execute(campaign_id="ashfall", conversation_id=99, content="hello")
         )
 
 
