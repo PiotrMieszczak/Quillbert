@@ -26,6 +26,9 @@ jobs:
           # ZAI__KEY — the double underscore is pr-agent's nested-setting
           # syntax ([zai] key), so env var and secret share the name.
           ZAI__KEY: ${{ secrets.ZAI__KEY }}
+          # The GLM Coding Plan is consumed only through its own endpoint; the
+          # default (/api/paas/v4) bills pay-as-you-go credit, which is empty.
+          ZAI_API_BASE: https://api.z.ai/api/coding/paas/v4
 
           # Model id is a repository variable, not a secret, so it can be
           # changed without touching this file. Set PR_AGENT_MODEL under
