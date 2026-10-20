@@ -1,0 +1,42 @@
+name: Release
+
+# On every push to main, release-please keeps a release PR open with the next version
+# and the changelog. Merging that PR tags vX.Y.Z, then migrates and deploys production.
+# Migrate and Deploy are called from here because a release created with GITHUB_TOKEN
+# does not trigger other workflows.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  migrate:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/migrate.yml
+    with:
+      sha: ${{ needs.release-please.outputs.sha }}
+    secrets: inherit
+
+  deploy:
+    needs: [release-please, migrate]
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      sha: ${{ needs.release-please.outputs.sha }}

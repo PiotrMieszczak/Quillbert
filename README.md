@@ -29,8 +29,9 @@ Start with [docs/README.md](docs/README.md).
   develop against Supabase Cloud, so local and hosted share the same Auth, RLS, and
   pgvector and nothing drifts between them
   ([ADR-0018](docs/adr/adr-0018-hosted-first-local-v2.md),
-  [ADR-0020](docs/adr/adr-0020-supabase-auth.md)). Use your own or a dedicated dev
-  project — local runs write to whatever database `DATABASE_URL` names.
+  [ADR-0020](docs/adr/adr-0020-supabase-auth.md)). Use the **Quillbert dev** project, never
+  production: local runs write to whatever database `DATABASE_URL` names. Production ships
+  only through releases ([setup guide → Releases](docs/setup-guide.md#releases)).
 
 **1. Configure.** Copy the template and fill in the Supabase values:
 

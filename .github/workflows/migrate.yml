@@ -8,27 +8,28 @@ name: Migrate database
 # connection string, port 5432, in postgresql+psycopg://… form — DDL needs the
 # session pooler, not the transaction pooler).
 
+# Runs as part of each release (called by release-please.yml before Deploy), or by hand.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "backend/app/adapters/persistence/sqlalchemy/migrations/**"
-      - "backend/alembic.ini"
-      - "backend/pyproject.toml"
+  workflow_call:
+    inputs:
+      sha:
+        type: string
+        required: true
   workflow_dispatch: {}
-
-# Never cancel a migration mid-run.
-concurrency:
-  group: migrate-production
-  cancel-in-progress: false
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
     # Add required reviewers to the "production" environment to gate prod migrations.
     environment: production
+    # Never cancel a migration mid-run.
+    concurrency:
+      group: migrate-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
 
       - uses: actions/setup-python@v5
         with:

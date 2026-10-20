@@ -61,11 +61,27 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   ([ADR-0013](adr/adr-0013-postgres-for-local-and-hosted.md) IMP-002). Do **not** apply
   schema through the Supabase dashboard or MCP — that creates a parallel history that fights
   alembic.
-- The Action runs on push to `main` when migrations/alembic/deps change, and on manual
-  **Run workflow** (`workflow_dispatch`). It needs the `DATABASE_URL` secret.
-- **Ordering:** run migrations **before** the app deploy that depends on them. Easiest on a
-  single maintainer: let the Action go green, then deploy the app in Openship. (Gate it
-  further by adding required reviewers to the `production` environment in repo settings.)
+- The Action runs as part of every **release** (see below), and on manual **Run workflow**
+  (`workflow_dispatch`). It needs the `DATABASE_URL` secret of the `production` environment.
+- **Ordering is automatic:** the release workflow migrates, then deploys. Gate it further by
+  adding required reviewers to the `production` environment in repo settings.
+- **Local development migrates the dev project, never prod:** run `alembic upgrade head`
+  with `DATABASE_URL` pointing at the **Quillbert dev** project.
+
+## Releases
+
+Versions are semantic (`vX.Y.Z`) and produced by **release-please**
+([.github/workflows/release-please.yml](../.github/workflows/release-please.yml)) from the
+Conventional Commit messages on `main`.
+
+1. Every push to `main` runs CI and updates one open **release PR**: the next version, plus
+   `CHANGELOG.md` entries from the `feat`/`fix` commits since the last release.
+2. Merging that PR tags the release, creates a GitHub release, then runs **Migrate
+   database** and **Deploy** against production, in that order.
+3. Nothing reaches production between releases. `main` is tested, not deployed.
+
+Version bumps: `fix` → patch, `feat` → minor, a breaking change → minor while below 1.0.
+The version is kept in `version.txt`, `frontend/package.json` and `backend/pyproject.toml`.
 
 ## Runbook
 
@@ -106,8 +122,8 @@ step. The backend container no longer runs `alembic upgrade head` on boot; it on
   `30106`, zone `mikrus.dev`. Keep nothing else public; Supabase is reached as an external
   HTTPS service.
 - Deploy and check health (see **Check it's live** below).
-- **Deploy on merge:** `.github/workflows/deploy.yml` runs `openship deploy` after CI is
-  green on `main`. Openship lives on the Mac, so the job needs a **self-hosted runner on
+- **Deploy on release:** `.github/workflows/deploy.yml` runs `openship deploy` when a
+  release is cut (see **Releases**). Openship lives on the Mac, so the job needs a **self-hosted runner on
   the Mac** labelled `openship` (repo Settings → Actions → Runners → New self-hosted
   runner, macOS; add the label `openship`; run it as a service). The runner user must be
   logged in to Openship. Never let it run PR code — the workflow triggers on `main` only.

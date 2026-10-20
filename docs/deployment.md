@@ -43,6 +43,21 @@ service**; files are object storage. Openship is the deploy manager, run **self-
   reachable through the frontend's proxy, so `quillbert.app` alone is enough. Supabase is
   reached as an external HTTPS service, not published from the box.
 
+## Environments
+
+Two Supabase projects keep development away from production data. There is no deployed dev
+site yet: dev is the maintainer's machine.
+
+| | Dev | Production |
+|---|---|---|
+| App runs on | Local machine (Docker Compose or `uvicorn` + `vite`) | `ted106` through Openship |
+| Supabase project | **Quillbert dev** (free tier) | `DM Assistant` (`zfhluuonhmexjfhjjghf`) |
+| Credentials live in | Root `.env`, `frontend/.env.local` | Openship project env; GitHub `production` environment |
+| Schema changes | `alembic upgrade head` by hand | **Migrate database**, run by each release |
+| Deploys | — | Merging the release PR ([setup guide → Releases](setup-guide.md#releases)) |
+
+Never put production credentials in a local `.env`.
+
 ## Environment & secrets
 
 Frontend variables are **public** (they ship in the browser bundle); backend values are
