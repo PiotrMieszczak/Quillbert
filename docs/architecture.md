@@ -100,9 +100,8 @@ dm_assistant/
 │   │   ├── ports/            # protocols: repositories, llm, search, files, clock
 │   │   ├── application/      # use cases: assistant turn, upload, ingest, retrieval
 │   │   ├── adapters/
-│   │   │   ├── persistence/  # sqlalchemy (PostgreSQL, migrations) + memory
+│   │   │   ├── persistence/  # sqlalchemy (PostgreSQL, migrations, hybrid chunk search) + memory
 │   │   │   ├── llm/          # the Gateway: openrouter, fake, prompts
-│   │   │   ├── search/       # hybrid tsvector + pgvector
 │   │   │   ├── extraction/   # PyMuPDF, OCR (no LLM)
 │   │   │   └── files/        # FileStore: local disk, object store
 │   │   ├── entrypoints/      # http routers, worker, cli

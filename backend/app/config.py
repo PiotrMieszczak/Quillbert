@@ -35,3 +35,11 @@ class Settings(BaseSettings):
 
     # Tesseract language data for scanned pages; both must be installed.
     ocr_languages: str = "eng+pol"
+
+    # Chunks the Research mode is shown per question.
+    retrieval_top_k: int = 6
+
+    # Cosine similarity a chunk must reach to count as a vector match; below it a
+    # question has no result and Research refuses (AC-003). Untuned: set it from
+    # real queries, not from the test vectors.
+    retrieval_floor: float = 0.5

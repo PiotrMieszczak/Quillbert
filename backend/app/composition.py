@@ -17,11 +17,13 @@ from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.llm.fake_embedder import FakeEmbedder
 from app.adapters.llm.openrouter_embedder import OpenRouterEmbedder
+from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_space
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
+    SqlChunkSearch,
     SqlConversationRepo,
     SqlDocumentRepo,
 )
@@ -43,6 +45,7 @@ from app.ports.extraction import TextExtractor
 from app.ports.files import FileStore
 from app.ports.llm import LLMProvider
 from app.ports.repositories import ConversationRepo, DocumentRepo
+from app.ports.search import ChunkSearch
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +61,8 @@ class UseCases:
     delete_document: DeleteDocument
     # None when nothing could embed real vectors: uploads then stay queued (#64).
     worker: IngestionWorker | None
+    # Built, not yet called: the Research turn picks it up in the next phase.
+    chunk_search: ChunkSearch
     token_verifier: TokenVerifier
 
 
@@ -133,6 +138,11 @@ def build_use_cases(
     embed = embedder or _embedder(settings, persistent=sessions is not None)
     if sessions is not None and embed is not None:
         check_embedding_space(sessions, embed.model, embed.dimensions)
+    search: ChunkSearch = (
+        SqlChunkSearch(sessions, settings.retrieval_floor)
+        if sessions is not None
+        else InMemoryChunkSearch(document_repo)
+    )
     time = clock or SystemClock()
     return UseCases(
         start_conversation=StartConversation(conversations, time),
@@ -155,6 +165,7 @@ def build_use_cases(
             ),
             document_repo,
         ),
+        chunk_search=search,
         token_verifier=verifier or _token_verifier(settings),
     )
 
