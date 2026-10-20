@@ -153,13 +153,7 @@ Rules of thumb:
   linked ADR carry the detail.
 - **PRs:** use [.github/pull_request_template.md](.github/pull_request_template.md). It
   already checks design fidelity and the architectural boundaries.
-- **Every new or visibly changed screen gets a screenshot in its PR — mandatory.** Put it
-  under `## Screenshots` in the PR description: the real screen from a running build (never a
-  mockup), at desktop width, plus a phone-width shot when the layout differs, and one image
-  per distinct state (for example the sign-up form *and* the "Check your email" screen).
-  `gh` cannot upload images, so save the PNG and drag it into the description, or hand the
-  file to me to attach. The PR is not ready until the section is filled; a PR with no screen
-  change says "No UI change." there.
+- **No screenshots in PRs.** Never add a Screenshots section or screenshot files to a PR.
 - **New decision?** Write an ADR (`docs/adr/adr-NNNN-slug.md`, four-digit sequential) and
   add it to both index tables. Follow the format in
   [docs/adr/README.md](docs/adr/README.md).
