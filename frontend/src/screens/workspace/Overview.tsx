@@ -9,7 +9,7 @@ export function Overview() {
         <Eyebrow>Campaign</Eyebrow>
         <PageTitle>{CAMPAIGN.name}</PageTitle>
         <p className={styles.lede}>
-          Session {CAMPAIGN.sessionNumber} of an ongoing {CAMPAIGN.system} campaign. Your
+          Session {CAMPAIGN.sessionCount} of an ongoing {CAMPAIGN.system} campaign. Your
           material is indexed and searchable; the cast, factions, and quest log below track
           what the party has touched so far.
         </p>

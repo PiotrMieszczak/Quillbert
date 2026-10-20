@@ -1,11 +1,13 @@
 """Row <-> entity translation. The domain never sees a row."""
 
 from app.adapters.persistence.sqlalchemy.tables import (
+    CampaignRow,
     ConversationRow,
     DocumentRow,
     MessageRow,
 )
 from app.domain.assistant import Conversation, Message, Mode, Role
+from app.domain.campaigns import Campaign, System
 from app.domain.documents import Document, DocumentKind, DocumentSource, DocumentStatus
 
 
@@ -88,4 +90,32 @@ def document_from_row(row: DocumentRow) -> Document:
         source_ref=row.source_ref,
         sha256=row.sha256,
         uploaded_at=row.uploaded_at,
+    )
+
+
+def campaign_to_row(campaign: Campaign) -> CampaignRow:
+    return CampaignRow(
+        id=campaign.id,
+        owner_id=campaign.owner_id,
+        name=campaign.name,
+        system_id=campaign.system.id,
+        tint=campaign.tint,
+        image_path=campaign.image_key,
+        last_played_at=campaign.last_played_at,
+        created_at=campaign.created_at,
+    )
+
+
+def campaign_from_row(row: CampaignRow) -> Campaign:
+    if row.owner_id is None:
+        raise ValueError(f"campaign {row.id} has no owner")  # queries filter these out
+    return Campaign(
+        id=row.id,
+        owner_id=row.owner_id,
+        name=row.name,
+        system=System(row.system.id, row.system.name),
+        tint=row.tint,
+        created_at=row.created_at,
+        image_key=row.image_path,
+        last_played_at=row.last_played_at,
     )

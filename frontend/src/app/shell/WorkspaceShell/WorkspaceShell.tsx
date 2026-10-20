@@ -11,6 +11,7 @@ type WorkspaceShellProps = {
   campaign: Campaign;
   activeView: string;
   onNavigate: (id: string) => void;
+  onSwitchCampaign: () => void;
   onSignOut: () => void;
   children: ReactNode;
 };
@@ -19,6 +20,7 @@ export function WorkspaceShell({
   campaign,
   activeView,
   onNavigate,
+  onSwitchCampaign,
   onSignOut,
   children,
 }: WorkspaceShellProps) {
@@ -39,7 +41,7 @@ export function WorkspaceShell({
 
   return (
     <div className={[styles.shell, panelOpen && styles.panelOpen].filter(Boolean).join(" ")}>
-      <Header campaign={campaign} onSignOut={onSignOut} />
+      <Header campaign={campaign} onSwitchCampaign={onSwitchCampaign} onSignOut={onSignOut} />
       <NavRail active={activeView} onNavigate={onNavigate} />
       <main className={styles.main}>{children}</main>
       {mob && panelOpen && (

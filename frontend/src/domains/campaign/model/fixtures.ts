@@ -7,7 +7,9 @@ export const CAMPAIGN: Campaign = {
   id: "ashfall",
   name: "The Ashfall Compact",
   system: "D&D 2024",
-  sessionNumber: 14,
+  tint: "#E8B87A",
+  imageUrl: null,
+  sessionCount: 14,
 };
 
 export const STATS: CampaignStats = {

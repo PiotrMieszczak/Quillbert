@@ -55,11 +55,12 @@ The top-level isolation boundary. Everything else belongs to exactly one campaig
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | text PK | slug, e.g. `ashfall` |
+| `id` | text PK | Random hex, not a slug of the name. Older rows may hold slugs such as `ashfall` |
+| `owner_id` | text? | The Supabase Auth user id (JWT `sub`) that owns it (DEC-005). Null only on rows created before ownership; nobody sees those |
 | `name` | text | "Ashfall Reach" |
 | `system_id` | text FK | **Required.** → `system.id`; exactly one per campaign (DEC-013) |
-| `image_path` | text? | user upload; falls back to a tint gradient |
-| `tint` | text | hex accent for the placeholder banner |
+| `image_path` | text? | FileStore key of the uploaded banner; null falls back to a tint gradient |
+| `tint` | text | `#RRGGBB` accent for the badge and the placeholder banner |
 | `session_count` | int | derived from sessions |
 | `last_played_at` | date? | drives the "Jul 5" meta line |
 | `created_at` | timestamp | |
@@ -71,8 +72,8 @@ migration, and the campaign picker offers them.
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | text PK | slug: `dnd-2024`, `traveller-2e` |
-| `name` | text UNIQUE | "D&D 2024", "Traveller 2e" |
+| `id` | text PK | slug: `dnd-2014`, `dnd-2024`, `traveller-2e` |
+| `name` | text UNIQUE | "D&D 2014", "D&D 2024", "Traveller 2e" |
 
 Many-to-one: each campaign has exactly one system, and a system is shared by any number of
 campaigns. A system that a campaign uses cannot be deleted.
@@ -475,7 +476,8 @@ The prototype embeds `connections` in each entity. Real storage needs edges quer
 from both ends to render a graph without loading every entity.
 
 **DEC-005 — Campaigns carry `owner_id`; everything else scopes through campaign.**
-`campaign.owner_id` references `user`. Characters, quests, and documents scope by
+`campaign.owner_id` is the Supabase Auth user id. There is no foreign key: that table
+lives in Supabase's `auth` schema, and the app-side `user` profile does not exist yet. Characters, quests, and documents scope by
 `campaign_id` and inherit ownership through it, so a single join answers "may this user see
 this row?" Denormalising `owner_id` onto every table would create two sources of truth that
 can disagree.
@@ -483,6 +485,12 @@ can disagree.
 This makes `BND-003` load-bearing rather than tidy: with real users, a missed owner filter
 is a data leak, not an inconvenience. Enforce it in the repository layer, and test it
 (IMP-011 in [ADR-0008](adr/adr-0008-own-auth-v1.md)).
+
+Built: the campaign repository filters every read on `owner_id`, and every route under
+`/campaigns/{id}/…` first checks that the caller owns that campaign, answering `404` if not.
+Migration 0007 adds the column as nullable because campaigns made before it have no
+known owner. Such a campaign is visible to nobody until it is claimed by hand:
+`UPDATE campaign SET owner_id = '<Supabase user id>' WHERE id = '…';`
 
 **DEC-006 — One Region entity at every scale, with notability as a separate flag.**
 A realm, a district, and a tavern are the same kind of thing differing in scope, so one

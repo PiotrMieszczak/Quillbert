@@ -6,7 +6,7 @@ from app.adapters.persistence.memory.conversations import InMemoryConversationRe
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.composition import build_app, build_use_cases
 from fastapi.testclient import TestClient
-from tests.conftest import FakeVerifier
+from tests.conftest import FakeVerifier, owned_campaigns
 
 URL = "/api/v1/campaigns/ashfall/documents"
 PDF = b"%PDF-1.7\nhello"
@@ -85,6 +85,7 @@ def test_an_oversize_file_is_413(
         documents=InMemoryDocumentRepo(),
         files=LocalDiskFileStore(tmp_path / "files"),
         verifier=FakeVerifier(),
+        campaigns=owned_campaigns("ashfall"),
     )
     with TestClient(build_app(small), headers=client.headers) as limited:
         response = _upload(limited, data=PDF + b"x" * (1024 * 1024))

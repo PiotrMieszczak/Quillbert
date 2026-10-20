@@ -5,15 +5,17 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
+    SqlCampaignRepo,
     SqlConversationRepo,
     SqlDocumentRepo,
 )
 from app.adapters.persistence.sqlalchemy.tables import CampaignRow
-from app.ports.repositories import ConversationRepo, DocumentRepo
+from app.ports.repositories import CampaignRepo, ConversationRepo, DocumentRepo
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -88,3 +90,13 @@ def document_repo(request: pytest.FixtureRequest) -> DocumentRepo:
     if request.param == "memory":
         return InMemoryDocumentRepo(campaigns=CAMPAIGNS)
     return SqlDocumentRepo(request.getfixturevalue("sessions"))
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def campaign_repo(request: pytest.FixtureRequest) -> CampaignRepo:
+    if request.param == "memory":
+        return InMemoryCampaignRepo()
+    sessions = request.getfixturevalue("sessions")
+    with sessions.begin() as session:
+        session.execute(text("TRUNCATE campaign CASCADE"))
+    return SqlCampaignRepo(sessions)

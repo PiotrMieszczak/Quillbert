@@ -27,8 +27,8 @@ A Research chat turn, stored in PostgreSQL, answered by a fake model, and docume
 
 The reply comes from `adapters/llm/fake.py`. Conversations live in PostgreSQL when
 `DATABASE_URL` is set, and in memory (with a warning in the log) when it is not. A
-conversation must belong to an existing campaign; there is no campaign API yet, so local
-development seeds one, `ashfall`. Auth, Claude, Ollama, and retrieval are not wired yet.
+conversation must belong to a campaign the caller owns; create one in the campaign picker
+or with `POST /api/v1/campaigns`.
 The HTTP surface is specified in [docs/api-contract.md](../docs/api-contract.md).
 
 ## Architecture
@@ -82,8 +82,7 @@ fails rather than skips in CI.
 
 From the repository root, `docker compose up --build`. See the
 [root README](../README.md#run-it-with-docker) for URLs and everyday commands. The
-backend container runs `alembic upgrade head`, seeds the `ashfall` campaign, then starts
-uvicorn.
+backend container serves uvicorn; apply migrations with `alembic upgrade head`.
 
 ## Database
 
@@ -144,7 +143,6 @@ docker compose up -d db
 cd backend && source .venv/bin/activate
 export DATABASE_URL=postgresql+psycopg://dm:dm@localhost:5432/dm_assistant
 alembic upgrade head
-python -m app.adapters.persistence.sqlalchemy.seed
 uvicorn app.composition:build_app --factory --reload
 ```
 

@@ -7,11 +7,11 @@ from app.application.documents import (
     UploadDocument,
 )
 from app.application.dto import DocumentView
-from app.entrypoints.http.auth import require_identity
+from app.entrypoints.http.auth import require_campaign
 from app.entrypoints.http.schemas.documents import DocumentOut
 
 router = APIRouter(
-    prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_identity)]
+    prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_campaign)]
 )
 
 

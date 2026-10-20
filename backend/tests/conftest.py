@@ -5,23 +5,43 @@ import pytest
 from app.adapters.clock.frozen import FrozenClock
 from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
+from app.adapters.persistence.memory.campaigns import SYSTEMS, InMemoryCampaignRepo
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
 from app.composition import UseCases, build_app, build_use_cases
+from app.domain.campaigns import Campaign
 from app.ports.auth import Identity, InvalidToken
 
 FROZEN = datetime(2026, 10, 7, 14, 0, tzinfo=UTC)
 
 
 GOOD_TOKEN = "good-token"
+USER_ID = "user-1"
+
+
+def owned_campaigns(*ids: str, owner_id: str = USER_ID) -> InMemoryCampaignRepo:
+    """Campaigns the test user owns, so routes under /campaigns/{id} let them in."""
+    return InMemoryCampaignRepo(
+        [
+            Campaign(
+                id=cid,
+                owner_id=owner_id,
+                name=cid.title(),
+                system=SYSTEMS[1],
+                tint="#E8B87A",
+                created_at=FROZEN,
+            )
+            for cid in ids
+        ]
+    )
 
 
 class FakeVerifier:
     def verify(self, token: str) -> Identity:
         if token != GOOD_TOKEN:
             raise InvalidToken("nope")
-        return Identity(user_id="user-1", email="gm@ashfall.table")
+        return Identity(user_id=USER_ID, email="gm@ashfall.table")
 
 
 @pytest.fixture
@@ -40,7 +60,13 @@ def file_store(tmp_path: Path) -> LocalDiskFileStore:
 
 
 @pytest.fixture
+def campaign_repo() -> InMemoryCampaignRepo:
+    return owned_campaigns("ashfall", "other")
+
+
+@pytest.fixture
 def use_cases(
+    campaign_repo: InMemoryCampaignRepo,
     repo: InMemoryConversationRepo,
     document_repo: InMemoryDocumentRepo,
     file_store: LocalDiskFileStore,
@@ -52,6 +78,7 @@ def use_cases(
         verifier=FakeVerifier(),
         documents=document_repo,
         files=file_store,
+        campaigns=campaign_repo,
     )
 
 

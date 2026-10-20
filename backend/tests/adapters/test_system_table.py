@@ -12,7 +12,11 @@ from sqlalchemy.orm import Session, sessionmaker
 def test_systems_are_seeded_by_migration(sessions: sessionmaker[Session]) -> None:
     with sessions() as session:
         names = dict(session.execute(select(SystemRow.id, SystemRow.name)).all())
-    assert names == {"dnd-2024": "D&D 2024", "traveller-2e": "Traveller 2e"}
+    assert names == {
+        "dnd-2014": "D&D 2014",
+        "dnd-2024": "D&D 2024",
+        "traveller-2e": "Traveller 2e",
+    }
 
 
 @pytest.mark.parametrize("system_id", ["no-such-system", None])
@@ -56,7 +60,10 @@ def test_upgrade_backfills_existing_campaigns(
         with engine.begin() as connection:
             connection.execute(text("TRUNCATE campaign CASCADE"))
             connection.execute(
-                text("DELETE FROM system WHERE id NOT IN ('dnd-2024', 'traveller-2e')")
+                text(
+                    "DELETE FROM system "
+                    "WHERE id NOT IN ('dnd-2014', 'dnd-2024', 'traveller-2e')"
+                )
             )
         engine.dispose()
 
