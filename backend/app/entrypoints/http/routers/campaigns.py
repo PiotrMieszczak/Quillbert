@@ -102,5 +102,9 @@ def get_campaign_image(
     return Response(
         image.data,
         media_type=image.media_type,
-        headers={"Cache-Control": "private, max-age=31536000, immutable"},
+        headers={
+            "Cache-Control": "private, max-age=31536000, immutable",
+            # Only the magic bytes were checked: never let a browser sniff it as more.
+            "X-Content-Type-Options": "nosniff",
+        },
     )

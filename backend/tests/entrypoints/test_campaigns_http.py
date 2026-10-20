@@ -126,6 +126,7 @@ def test_banner_upload_sets_the_image_url(gm: TestClient, tmp_path: Path) -> Non
     served = gm.get(image_url)
     assert served.status_code == 200
     assert served.headers["content-type"] == "image/png"
+    assert served.headers["x-content-type-options"] == "nosniff"
     assert served.content == PNG
 
     # Replacing the banner removes the old file and changes the URL.
