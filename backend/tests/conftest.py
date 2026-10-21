@@ -11,6 +11,7 @@ from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
 from app.composition import UseCases, build_app, build_use_cases
 from app.domain.campaigns import Campaign
+from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
 from app.ports.auth import Identity, InvalidToken
 
 FROZEN = datetime(2026, 10, 7, 14, 0, tzinfo=UTC)
@@ -65,7 +66,38 @@ def campaign_repo() -> InMemoryCampaignRepo:
 
 
 @pytest.fixture
+def fake_llm() -> FakeLLM:
+    return FakeLLM()
+
+
+def index_document(
+    documents: InMemoryDocumentRepo,
+    campaign_id: str,
+    filename: str,
+    *chunks: str,
+) -> Document:
+    """An indexed document whose chunks are `chunks`, one per page."""
+    document = Document(
+        id=documents.next_document_id(),
+        campaign_id=campaign_id,
+        filename=filename,
+        kind=DocumentKind.PDF,
+        sha256=f"{documents.next_document_id():064d}",
+        storage_key="0" * 32,
+        uploaded_at=FROZEN,
+    )
+    documents.add(document)
+    document.status = DocumentStatus.INDEXED
+    documents.index(
+        document,
+        [Chunk(n, text, n + 1, n + 1, "Grappling") for n, text in enumerate(chunks)],
+    )
+    return document
+
+
+@pytest.fixture
 def use_cases(
+    fake_llm: FakeLLM,
     campaign_repo: InMemoryCampaignRepo,
     repo: InMemoryConversationRepo,
     document_repo: InMemoryDocumentRepo,
@@ -73,7 +105,7 @@ def use_cases(
 ) -> UseCases:
     return build_use_cases(
         repo=repo,
-        llm=FakeLLM(),
+        llm=fake_llm,
         clock=FrozenClock(FROZEN),
         verifier=FakeVerifier(),
         documents=document_repo,

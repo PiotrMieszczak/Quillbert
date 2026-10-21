@@ -18,8 +18,17 @@ class ConversationOut(BaseModel):
     started_at: datetime = Field(alias="startedAt")
 
 
-class SendMessageBody(BaseModel):
-    content: str
+class CitationOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, ser_json_by_alias=True)
+
+    label: str
+    chunk_id: int = Field(alias="chunkId")
+    document_id: int = Field(alias="documentId")
+    filename: str
+    page_from: int | None = Field(default=None, alias="pageFrom")
+    heading: str | None = None
+    # Set for a shared-library passage; none exist yet.
+    attribution: str | None = None
 
 
 class MessageOut(BaseModel):
@@ -31,3 +40,4 @@ class MessageOut(BaseModel):
     created_at: datetime = Field(alias="createdAt")
     mode: Mode
     tool_label: str | None = Field(default=None, alias="toolLabel")
+    citations: list[CitationOut] = []

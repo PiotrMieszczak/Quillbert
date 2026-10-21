@@ -19,6 +19,7 @@ class ListMessages:
                 created_at=message.created_at,
                 mode=message.mode,
                 tool_label=message.tool_label,
+                citations=message.citations,
             )
             for message in conversation.messages
         ]

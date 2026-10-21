@@ -43,3 +43,21 @@ class Settings(BaseSettings):
     # question has no result and Research refuses (AC-003). Untuned: set it from
     # real queries, not from the test vectors.
     retrieval_floor: float = 0.5
+
+    # The chat model for Research answers (ADR-0019). Must be served zero-retention by
+    # `chat_provider`; the Gateway refuses a provider outside its allowlist.
+    chat_model: str = "google/gemini-3.5-flash-lite"
+
+    # OpenRouter endpoint tag for chat. global was the cheapest and fastest of the
+    # zero-retention ones measured; eu serves flash-lite too, at +10% and no better.
+    chat_provider: str = "google-vertex/global"
+
+    # How hard the model thinks before it answers: "minimal", "low", "medium" or "high".
+    # Empty sends nothing. Some endpoints reject "none" ("reasoning is mandatory").
+    chat_reasoning_effort: str = "low"
+
+    # Cap on the reply, in tokens. Research answers are short paragraphs.
+    chat_max_tokens: int = 700
+
+    # Most recent messages replayed to the model, the new question included.
+    history_messages: int = 6

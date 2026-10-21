@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from app.domain.assistant import Mode, Role
+from app.domain.assistant import Citation, Mode, Role
 from app.domain.campaigns import System
 from app.domain.documents import DocumentKind, DocumentStatus
 
@@ -22,6 +22,7 @@ class MessageView:
     created_at: datetime
     mode: Mode
     tool_label: str | None
+    citations: tuple[Citation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,14 @@ class TurnStarted:
 
 
 @dataclass(frozen=True)
+class TurnSearched:
+    """The retrieval step ran; `result` is the line the tool chip shows."""
+
+    query: str
+    result: str
+
+
+@dataclass(frozen=True)
 class TurnDelta:
     message_id: int
     text: str
@@ -81,4 +90,19 @@ class TurnFinished:
     message_id: int
 
 
-TurnEvent = TurnStarted | TurnDelta | TurnFinished
+@dataclass(frozen=True)
+class TurnCited:
+    citation: Citation
+
+
+@dataclass(frozen=True)
+class TurnFailed:
+    """The turn ended with no assistant message stored."""
+
+    code: str
+    message: str
+
+
+TurnEvent = (
+    TurnStarted | TurnSearched | TurnDelta | TurnCited | TurnFinished | TurnFailed
+)
