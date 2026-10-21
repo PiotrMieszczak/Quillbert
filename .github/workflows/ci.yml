@@ -4,11 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The release workflow runs CI on the release commit before migrating and deploying.
+  workflow_call: {}
 
-# A newer push to the same ref cancels the older run.
+# A newer push to the same ref cancels the older run. When called, github.workflow is the
+# caller's name, so a release's CI gets its own group and is never cancelled.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.workflow == 'CI' }}
 
 jobs:
   frontend:

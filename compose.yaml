@@ -1,8 +1,8 @@
 services:
-  # Develop against a Supabase project (set DATABASE_URL in a .env file). There is no
-  # local Postgres on purpose: Supabase gives the same Auth, RLS and pgvector as
-  # production, so there is no "works locally, breaks in prod" divergence. Use a
-  # separate Supabase *dev* project once you have real data to protect.
+  # Develop against the Quillbert *dev* Supabase project (set DATABASE_URL in a .env
+  # file); production has its own project. There is no local Postgres on purpose:
+  # Supabase gives the same Auth, RLS and pgvector as production, so there is no
+  # "works locally, breaks in prod" divergence.
   backend:
     build:
       context: ./backend
