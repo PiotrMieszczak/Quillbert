@@ -1,18 +1,11 @@
-## Description
+## What
 
-<!-- What changed and why. Link the ADR if this makes or reverses a decision. -->
+<!-- Bullets: what changed and why. `Closes #n`. Link the ADR if this makes or reverses a decision. -->
 
-## How to test
+## Heads-up
 
-<!-- The commands you actually ran, and what to look at. -->
+<!-- Risks, manual steps, data changes. Delete if none. -->
 
-## Notes
+## Deferred
 
-<!-- Deferred work, known gaps, anything you want a second opinion on. Delete if none. -->
-
-## Definition of done
-
-- [ ] Docs updated in the same commit, or no doc change needed
-- [ ] Tokens only — no hardcoded colours, radii, or shadows ([ADR-0004](../docs/adr/adr-0004-css-modules-over-tailwind.md))
-- [ ] Architectural boundaries intact — ingestion calls no generative model, model access goes through the Gateway, queries scoped by `campaign_id`
-- [ ] Build and lint pass locally
+<!-- What is left for later. Delete if none. -->
