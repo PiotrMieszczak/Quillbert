@@ -16,6 +16,7 @@ from app.adapters.extraction import FileExtractor, TesseractOcr
 from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.llm.fake_embedder import FakeEmbedder
+from app.adapters.llm.openrouter import OpenRouterChat
 from app.adapters.llm.openrouter_embedder import OpenRouterEmbedder
 from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
 from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
@@ -29,7 +30,12 @@ from app.adapters.persistence.sqlalchemy.repositories import (
     SqlConversationRepo,
     SqlDocumentRepo,
 )
-from app.application.assistant import ListMessages, RunAssistantTurn, StartConversation
+from app.application.assistant import (
+    ListConversations,
+    ListMessages,
+    RunAssistantTurn,
+    StartConversation,
+)
 from app.application.campaigns import (
     CreateCampaign,
     GetCampaign,
@@ -73,6 +79,7 @@ class UseCases:
     get_campaign_image: GetCampaignImage
     start_conversation: StartConversation
     run_turn: RunAssistantTurn
+    list_conversations: ListConversations
     list_messages: ListMessages
     upload_document: UploadDocument
     list_documents: ListDocuments
@@ -80,7 +87,6 @@ class UseCases:
     delete_document: DeleteDocument
     # None when nothing could embed real vectors: uploads then stay queued (#64).
     worker: IngestionWorker | None
-    # Built, not yet called: the Research turn picks it up in the next phase.
     chunk_search: ChunkSearch
     token_verifier: TokenVerifier
 
@@ -122,6 +128,18 @@ def _embedder(settings: Settings, *, persistent: bool) -> Embedder | None:
     return FakeEmbedder()
 
 
+def _llm(settings: Settings) -> LLMProvider:
+    if settings.open_router_api_key:
+        return OpenRouterChat(
+            api_key=settings.open_router_api_key,
+            model=settings.chat_model,
+            provider=settings.chat_provider,
+            max_tokens=settings.chat_max_tokens,
+        )
+    logger.warning("OPEN_ROUTER_API_KEY is not set; the assistant is a fake model.")
+    return FakeLLM()
+
+
 def _extractor(settings: Settings) -> TextExtractor:
     if not TesseractOcr.available():
         logger.warning(
@@ -158,7 +176,7 @@ def build_use_cases(
         InMemoryDocumentRepo() if sessions is None else SqlDocumentRepo(sessions)
     )
     store: FileStore = files or LocalDiskFileStore(Path(settings.file_store_path))
-    provider = llm or FakeLLM()
+    provider = llm or _llm(settings)
     embed = embedder or _embedder(settings, persistent=sessions is not None)
     if sessions is not None and embed is not None:
         check_embedding_space(sessions, embed.model, embed.dimensions)
@@ -178,7 +196,16 @@ def build_use_cases(
         ),
         get_campaign_image=GetCampaignImage(store, campaign_repo),
         start_conversation=StartConversation(conversations, time),
-        run_turn=RunAssistantTurn(conversations, provider, time),
+        list_conversations=ListConversations(conversations),
+        run_turn=RunAssistantTurn(
+            conversations,
+            provider,
+            time,
+            search,
+            embed,
+            top_k=settings.retrieval_top_k,
+            history_messages=settings.history_messages,
+        ),
         list_messages=ListMessages(conversations),
         upload_document=UploadDocument(
             store,
@@ -226,6 +253,7 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.get_campaign_image = cases.get_campaign_image
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
+    app.state.list_conversations = cases.list_conversations
     app.state.list_messages = cases.list_messages
     app.state.upload_document = cases.upload_document
     app.state.list_documents = cases.list_documents

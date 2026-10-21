@@ -2,16 +2,18 @@
 
 from app.adapters.persistence.sqlalchemy.tables import (
     CampaignRow,
+    CitationRow,
     ConversationRow,
     DocumentRow,
     MessageRow,
 )
-from app.domain.assistant import Conversation, Message, Mode, Role
+from app.domain.assistant import Citation, Conversation, Message, Mode, Role, Trace
 from app.domain.campaigns import Campaign, System
 from app.domain.documents import Document, DocumentKind, DocumentSource, DocumentStatus
 
 
 def message_to_row(message: Message) -> MessageRow:
+    trace = message.trace
     return MessageRow(
         id=message.id,
         conversation_id=message.conversation_id,
@@ -20,10 +22,36 @@ def message_to_row(message: Message) -> MessageRow:
         mode=message.mode.value,
         tool_label=message.tool_label,
         created_at=message.created_at,
+        prompt_id=trace and trace.prompt_id,
+        prompt_version=trace and trace.prompt_version,
+        model=trace and trace.model,
+        ttft_ms=trace and trace.ttft_ms,
+        duration_ms=trace and trace.duration_ms,
+        prompt_tokens=trace and trace.prompt_tokens,
+        completion_tokens=trace and trace.completion_tokens,
+        cost_usd=trace and trace.cost_usd,
+        citations=[
+            CitationRow(chunk_id=c.chunk_id, label=c.label) for c in message.citations
+        ],
     )
 
 
-def message_from_row(row: MessageRow) -> Message:
+def message_from_row(
+    row: MessageRow, citations: dict[int, Citation] | None = None
+) -> Message:
+    """`citations` maps a citation row id to its resolved passage; see the repo."""
+    trace = None
+    if row.prompt_id is not None and row.prompt_version is not None:
+        trace = Trace(
+            prompt_id=row.prompt_id,
+            prompt_version=row.prompt_version,
+            model=row.model,
+            ttft_ms=row.ttft_ms,
+            duration_ms=row.duration_ms,
+            prompt_tokens=row.prompt_tokens,
+            completion_tokens=row.completion_tokens,
+            cost_usd=row.cost_usd,
+        )
     return Message(
         id=row.id,
         conversation_id=row.conversation_id,
@@ -32,6 +60,8 @@ def message_from_row(row: MessageRow) -> Message:
         created_at=row.created_at,
         mode=Mode(row.mode),
         tool_label=row.tool_label,
+        citations=tuple((citations or {})[c.id] for c in row.citations),
+        trace=trace,
     )
 
 
@@ -45,13 +75,15 @@ def conversation_to_row(conversation: Conversation) -> ConversationRow:
     )
 
 
-def conversation_from_row(row: ConversationRow) -> Conversation:
+def conversation_from_row(
+    row: ConversationRow, citations: dict[int, Citation] | None = None
+) -> Conversation:
     return Conversation(
         id=row.id,
         campaign_id=row.campaign_id,
         mode=Mode(row.mode),
         started_at=row.started_at,
-        messages=[message_from_row(message) for message in row.messages],
+        messages=[message_from_row(m, citations) for m in row.messages],
     )
 
 

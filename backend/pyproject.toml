@@ -16,6 +16,7 @@ dependencies = [
   "PyJWT[crypto]>=2.9",
   "httpx>=0.28",
   "python-multipart>=0.0.20",
+  "ag-ui-protocol>=1.0",
 ]
 
 [project.optional-dependencies]

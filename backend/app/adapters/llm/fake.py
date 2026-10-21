@@ -1,22 +1,37 @@
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence
+from dataclasses import dataclass
 
-from app.adapters.llm.prompts.research import RESEARCH_PROMPT
+from app.adapters.llm.prompts import profile, research
 from app.domain.assistant import Message, Mode
+from app.ports.llm import Profile, Usage
+from app.ports.search import Hit
 
-_SCRIPTED = (
-    "This is a scripted Research reply. Indexed material is not searched yet, "
-    "so I cannot ground an answer in your books."
-)
+
+@dataclass(frozen=True)
+class Call:
+    mode: Mode
+    messages: list[dict[str, str]]
 
 
 class FakeLLM:
-    """Deterministic Gateway adapter. No network, no SDK."""
+    """Deterministic Gateway adapter. No network, no SDK.
 
-    def stream(self, *, mode: Mode, messages: Sequence[Message]) -> Iterator[str]:
-        del messages
+    Runs the real `compose` and keeps what it built, so a test can read the prompt.
+    """
+
+    def __init__(self) -> None:
+        self.calls: list[Call] = []
+
+    def profile(self, mode: Mode) -> Profile:
+        return profile(mode)
+
+    def stream(
+        self, *, mode: Mode, history: Sequence[Message], hits: Sequence[Hit]
+    ) -> Generator[str | Usage, None, None]:
         if mode is not Mode.RESEARCH:
             raise ValueError("fake LLM only serves research mode")
-        # The prompt is selected here so grounding stays inside the Gateway.
-        _ = RESEARCH_PROMPT
-        for word in _SCRIPTED.split(" "):
-            yield f"{word} " if not word.endswith(".") else word
+        messages, _ = research.compose(history, hits)
+        self.calls.append(Call(mode, messages))
+        yield "Scripted reply from your sources "
+        yield "[S1]."
+        yield Usage("fake", 10, 5, 0.0)
