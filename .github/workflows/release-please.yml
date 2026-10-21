@@ -1,7 +1,8 @@
 name: Release
 
 # On every push to main, release-please keeps a release PR open with the next version
-# and the changelog. Merging that PR tags vX.Y.Z, then migrates and deploys production.
+# and the changelog. Merging that PR tags vX.Y.Z, runs CI on that commit, then migrates
+# and deploys production; a red CI stops both.
 # Migrate and Deploy are called from here because a release created with GITHUB_TOKEN
 # does not trigger other workflows.
 
@@ -26,8 +27,13 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  migrate:
+  ci:
     needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  migrate:
+    needs: [release-please, ci]
     if: needs.release-please.outputs.release_created == 'true'
     uses: ./.github/workflows/migrate.yml
     with:

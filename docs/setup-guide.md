@@ -76,8 +76,9 @@ Conventional Commit messages on `main`.
 
 1. Every push to `main` runs CI and updates one open **release PR**: the next version, plus
    `CHANGELOG.md` entries from the `feat`/`fix` commits since the last release.
-2. Merging that PR tags the release, creates a GitHub release, then runs **Migrate
-   database** and **Deploy** against production, in that order.
+2. Merging that PR tags the release, creates a GitHub release, runs **CI** on that commit,
+   then **Migrate database** and **Deploy** against production, in that order. A red CI
+   stops the release before it touches production.
 3. Nothing reaches production between releases. `main` is tested, not deployed.
 
 Version bumps: `fix` → patch, `feat` → minor, a breaking change → minor while below 1.0.
