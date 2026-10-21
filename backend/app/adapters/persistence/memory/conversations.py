@@ -41,6 +41,6 @@ class InMemoryConversationRepo:
     def list_for_campaign(self, campaign_id: str) -> list[Conversation]:
         return [
             conversation
-            for conversation in self._conversations.values()
+            for conversation in reversed(self._conversations.values())
             if conversation.campaign_id == campaign_id
         ]

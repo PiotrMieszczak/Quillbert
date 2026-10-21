@@ -454,7 +454,10 @@ was called, as for the deterministic "Not in your material." refusal
 | `model` | text? | OpenRouter route actually called |
 | `ttft_ms`, `duration_ms` | int? | time to first token, total |
 | `prompt_tokens`, `completion_tokens` | int? | as reported by the provider |
-| `cost_usd` | numeric? | as reported by the provider |
+| `cost_usd` | numeric(12,8)? | as reported by the provider |
+
+Migration 0009 adds the trace columns (`prompt_id` … `cost_usd`). `route_source` and
+`route_confidence` come with routing in slice 2.
 
 ### User
 

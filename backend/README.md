@@ -6,12 +6,16 @@ every model call. The SPA in `frontend/` talks to it over HTTP; streaming uses
 
 ## What runs today
 
-A Research chat turn, stored in PostgreSQL, answered by a fake model, and document upload.
+A Research chat turn over the campaign's indexed documents, stored in PostgreSQL, and
+document upload.
 
 - `POST /api/v1/campaigns/{cid}/conversations` — start a conversation (`mode: research`)
-- `GET /api/v1/campaigns/{cid}/conversations/{id}/messages` — history
-- `POST /api/v1/campaigns/{cid}/conversations/{id}/messages` — send a message; response is
-  `text/event-stream` (`RunStarted`, text deltas, `RunFinished`)
+- `GET /api/v1/campaigns/{cid}/conversations` — the campaign's conversations, newest first
+- `GET /api/v1/campaigns/{cid}/conversations/{id}/messages` — history, with citations
+- `POST /api/v1/campaigns/{cid}/conversations/{id}/messages` — body is AG-UI's
+  `RunAgentInput` (only the last user message is read); response is spec AG-UI over
+  `text/event-stream`: `RUN_STARTED`, the `search_documents` tool call, the text message,
+  a `dm.citation` custom event per source, `RUN_FINISHED` (or `RUN_ERROR`)
 - `POST /api/v1/campaigns/{cid}/documents` — upload a file (multipart field `file`): `202`
   and a `queued` document, or `200` and the existing one when the campaign already has
   those bytes. `GET .../documents` and `GET .../documents/{id}` list and poll. PDF,
@@ -25,7 +29,11 @@ A Research chat turn, stored in PostgreSQL, answered by a fake model, and docume
   reach a real store. Local OCR needs `brew install tesseract tesseract-lang`;
   the Docker image ships it. `INGESTION_WORKER=false` turns the worker off.
 
-The reply comes from `adapters/llm/fake.py`. Conversations live in PostgreSQL when
+Each question embeds the query, runs hybrid search over the campaign's indexed chunks, and
+sends the top hits to the model as a Sources block (`adapters/llm/prompts/research.py`).
+No hits: the reply is `Not in your material.` with no model call. With
+`OPEN_ROUTER_API_KEY` the model is `CHAT_MODEL` on `CHAT_PROVIDER`, pinned zero-retention
+(`adapters/llm/openrouter.py`); without it `adapters/llm/fake.py` replies. Conversations live in PostgreSQL when
 `DATABASE_URL` is set, and in memory (with a warning in the log) when it is not. A
 conversation must belong to a campaign the caller owns; create one in the campaign picker
 or with `POST /api/v1/campaigns`.

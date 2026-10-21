@@ -5,9 +5,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import SqlConversationRepo
-from app.domain.assistant import Conversation, Message, Mode, Role
+from app.domain.assistant import Citation, Conversation, Message, Mode, Role, Trace
 from app.domain.shared import NotFound
 from app.ports.repositories import ConversationRepo
+from sqlalchemy import text
 
 T0 = datetime(2026, 10, 10, 18, 0, tzinfo=UTC)
 
@@ -78,6 +79,41 @@ def test_list_is_scoped_to_campaign(conversation_repo: ConversationRepo) -> None
     assert [c.id for c in conversation_repo.list_for_campaign("ashfall")] == [mine.id]
 
 
+def test_list_is_newest_first(conversation_repo: ConversationRepo) -> None:
+    older = _conversation(conversation_repo)
+    newer = _conversation(conversation_repo)
+    assert [c.id for c in conversation_repo.list_for_campaign("ashfall")] == [
+        newer.id,
+        older.id,
+    ]
+
+
+def test_trace_reads_back_and_a_user_message_has_none(
+    conversation_repo: ConversationRepo,
+) -> None:
+    conversation = _conversation(conversation_repo)
+    trace = Trace(
+        "research", "b443b9246d38", "google/m", 310, 2400, 812, 96, 0.00012345
+    )
+    reply = Message(
+        id=conversation_repo.next_message_id(),
+        conversation_id=conversation.id,
+        role=Role.ASSISTANT,
+        content="A grapple is a hold.",
+        created_at=T0,
+        mode=Mode.RESEARCH,
+        trace=trace,
+    )
+    conversation_repo.add_message(reply)
+    asked = _message(conversation_repo, conversation, Role.USER, "q")
+
+    loaded = conversation_repo.get(conversation.id)
+    assert loaded is not None
+    assert loaded.messages == [reply, asked]
+    assert loaded.messages[0].trace == trace
+    assert loaded.messages[1].trace is None
+
+
 def test_unknown_campaign_is_not_found(conversation_repo: ConversationRepo) -> None:
     with pytest.raises(NotFound):
         _conversation(conversation_repo, "no-such-campaign")
@@ -103,3 +139,46 @@ def test_conversation_survives_a_new_process(sessions, migrated: str) -> None:
     loaded = restarted.get(conversation.id)
     assert loaded is not None
     assert [m.content for m in loaded.messages] == ["Still here?"]
+
+
+def test_citations_resolve_to_their_passage(sessions, migrated: str) -> None:
+    """Postgres only: a citation stores a chunk id; the passage is joined on read."""
+    from app.adapters.persistence.sqlalchemy.repositories import SqlDocumentRepo
+    from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
+
+    documents = SqlDocumentRepo(sessions)
+    document = Document(
+        id=documents.next_document_id(),
+        campaign_id="ashfall",
+        filename="SRD.pdf",
+        kind=DocumentKind.PDF,
+        sha256="1" * 64,
+        storage_key="0" * 32,
+        uploaded_at=T0,
+    )
+    documents.add(document)
+    document.status = DocumentStatus.INDEXED
+    documents.index(document, [Chunk(0, "A grapple is a hold.", 177, 177, "Grappled")])
+    with sessions() as session:
+        chunk_id = session.execute(text("SELECT id FROM chunk")).scalar_one()
+
+    repo = SqlConversationRepo(sessions)
+    conversation = _conversation(repo)
+    citation = Citation("S1", chunk_id, document.id, "SRD.pdf", 177, "Grappled")
+    reply = Message(
+        id=repo.next_message_id(),
+        conversation_id=conversation.id,
+        role=Role.ASSISTANT,
+        content="A grapple is a hold [S1].",
+        created_at=T0,
+        mode=Mode.RESEARCH,
+        citations=(citation,),
+    )
+    repo.add_message(reply)
+
+    assert repo.get(conversation.id).messages == [reply]
+    assert repo.list_for_campaign("ashfall")[0].messages == [reply]
+
+    # Deleting the document deletes its chunks, and the citations to them go too.
+    documents.remove("ashfall", document.id)
+    assert repo.get(conversation.id).messages[0].citations == ()

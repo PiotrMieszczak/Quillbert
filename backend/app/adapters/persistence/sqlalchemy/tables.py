@@ -12,6 +12,7 @@ from sqlalchemy import (
     Index,
     Integer,
     MetaData,
+    Numeric,
     Text,
     UniqueConstraint,
     func,
@@ -93,6 +94,19 @@ class MessageRow(Base):
     mode: Mapped[str] = mapped_column(Text)
     tool_label: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # The trace (ADR-0024), on assistant messages only.
+    prompt_id: Mapped[str | None] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text)
+    model: Mapped[str | None] = mapped_column(Text)
+    ttft_ms: Mapped[int | None] = mapped_column(Integer)
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer)
+    cost_usd: Mapped[float | None] = mapped_column(Numeric(12, 8, asdecimal=False))
+
+    citations: Mapped[list["CitationRow"]] = relationship(
+        order_by="CitationRow.id", cascade="all, delete-orphan"
+    )
 
 
 class DocumentRow(Base):

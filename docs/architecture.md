@@ -12,7 +12,7 @@ flowchart TB
         UI["Screens (CSS Modules + design tokens)"]
         RQ["TanStack Query — server state"]
         ZS["Zustand — UI state"]
-        SSE["EventSource — streaming"]
+        SSE["@ag-ui/client HttpAgent — streaming"]
     end
 
     subgraph BE["Backend — FastAPI"]
@@ -301,8 +301,10 @@ Three distinct concerns, deliberately not merged:
   status polls while any document is `queued` or `processing`, then stops.
 - **UI state** — Zustand. `navHover`, `navPinned`, `panelOpen`, `moreOpen`, `mob`,
   filters, composer visibility. Ephemeral, never persisted.
-- **Streaming** — an `EventSource` per in-flight assistant message, appending tokens to
-  the message being rendered.
+- **Streaming** — one `@ag-ui/client` `HttpAgent` per send (not `EventSource`: the send is
+  a POST with a bearer token). Its subscriber appends text deltas to the reply being
+  rendered, and the panel aborts the run on close and on "New conversation". When the run
+  ends, the stored history is refetched and replaces the live reply.
 
 The prototype holds all of this in one class component. That is correct for a prototype
 and wrong for the app: server data and UI chrome have different lifetimes.
