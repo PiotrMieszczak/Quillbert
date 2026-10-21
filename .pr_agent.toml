@@ -1,0 +1,42 @@
+# Project review rules for PR Agent (read on every run). Model, endpoint and timeout
+# stay in .github/workflows/pr-agent.yml. Rule IDs are defined in docs/architecture.md
+# (BND-*), docs/data-model.md (DEC-*) and docs/adr/.
+
+[pr_reviewer]
+extra_instructions = """
+Review against these project rules first; report a violation with its ID.
+
+Product-breaking boundaries (block the PR if broken):
+- BND-001: no generative model in the ingestion path (backend/app/application/documents,
+  backend/app/adapters/extraction). The embedding model is allowed.
+- BND-002: model calls only through the Gateway (backend/app/adapters/llm/); no provider
+  SDK imported elsewhere.
+- BND-007: no assistant tool writes to the campaign; propose_* tools return drafts only.
+- BND-008: Creative and in-character output is never indexed; Research answers only from
+  retrieved material.
+
+Data access:
+- BND-003 / DEC-005: every query scopes by campaign_id, and campaigns by owner_id. A route
+  under /campaigns/{id} must check ownership; a missed filter is a data leak.
+
+Architecture:
+- Hexagonal backend: domain imports nothing else in app; application never imports
+  adapters or entrypoints; only composition.py wires ports to adapters.
+- Frontend: wire DTOs stay inside domains/*/api (ADR-0015); a domain is imported only
+  through its index.ts; CSS Modules with tokens, no Tailwind (ADR-0004).
+- BND-004: nothing imports or copies markup from the design prototype.
+
+Process:
+- A behaviour change updates docs/ in the same PR.
+- Accepted ADRs are immutable; a changed decision is a new ADR that supersedes the old.
+- New migrations must run both ways (upgrade and downgrade).
+
+Skip generic advice (naming, comments, "consider adding tests") unless it hides a defect.
+"""
+
+[pr_code_suggestions]
+extra_instructions = """
+Suggest only fixes for correctness, security, data scoping (BND-003) or the boundaries in
+.pr_agent.toml [pr_reviewer]. Do not suggest rewording documentation, formatting, comment
+style, or quoting changes.
+"""
