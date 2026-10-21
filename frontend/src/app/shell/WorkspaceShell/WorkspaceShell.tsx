@@ -53,7 +53,7 @@ export function WorkspaceShell({
         />
       )}
       <aside className={styles.panelSlot} aria-hidden={!panelOpen} inert={!panelOpen || undefined}>
-        <AssistantPanel onClose={closePanel} />
+        <AssistantPanel key={campaign.id} campaign={campaign} open={panelOpen} onClose={closePanel} />
       </aside>
       <TabBar active={activeView} onNavigate={onNavigate} />
       {!panelOpen && (
