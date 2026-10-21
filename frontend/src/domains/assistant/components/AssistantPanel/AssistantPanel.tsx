@@ -51,7 +51,8 @@ export function AssistantPanel({ campaign, open, onClose }: AssistantPanelProps)
         error={chat.error}
         onRetry={chat.retry}
       />
-      <Composer disabled={chat.sending} onSend={chat.send} />
+      {/* Not while loading: a send before the list arrives would start a second conversation. */}
+      <Composer disabled={chat.sending || chat.loading} onSend={chat.send} />
     </section>
   );
 }

@@ -24,7 +24,7 @@ export function MessageList({ messages, intro, error, onRetry }: MessageListProp
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView();
+    endRef.current?.scrollIntoView({ block: "nearest" });
   }, [messages, error]);
 
   return (

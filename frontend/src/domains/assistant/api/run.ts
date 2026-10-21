@@ -20,19 +20,18 @@ export function sendMessage(campaignId: string, conversationId: number, content:
   let aborted = false;
 
   const done = (async () => {
-    const token = await accessToken();
-    if (aborted) return;
-    agent = new HttpAgent({
-      url: `/api/v1${messagesPath(campaignId, conversationId)}`,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      threadId: String(conversationId),
-      initialMessages: [{ id: crypto.randomUUID(), role: "user", content }],
-    });
-
     let text = "";
     let failure: string | undefined;
     let finished = false;
     try {
+      const token = await accessToken();
+      if (aborted) return;
+      agent = new HttpAgent({
+        url: `/api/v1${messagesPath(campaignId, conversationId)}`,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        threadId: String(conversationId),
+        initialMessages: [{ id: crypto.randomUUID(), role: "user", content }],
+      });
       await agent.runAgent(
         {},
         {
