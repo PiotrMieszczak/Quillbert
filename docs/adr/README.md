@@ -29,7 +29,10 @@ knowing why it was made, it belongs in an ADR.
 | [0019](adr-0019-openrouter-privacy-routing.md) | OpenRouter as the single provider, zero-retention allowlist | Accepted |
 | [0020](adr-0020-supabase-auth.md) | Supabase Auth in v1; the project is tool-first | Accepted |
 | [0021](adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval with Gemini Embedding 2, reached through OpenRouter | Accepted |
-| [0022](adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Accepted |
+| [0022](adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Superseded |
+| [0023](adr-0023-system-rules-library.md) | Open rules references ship as a shared system library | Accepted |
+| [0024](adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles, stamped by hash, traced on the message | Accepted |
+| [0025](adr-0025-jev-routes-intent.md) | One composer; Jev routes each message, and every reply shows its mode | Accepted |
 
 ## Format
 

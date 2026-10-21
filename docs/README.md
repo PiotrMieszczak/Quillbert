@@ -17,6 +17,7 @@ project *RPG Assistant Design Spec* and the decisions recorded here.
 | 2 | [mvp-scope.md](mvp-scope.md) | What ships in v1 and what explicitly does not |
 | 3 | [data-model.md](data-model.md) | Entities, relationships, and storage |
 | 4 | [architecture.md](architecture.md) | System shape, stack, and boundaries |
+| 4b | [assistant-prompts.md](assistant-prompts.md) | Chat prompt profiles, routing, composition and versioning (ADR-0024/0025) |
 | 4a | [folder-structure.md](folder-structure.md) | Folder layout and dependency rules for both apps |
 | 5 | [design/overview.md](design/overview.md) | Screens, layout, and interaction behaviour |
 | 6 | [design/reference.md](design/reference.md) | Colors, type, spacing, radii, shadows |

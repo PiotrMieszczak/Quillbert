@@ -54,15 +54,21 @@ The differentiating capability. Upload → extract → index → retrieve.
 
 ### Assistant — Full
 
-Three modes, deliberately separate ([ADR-0012](adr/adr-0012-two-ai-modes.md)). The
-separation is the safety property: a GM must never have to infer whether something was
-retrieved or invented.
+Modes with different rules about invention ([ADR-0012](adr/adr-0012-two-ai-modes.md)).
+The GM asks in one composer, and Jev routes each message
+([ADR-0025](adr/adr-0025-jev-routes-intent.md)). The safety property is that **every reply
+shows its mode**: a GM must never have to infer whether something was retrieved or invented.
 
 | Mode | Where | Invention |
 |------|-------|-----------|
-| **Research** | Side panel, every screen | Never — cites sources, refuses when unsupported |
-| **Creative** | Its own page | The point — campaign-aware, output is a draft |
+| **Research** | Side panel, routed; badge "From your material" | Never — cites sources, refuses when unsupported |
+| **Creative** | Side panel, routed; badge "Invented". A Creative page with proposals later | The point — campaign-aware, output is a draft |
+| **Chat** | Side panel, routed; no badge | Greetings and "who are you"; states no facts |
 | **In character** | Panel, opened from a character | Within one voice; never canon unless saved |
+
+Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) as a shared system library
+([ADR-0023](adr/adr-0023-system-rules-library.md)). Traveller rules come from the GM's
+own upload.
 
 
 - Chat panel streaming [AG-UI](https://docs.ag-ui.com/) events over SSE ([ADR-0009](adr/adr-0009-ag-ui-protocol.md))
@@ -78,7 +84,8 @@ retrieved or invented.
   ("summarise last session"), and extract-and-propose ("create an NPC from this module")
 - **Proposals, never silent writes.** An extracted entity arrives as a pre-filled form
   citing the chunks each field came from. Nothing is saved until the GM confirms
-- Quick-prompt chips, typing indicator, attach affordance
+- A typing indicator. No attach affordance in the composer: files enter through the
+  Documents page. Quick-prompt chips are deferred until they can be answered
 
 ### NPCs, Players, Factions — Full
 
@@ -173,7 +180,8 @@ The MVP is done when all of the following hold:
 - **AC-014** Each populated field in a proposal cites the chunk it came from; a field with
   no source is marked as unsourced rather than presented as extracted.
 - **AC-015** Research mode refuses an unsupported question; Creative mode answers the same
-  question by inventing. The two are reachable only from their own surfaces.
+  question by inventing. Each reply is visibly labelled with its mode, and the GM can
+  re-ask it in the other mode with one click (ADR-0025).
 - **AC-016** Every message records which mode produced it, and the mode is visible in the
   interface at the time — not inferable only from the text.
 - **AC-017** Creative and in-character output is never indexed. Asking Research mode about
@@ -193,5 +201,5 @@ The design has no screen for these; they need design work before implementation:
   `Failed` treatment with a retry affordance.
 - **Empty states** — no designed empty state for a new campaign with no documents, NPCs,
   factions, or quests. This is the *first* thing a new user sees.
-- **Citation presentation** — the assistant must show sources (AC-002), but the design
-  does not specify how a citation renders inside a chat bubble.
+- ~~**Citation presentation**~~ — closed: numbered markers and a source list under the
+  bubble ([design/overview.md](design/overview.md), AI panel).

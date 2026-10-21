@@ -241,44 +241,74 @@ retrievable alongside documents.
 | `GET` | `/campaigns/{cid}/conversations/{id}/messages` | History with citations |
 | `POST` | `/campaigns/{cid}/conversations/{id}/messages` | Send; responds as SSE |
 
+The send body is AG-UI's `RunAgentInput`, so any AG-UI client can drive the endpoint
+(the panel uses `@ag-ui/client`'s `HttpAgent`). The server owns history and the prompt:
+it reads **only the content of the last user message** and ignores client-sent history,
+`tools`, `context` and `state`. `threadId` must equal the conversation id in the path.
+
+```jsonc
+// POST .../conversations/12/messages   (Accept: text/event-stream)
+{ "threadId": "12", "runId": "run-88",
+  "messages": [{ "id": "u-1", "role": "user", "content": "How does grappling work?" }],
+  "tools": [], "context": [], "state": null,
+  "forwardedProps": { "mode": null } }
+  // mode: optional; "research" | "creative" | "chat" only when the GM flips a reply.
+  // Absent → Jev routes (ADR-0025). Never carries prompt text.
+
+// GET .../messages → MessageOut[]
+{ "id": 57, "role": "assistant", "content": "A grapple is … [S1]",
+  "mode": "research", "routeSource": "jev", "createdAt": "…",
+  "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
+                  "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
+                  "attribution": "SRD 5.2 · CC-BY-4.0" }] }
+```
+
+`GET /campaigns/{cid}/conversations` lists newest first. The panel opens the newest one, or
+starts one on the first send.
+
 **Streaming response.** `text/event-stream`, carrying
-[AG-UI](https://docs.ag-ui.com/concepts/events) events
-([ADR-0009](adr/adr-0009-ag-ui-protocol.md)). The protocol defines the event schema; this
-contract documents only what is product-specific.
+[AG-UI](https://docs.ag-ui.com/concepts/events) events in the protocol's own framing: one
+`data:` line per event, a JSON object with a `type` field
+([ADR-0009](adr/adr-0009-ag-ui-protocol.md)). The server encodes them with the
+`ag-ui-protocol` package's `EventEncoder`; the panel decodes them with `@ag-ui/client`.
+Neither side hand-writes event types. The protocol defines the schema; this contract
+documents only what is product-specific.
 
 ```
-event: RunStarted
-data: {"threadId":"conv-12","runId":"run-88"}
+data: {"type":"RUN_STARTED","threadId":"12","runId":"run-88"}
 
-event: ToolCallStart
-data: {"toolCallId":"t1","toolCallName":"search_documents"}
+data: {"type":"CUSTOM","name":"dm.route","value":{"mode":"research","source":"jev","confidence":0.94}}
 
-event: ToolCallResult
-data: {"toolCallId":"t1","content":"3 documents searched, 5 chunks"}
+data: {"type":"TOOL_CALL_START","toolCallId":"t1","toolCallName":"search_documents"}
 
-event: TextMessageStart
-data: {"messageId":"m-57","role":"assistant"}
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"t1","delta":"{\"query\":\"How does grappling work?\"}"}
 
-event: TextMessageContent
-data: {"messageId":"m-57","delta":"Opportunity attacks trigger when"}
+data: {"type":"TOOL_CALL_END","toolCallId":"t1"}
 
-event: Custom
-data: {"name":"dm.citation","value":{"chunkId":812,"documentId":1,
-       "filename":"Core Rulebook v3.pdf","pageFrom":195}}
+data: {"type":"TOOL_CALL_RESULT","messageId":"t1-result","toolCallId":"t1","content":"Searched 2 documents · 6 passages"}
 
-event: TextMessageEnd
-data: {"messageId":"m-57"}
+data: {"type":"TEXT_MESSAGE_START","messageId":"57","role":"assistant"}
 
-event: RunFinished
-data: {"threadId":"conv-12","runId":"run-88","outcome":"success"}
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"57","delta":"A grapple is"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"57"}
+
+data: {"type":"CUSTOM","name":"dm.citation","value":{"label":"S1","chunkId":812,"documentId":1,"filename":"Core Rulebook v3.pdf","pageFrom":195,"heading":"Opportunity Attacks","attribution":null}}
+
+data: {"type":"CUSTOM","name":"dm.support","value":{"label":"S1","sentence":2,"flagged":true}}
+
+data: {"type":"RUN_FINISHED","threadId":"12","runId":"run-88"}
 ```
+
+On failure after `RUN_STARTED` (provider error, timeout, database error) the stream ends
+with `{"type":"RUN_ERROR","message":"…","code":"provider_error"}` and no assistant message
+is stored. Client disconnect closes the upstream provider stream.
 
 **Proposals arrive as a custom event too.** An extracted entity is not written; it is
 emitted for the GM to confirm ([ADR-0011](adr/adr-0011-assistant-tools.md)):
 
 ```
-event: Custom
-data: {"name":"dm.proposal","value":{
+data: {"type":"CUSTOM","name":"dm.proposal","value":{
         "kind":"character",
         "draft":{"name":"Brother Cael","role":"Human Cleric","level":5},
         "sources":{"name":[812],"role":[812],"level":[815]}}}
@@ -297,8 +327,16 @@ Tool-call events drive the design's green check chips. Citation events populate 
 references (AC-002). When retrieval finds nothing relevant, the assistant says so
 explicitly rather than answering unsourced (AC-003).
 
-A stream always opens with `RunStarted` and closes with exactly one of `RunFinished` or
-`RunError`. A stream ending without either is a bug: the client cannot tell it from a
+`dm.route` comes before the first text delta, so the mode badge shows before the reply
+text. Citations follow `TextMessageEnd`: they are parsed from the finished text, and only
+for research. `dm.support` comes only from research replies, only when Jev is enabled, and
+marks a sentence without changing it (ADR-0025). The retrieval step is reported as the
+`search_documents` tool call above even though the server runs it, not the model; there is
+no model-driven tool loop and no `dm.proposal` yet. `dm.route`, the flip and `dm.support`
+arrive in slice 2.
+
+A stream always opens with `RUN_STARTED` and closes with exactly one of `RUN_FINISHED` or
+`RUN_ERROR`. A stream ending without either is a bug: the client cannot tell it from a
 dropped connection.
 
 ## Settings

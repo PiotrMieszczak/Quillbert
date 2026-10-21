@@ -156,18 +156,39 @@ shows **More** only when something is left over.
 
 Right column, `--surface-sunken`, left border `1px --border-subtle`.
 
-- Header: 34px spark tile, "Assistant" over "Grounded in indexed material", a mode pill
-  (mono, green dot, current mode — [ADR-0012](../adr/adr-0012-two-ai-modes.md) IMP-005),
-  and a close button. There is no provider pill — the provider is not a user choice
+- Header: 34px spark tile, **"Quillbert"** over "Your rules & campaign assistant", a "New
+  conversation" icon button, and a close button. There is no header mode pill. The mode
+  is per reply (below, [ADR-0025](../adr/adr-0025-jev-routes-intent.md)). There is no
+  provider pill, because the provider is not a user choice
   ([ADR-0019](../adr/adr-0019-openrouter-privacy-routing.md))
+- Empty state: one assistant bubble in which Quillbert introduces itself: "I'm Quillbert.
+  Ask about your rules or campaign — I'll answer from your documents and the SRD and tell
+  you when something isn't there. Ask me to invent and I'll draft instead." It is a
+  frontend constant. It is not stored and makes no model call
 - Message list: assistant bubbles `--surface-raised` with `14px 14px 14px 4px` radius;
-  user bubbles mirrored. Tool-call chips render above content as a green check row in
-  mono at 11.5px
+  user bubbles mirrored. The retrieval step renders above the reply as a green check row
+  in mono at 11.5px ("Searched 2 documents · 6 passages"), driven by the AG-UI tool-call
+  events
+- **Mode badge** above every assistant reply, in mono at 11.5px. It is the safety
+  mechanism (PRIN-006), not decoration:
+  - Research: green check plus "From your material".
+  - Creative: accent ✦ plus "Invented", and the bubble gets a 2px `--accent` left border,
+    so the mode does not rest on colour alone.
+  - Chat: no badge.
+- **Flip** link after research and creative replies, muted, at 12px: "Invent instead" or
+  "Answer from my material". It re-asks the same question with that mode
+- **Citations**: `[Sn]` in the text renders as a small superscript number. Under the bubble
+  is a numbered source list (`filename · p.N · heading`), and an SRD source adds its
+  attribution ("SRD 5.2 · CC-BY-4.0"). A sentence that Jev flags gets a dotted underline and
+  a "may not follow from its source" tooltip
 - Streaming: a 7×15px accent block with `blink` animation trails the streaming message
-- Typing indicator: three dots with staggered `dotpulse`
-- Composer: attach button, auto-growing textarea (`max-height: 120px`,
-  placeholder "Ask, search, or draft a scene…"), send button. Quick-prompt chips sit
-  above the composer when the conversation is short
+- Typing indicator: three dots with staggered `dotpulse`, shown from send until the first
+  delta
+- Composer: auto-growing textarea (`max-height: 120px`, placeholder "Ask about your
+  documents…") and a send button. **No attach button**, because files enter through
+  Documents. **No quick-prompt chips** until they can be answered (removed 2026-10-21);
+  the intro bubble says what to ask. Enter sends, and Shift+Enter adds a new line. The
+  composer is disabled while a reply streams
 - Auto-scrolls to the newest message
 
 When closed on desktop, a pill FAB ("✦ Assistant") appears bottom-right.
@@ -269,4 +290,5 @@ Listed in [mvp-scope.md](../mvp-scope.md) and repeated here as build blockers:
 1. Upload interaction and its immediate feedback
 2. Extraction `Failed` state and retry
 3. Empty states for a new campaign — the first thing a new user sees
-4. How a citation renders inside an assistant bubble
+4. ~~How a citation renders inside an assistant bubble~~ — specified under
+   [AI panel](#ai-panel); the prototype is updated alongside the panel build

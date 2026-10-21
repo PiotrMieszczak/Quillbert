@@ -22,6 +22,7 @@ on demand.
 | Screens, layout, interaction | [docs/design/overview.md](docs/design/overview.md) | — |
 | Colors, type, spacing, radii | [docs/design/reference.md](docs/design/reference.md) | Token values only; look up, don't memorise |
 | HTTP surface | [docs/api-contract.md](docs/api-contract.md) | — |
+| How chat prompts are composed, routed and versioned | [docs/assistant-prompts.md](docs/assistant-prompts.md) | Reference for ADR-0024/0025 |
 | Delivery phases, gates | [docs/roadmap.md](docs/roadmap.md) | — |
 | Why a decision was made | [docs/adr/README.md](docs/adr/README.md) → the specific ADR | Never read them all |
 | What PR review checks | [.pr_agent.toml](.pr_agent.toml) | Rules for the PR Agent reviewer |
@@ -61,7 +62,7 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0009](docs/adr/adr-0009-ag-ui-protocol.md) | AG-UI for assistant streaming | Accepted |
 | [0010](docs/adr/adr-0010-no-agent-framework.md) | No agent framework | **Superseded by 0011** |
 | [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
-| [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted |
+| [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted; surface rule replaced by 0025 |
 | [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | **Superseded by 0018** |
 | [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016, then 0021** |
 | [0015](docs/adr/adr-0015-frontend-api-contract.md) | Generated API types; FE adapters, DTOs stay in `api/` | Accepted |
@@ -71,9 +72,12 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0019](docs/adr/adr-0019-openrouter-privacy-routing.md) | OpenRouter single provider, zero-retention allowlist | Accepted |
 | [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
 | [0021](docs/adr/adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval; Gemini Embedding 2 via OpenRouter, zero-retention pinned | Accepted |
-| [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Accepted |
+| [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | **Superseded by 0025** |
+| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | Accepted |
+| [0024](docs/adr/adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles (research / creative / chat), hash-versioned, traced | Accepted |
+| [0025](docs/adr/adr-0025-jev-routes-intent.md) | One composer; Jev routes intent; every reply shows its mode | Accepted |
 
-Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, or 0016 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, or 0022 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 

@@ -59,13 +59,14 @@ In Research mode the assistant answers from indexed material only. When material
 cover a question, it says so rather than filling the gap.
 
 This is a rule *about Research mode*, not about the product. Creative mode invents — that
-is its purpose. The two are separate surfaces so the distinction is structural rather than
-something the GM must infer ([ADR-0012](adr/adr-0012-two-ai-modes.md)).
+is its purpose. Every reply carries its mode, so the distinction is shown rather than
+something the GM must infer ([ADR-0012](adr/adr-0012-two-ai-modes.md),
+[ADR-0025](adr/adr-0025-jev-routes-intent.md)).
 
 **PRIN-006 — The GM always knows which mode produced something.**
-An invention mistaken for a retrieved fact eventually becomes canon. Modes are visually
-distinct, named in their headers, and recorded with each message, so provenance survives
-past the moment it was on screen.
+An invention mistaken for a retrieved fact eventually becomes canon. Each reply carries a
+visible mode badge and is recorded with its mode, so provenance survives past the moment
+it was on screen.
 
 **PRIN-002 — Extraction is deterministic.**
 Text extraction and parsing use libraries, not language models. This keeps ingestion
