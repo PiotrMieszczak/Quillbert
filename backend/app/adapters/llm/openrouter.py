@@ -22,7 +22,7 @@ ZDR_PROVIDERS = frozenset(
 
 
 class OpenRouterChat:
-    """Research answers from a Gemini model through OpenRouter. The only caller of chat
+    """Research answers from a chat model through OpenRouter. The only caller of chat
     completions (BND-002).
 
     Fails closed (ADR-0019 IMP-003): a provider outside ZDR_PROVIDERS is refused before
@@ -38,11 +38,14 @@ class OpenRouterChat:
         provider: str,
         max_tokens: int,
         client: httpx.Client | None = None,
+        allowed: frozenset[str] = ZDR_PROVIDERS,
+        reasoning_effort: str | None = "low",
     ) -> None:
-        if provider not in ZDR_PROVIDERS:
+        if provider not in allowed:
             raise ValueError(f"{provider!r} is not on the zero-retention allowlist")
         self.model = model
         self._max_tokens = max_tokens
+        self._reasoning_effort = reasoning_effort
         self._provider = {
             "only": [provider],
             "zdr": True,
@@ -68,11 +71,13 @@ class OpenRouterChat:
             "stream": True,
             "temperature": research.TEMPERATURE,
             "max_tokens": self._max_tokens,
-            # Thinking tokens would eat the reply budget.
-            "reasoning": {"effort": "none"},
             "usage": {"include": True},
             "provider": self._provider,
         }
+        if self._reasoning_effort:
+            # Thinking tokens count against max_tokens; some endpoints cannot turn
+            # thinking off, so the lowest accepted effort is configuration.
+            body["reasoning"] = {"effort": self._reasoning_effort}
         model = self.model
         usage: dict = {}
         try:
@@ -80,8 +85,10 @@ class OpenRouterChat:
                 "POST", URL, json=body, headers=self._headers
             ) as response:
                 if response.status_code != 200:
-                    response.read()
-                    raise LLMError(f"OpenRouter chat: HTTP {response.status_code}")
+                    raise LLMError(
+                        f"OpenRouter chat: HTTP {response.status_code} "
+                        f"{_error_message(response.read())}"
+                    )
                 for line in response.iter_lines():
                     # Blank lines and ": OPENROUTER PROCESSING" keep-alives.
                     if not line.startswith("data:"):
@@ -107,3 +114,11 @@ class OpenRouterChat:
             completion_tokens=usage.get("completion_tokens"),
             cost_usd=usage.get("cost"),
         )
+
+
+def _error_message(body: bytes) -> str:
+    """OpenRouter's error text, for the log; never shown to the GM."""
+    try:
+        return str(json.loads(body)["error"]["message"])[:200]
+    except (ValueError, KeyError, TypeError):
+        return ""

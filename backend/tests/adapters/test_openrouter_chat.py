@@ -83,6 +83,7 @@ def test_request_pins_one_zero_retention_endpoint() -> None:
     assert body["usage"] == {"include": True}
     assert body["temperature"] == 0
     assert body["max_tokens"] == 700
+    assert body["reasoning"] == {"effort": "low"}
     assert body["messages"][0]["role"] == "system"
     assert "A grapple is a hold." in body["messages"][-1]["content"]
 
@@ -140,3 +141,32 @@ def test_closing_the_generator_closes_the_http_stream() -> None:
     stream.close()
 
     assert closed == [True]
+
+
+def test_no_reasoning_field_when_effort_is_unset() -> None:
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, content=_sse("[DONE]"))
+
+    chat = OpenRouterChat(
+        api_key="k",
+        model="m",
+        provider="google-vertex/eu",
+        max_tokens=700,
+        reasoning_effort=None,
+        client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    _run(chat)
+    assert "reasoning" not in seen[0]
+
+
+def test_the_provider_error_text_reaches_the_exception() -> None:
+    chat = _chat(
+        lambda request: httpx.Response(
+            400, json={"error": {"message": "Reasoning is mandatory"}}
+        )
+    )
+    with pytest.raises(LLMError, match="Reasoning is mandatory"):
+        _run(chat)

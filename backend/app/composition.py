@@ -135,6 +135,7 @@ def _llm(settings: Settings) -> LLMProvider:
             model=settings.chat_model,
             provider=settings.chat_provider,
             max_tokens=settings.chat_max_tokens,
+            reasoning_effort=settings.chat_reasoning_effort or None,
         )
     logger.warning("OPEN_ROUTER_API_KEY is not set; the assistant is a fake model.")
     return FakeLLM()
