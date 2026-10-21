@@ -167,20 +167,25 @@ sequenceDiagram
     participant GW as Gateway
 
     U->>API: POST /assistant/messages
-    API-->>U: AG-UI: RunStarted
-    API->>R: search(campaign, query)
-    API-->>U: AG-UI: ToolCallStart
+    API-->>U: AG-UI: RUN_STARTED
+    par route (ADR-0025)
+        API->>GW: Jev Choice: research / creative / chat
+    and retrieve
+        API->>R: search(campaign, system, query)
+    end
+    API-->>U: AG-UI: CUSTOM dm.route
+    API-->>U: AG-UI: TOOL_CALL_START
     R->>R: embed the query (Gemini, keyword-only if unavailable)
     R->>DB: tsvector match + pgvector ANN, one query
     DB-->>R: two ranked lists
     R->>R: fuse (RRF), apply relevance floor
     R-->>API: context + citations, or nothing above the floor
-    API-->>U: AG-UI: ToolCallResult
+    API-->>U: AG-UI: TOOL_CALL_RESULT
     API->>GW: prompt(context, question)
     GW-->>API: token stream
-    API-->>U: AG-UI: TextMessageContent (delta, repeated)
-    API-->>U: AG-UI: Custom dm.citation
-    API-->>U: AG-UI: RunFinished
+    API-->>U: AG-UI: TEXT_MESSAGE_CONTENT (delta, repeated)
+    API-->>U: AG-UI: CUSTOM dm.citation
+    API-->>U: AG-UI: RUN_FINISHED
 ```
 
 Every arrow back to the GM is an **AG-UI event**; everything between API, Retrieval, and
@@ -204,11 +209,11 @@ call, and the loop are all our own code ([ADR-0010](adr/adr-0010-no-agent-framew
 flowchart TB
     subgraph OURS_FE["Our code — frontend"]
         UI["AI panel<br/>bubbles, tool chips, cursor"]
-        HOOK["useAssistantStream<br/>fetch + event reader"]
+        HOOK["@ag-ui/client HttpAgent<br/>RunAgentInput + event subscriber"]
     end
 
     subgraph PROTO["AG-UI — the wire, and only the wire"]
-        EV["RunStarted · ToolCallStart · ToolCallResult<br/>TextMessageStart · TextMessageContent · TextMessageEnd<br/>Custom: dm.citation · RunFinished · RunError"]
+        EV["RUN_STARTED · TOOL_CALL_START/ARGS/END · TOOL_CALL_RESULT<br/>TEXT_MESSAGE_START/CONTENT/END<br/>CUSTOM: dm.route · dm.citation · dm.support · RUN_FINISHED · RUN_ERROR"]
     end
 
     subgraph OURS_BE["Our code — backend (no agent framework)"]
@@ -281,9 +286,12 @@ the Gateway, owning steps 5 through 8. The Gateway boundary is what keeps that s
 possible without touching the frontend, since AG-UI events would still be what reaches the
 wire.
 
-**Jev does not slot in there.** After the upload-and-chat prototype works, Jev may judge a
-finished Research answer and offer a link to Creative. It does not write the reply, own
-the loop, or change the mode ([ADR-0022](adr/adr-0022-jev-after-chat-prototype.md)).
+**Jev sits beside step 1, not inside the loop.** A Jev Choice routes the message to
+research, creative or chat. It runs in parallel with retrieval and falls back to research.
+After a research reply ends, a Jev Noul checks each cited sentence against its chunk. Jev
+never writes the reply, never owns the loop, and is never called from ingestion. A GM flip
+overrides it ([ADR-0025](adr/adr-0025-jev-routes-intent.md); routing table in
+[assistant-prompts.md](assistant-prompts.md)).
 
 ## Frontend state
 
@@ -311,15 +319,19 @@ not in scope: it derives vectors from the document's own text and writes no cont
 `adapters/llm/`. Provider switching is configuration, not code.
 
 **BND-003 — Campaign scoping is enforced server-side.** Every query filters by
-`campaign_id`. The frontend never sees another campaign's data.
+`campaign_id`. The frontend never sees another campaign's data. The one shared read scope
+is the system rules library, reached only through retrieval as `campaign_id = :c OR
+system_id = :campaign_system` ([ADR-0023](adr/adr-0023-system-rules-library.md)).
 
 **BND-006 — No agent framework owns the loop.** The tool loop is plain code in
 `application/assistant/run_turn.py`, bounded to a fixed number of iterations. A framework there would also
 own prompt assembly, moving the grounding rule out of the single place that enforces it
 ([ADR-0011](adr/adr-0011-assistant-tools.md)).
 
-**BND-008 — Modes are separate surfaces, and the Gateway holds three prompts.** Research,
-Creative, and in-character each have one prompt strategy, each built in exactly one place.
+**BND-008 — Each mode is one profile, built in one place, and every reply shows its mode.**
+Research, creative, chat and in-character each have one prompt strategy, built in exactly
+one place. A routed reply carries its mode as a visible badge
+([ADR-0025](adr/adr-0025-jev-routes-intent.md)).
 Creative and in-character output is **never indexed** — otherwise invention becomes
 retrievable as fact, defeating [ADR-0002](adr/adr-0002-deterministic-extraction.md) from
 the other direction ([ADR-0012](adr/adr-0012-two-ai-modes.md)).

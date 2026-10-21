@@ -1,18 +1,18 @@
 ---
 title: "ADR-0022: Jev judges Research answers after the chat prototype; the GM keeps the mode"
-status: "Accepted"
+status: "Superseded"
 date: "2026-10-19"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "assistant", "jev", "privacy"]
 supersedes: ""
-superseded_by: ""
+superseded_by: "ADR-0025"
 ---
 
 # ADR-0022: Jev judges Research answers after the chat prototype; the GM keeps the mode
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
 
 ## Context
 

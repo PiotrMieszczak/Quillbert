@@ -125,3 +125,4 @@ tier**:
 - [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) — embeddings / `pgvector`
 - [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) — OpenRouter provider and the API key
 - [ADR-0020](adr/adr-0020-supabase-auth.md) — Supabase Auth (supersedes ADR-0008)
+- [hosting-survey.md](hosting-survey.md) — 2026-10-19 prices for a host that could also run a trace UI. Not a decision

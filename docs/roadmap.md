@@ -62,21 +62,29 @@ Retrieval becomes conversation.
 - LLM Gateway with OpenRouter behind one interface, routing only to a zero-retention
   allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md))
 - Grounded prompting: retrieved context, refusal when context is insufficient
+  ([assistant-prompts.md](assistant-prompts.md))
 - AG-UI event streaming over SSE ([ADR-0009](adr/adr-0009-ag-ui-protocol.md)); citations as a namespaced `dm.citation` custom event
-- AI panel: bubbles, tool chips, streaming cursor, typing dots, quick prompts, composer
+- AI panel: bubbles, tool chips, streaming cursor, typing dots, composer (quick prompts deferred)
 - Active model set by admin/env config (no user-facing picker); routing restricted to the zero-retention allowlist, enforced fail-closed
-- Citation rendering — requires the design gap to be closed first
+- Citation rendering — numbered markers plus a source list (design gap closed)
 - The tool loop: search, session fetch, entity fetch, and `propose_*`
   ([ADR-0011](adr/adr-0011-assistant-tools.md)), bounded and hand-written
 - Proposal form in chat — an editable, source-cited draft. Blocked on the design gap
-- **Research mode** in the side panel — the grounded behaviour above
-- **Creative mode** as its own page, campaign-aware, output via proposals — the Adventure
-  Creator in [design/overview.md](design/overview.md)
+- **Quillbert, slice 1**: a real Research chat over uploaded documents with citations,
+  proper AG-UI on both ends (the `ag-ui-protocol` encoder on the server, `@ag-ui/client` in
+  the panel), and the panel cleanup (Quillbert title, intro, no attach button, no chips)
+  ([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md))
+- **Quillbert, slice 2**: creative and chat profiles, Jev routing **on in production**, a
+  mode badge and flip on every reply ([ADR-0025](adr/adr-0025-jev-routes-intent.md)). Jev
+  ships before its zero retention is confirmed, as a recorded exception (ADR-0025 NEG-004)
+- **Built-in rules**: SRD 5.1 / 5.2 seeded as a shared system library
+  ([ADR-0023](adr/adr-0023-system-rules-library.md))
+- **Creative page**, campaign-aware, output via proposals — the Adventure Creator in
+  [design/overview.md](design/overview.md), for drafts too large for the panel
 - **In-character mode** opened from a character, with the panel restyled as that NPC
   ([ADR-0012](adr/adr-0012-two-ai-modes.md))
-- Jev support check and mode hint — only after a document reaches Indexed and a chat
-  reply streams with citations. Not part of this phase's exit gate
-  ([ADR-0022](adr/adr-0022-jev-after-chat-prototype.md))
+- Jev support check on cited sentences — after citations stream. Not part of this phase's
+  exit gate
 
 **Exit gate.** AC-002, AC-003, AC-004, AC-012, AC-013, AC-014 — grounded answers with
 visible citations, explicit refusal on unindexed topics, the configured model enforced

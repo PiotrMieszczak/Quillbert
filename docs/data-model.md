@@ -78,6 +78,11 @@ migration, and the campaign picker offers them.
 Many-to-one: each campaign has exactly one system, and a system is shared by any number of
 campaigns. A system that a campaign uses cannot be deleted.
 
+A system can own a **rules library**: openly licensed documents (SRD 5.1 for `dnd-2014`,
+SRD 5.2 for `dnd-2024`) that every campaign of that system retrieves from
+([ADR-0023](adr/adr-0023-system-rules-library.md)). `traveller-2e` has none; its rules
+arrive as the GM's own upload.
+
 ### Character
 
 **One entity for NPCs and player characters**, distinguished by `is_player`. The design
@@ -343,7 +348,9 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | Field | Type | Notes |
 |-------|------|-------|
 | `id` | int PK | |
-| `campaign_id` | text FK | |
+| `campaign_id` | text? FK | set for a GM's document; null for a library document |
+| `system_id` | text? FK → `system.id` | set for a system library document (ADR-0023); exactly one of `campaign_id` / `system_id` is set |
+| `attribution` | text? | licence line shown beside a library citation, e.g. "SRD 5.2 · CC-BY-4.0" |
 | `filename` | text | "Core Rulebook v3.pdf" |
 | `kind` | enum | `PDF` \| `DOC` \| `IMG` |
 | `page_count` | int? | |
@@ -355,7 +362,7 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | `storage_key` | text | opaque key into the `FileStore` — a path locally, an object key when hosted |
 | `source` | enum | `upload` \| `google_drive` — where it was imported from (ADR-0017) |
 | `source_ref` | text? | the Drive file id when `source = google_drive` |
-| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0021 IMP-003) |
+| `sha256` | text | content hash; the same file uploaded twice is not extracted or embedded twice (ADR-0021 IMP-003). Unique per campaign, and per system for library documents |
 | `uploaded_at` | timestamp | |
 
 **`chunk`**
@@ -364,7 +371,8 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 |-------|------|-------|
 | `id` | int PK | |
 | `document_id` | int FK | |
-| `campaign_id` | text FK | copied from the document; a document does not move campaigns |
+| `campaign_id` | text? FK | copied from the document; a document does not move campaigns |
+| `system_id` | text? FK | copied from a library document; exactly one of the two is set |
 | `ordinal` | int | position within document. Unique with `document_id` |
 | `page_from`, `page_to` | int? | for citations |
 | `heading` | text? | nearest section heading |
@@ -381,6 +389,9 @@ as no result, so Research mode still refuses rather than answering from weak mat
 `SqlChunkSearch`: the keyword leg admits only chunks matching the query, the vector leg
 only those at or above `retrieval_floor` cosine similarity, and both are scoped to the
 campaign's `indexed` documents (BND-003). With no query vector it runs keyword-only.
+Once the system library lands it also searches the library chunks of the campaign's
+system in the same query (`campaign_id = :c OR system_id = :s`, ADR-0023). No other
+shared scope exists.
 
 **`embedding_space`** — one row, the model that produced every stored embedding.
 
@@ -421,14 +432,29 @@ Session bodies are chunked and indexed like documents, so past sessions are retr
 
 | Entity | Key fields |
 |--------|-----------|
-| `conversation` | `id`, `campaign_id`, `mode`, `started_at` |
-| `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode`, `created_at`, `tool_label?` |
+| `conversation` | `id`, `campaign_id`, `mode` (legacy, not read), `started_at` |
+| `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode`, `created_at`, `tool_label?`, plus the route and trace columns below on assistant messages |
 | `citation` | `id`, `message_id`, `chunk_id`, `label`, `quote?` |
 
-Citations satisfy AC-002 and make grounding auditable. `mode` (`research` today;
-`creative` and in-character to follow) is stored on both the conversation and each message,
-so a message's provenance stays readable after the fact
-([ADR-0012](adr/adr-0012-two-ai-modes.md) IMP-007, AC-016).
+Citations satisfy AC-002 and make grounding auditable. `message.mode` (`research`,
+`creative`, `chat`) is the **authoritative** provenance of a reply. One conversation can
+hold all three, because each message is routed on its own
+([ADR-0025](adr/adr-0025-jev-routes-intent.md); AC-016, ADR-0012 IMP-007).
+
+Assistant-message columns. All are null on user messages. Usage is null when no provider
+was called, as for the deterministic "Not in your material." refusal
+([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md)).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `route_source` | enum? | `jev` \| `gm` \| `default` — who chose the mode |
+| `route_confidence` | real? | Jev's Choice confidence; null unless `route_source = jev` |
+| `prompt_id` | text? | `research` \| `creative` \| `chat` |
+| `prompt_version` | text? | 12 hex chars of SHA-256 over the profile's system text and its format line |
+| `model` | text? | OpenRouter route actually called |
+| `ttft_ms`, `duration_ms` | int? | time to first token, total |
+| `prompt_tokens`, `completion_tokens` | int? | as reported by the provider |
+| `cost_usd` | numeric? | as reported by the provider |
 
 ### User
 
