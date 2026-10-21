@@ -6,3 +6,17 @@
   padding: 16px 14px 8px;
   overflow-y: auto;
 }
+
+.error {
+  margin: 0;
+  color: var(--rel-enemy);
+  font-size: 13px;
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}

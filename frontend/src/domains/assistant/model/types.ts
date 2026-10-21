@@ -1,21 +1,20 @@
-/** Shapes the Research panel renders. Mirrors docs/data-model.md Conversation
- *  and Message, plus the mode the interface must name (AC-016, ADR-0012). */
+/** Shapes the panel renders. The backend's wire shapes stay in api/ (ADR-0015). */
 
-export type Mode = "research";
-
-export type MessageRole = "user" | "assistant";
+export type Citation = {
+  label: string;
+  filename: string;
+  page: number | null;
+  heading: string | null;
+  attribution: string | null;
+};
 
 export type Message = {
   id: string;
-  role: MessageRole;
+  role: "user" | "assistant";
   content: string;
-  createdAt: string;
-  toolLabel?: string;
-};
-
-export type Conversation = {
-  id: string;
-  mode: Mode;
-  provider: string;
-  messages: Message[];
+  citations: Citation[];
+  /** The retrieval step's green check row, e.g. "Searched 2 documents · 6 passages". Live replies only. */
+  searched?: string;
+  /** `waiting` shows the typing dots (nothing arrived yet); `streaming` shows the cursor. */
+  phase?: "waiting" | "streaming";
 };

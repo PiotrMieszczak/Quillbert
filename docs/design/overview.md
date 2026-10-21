@@ -156,20 +156,21 @@ shows **More** only when something is left over.
 
 Right column, `--surface-sunken`, left border `1px --border-subtle`.
 
-- Header: 34px spark tile, **"Quillbert"** over "Your rules & campaign assistant", a "New
+- Header: 34px spark tile, **"Quillbert"** over "Answers from your documents", a "New
   conversation" icon button, and a close button. There is no header mode pill. The mode
   is per reply (below, [ADR-0025](../adr/adr-0025-jev-routes-intent.md)). There is no
   provider pill, because the provider is not a user choice
   ([ADR-0019](../adr/adr-0019-openrouter-privacy-routing.md))
 - Empty state: one assistant bubble in which Quillbert introduces itself: "I'm Quillbert.
-  Ask about your rules or campaign — I'll answer from your documents and the SRD and tell
-  you when something isn't there. Ask me to invent and I'll draft instead." It is a
-  frontend constant. It is not stored and makes no model call
+  Ask me about your rulebooks and campaign notes — I answer from what you've uploaded,
+  cite the page, and tell you when something isn't there." (Slice 1, research only. The
+  SRD and "ask me to invent" wording returns with the modes.) It is a frontend constant.
+  It is not stored and makes no model call
 - Message list: assistant bubbles `--surface-raised` with `14px 14px 14px 4px` radius;
   user bubbles mirrored. The retrieval step renders above the reply as a green check row
   in mono at 11.5px ("Searched 2 documents · 6 passages"), driven by the AG-UI tool-call
   events
-- **Mode badge** above every assistant reply, in mono at 11.5px. It is the safety
+- **Mode badge** above every assistant reply (not built in slice 1, which is research only), in mono at 11.5px. It is the safety
   mechanism (PRIN-006), not decoration:
   - Research: green check plus "From your material".
   - Creative: accent ✦ plus "Invented", and the bubble gets a 2px `--accent` left border,
@@ -190,6 +191,11 @@ Right column, `--surface-sunken`, left border `1px --border-subtle`.
   the intro bubble says what to ask. Enter sends, and Shift+Enter adds a new line. The
   composer is disabled while a reply streams
 - Auto-scrolls to the newest message
+- Failure: a `RUN_ERROR`, a dropped stream or a network failure shows a red inline line
+  under the question with a **Retry** link, and the composer stays usable. The failed reply
+  is not kept
+- The retrieval check row is live only: stored history does not carry it, so it goes away
+  once the reply is saved and reloaded
 
 When closed on desktop, a pill FAB ("✦ Assistant") appears bottom-right.
 

@@ -1,1 +1,0 @@
-export { QuickPrompts } from "./QuickPrompts";

@@ -1,48 +1,58 @@
-import { CONVERSATION, QUICK_PROMPTS } from "../../model/fixtures";
+import { useEffect } from "react";
+import type { Campaign } from "../../../campaign";
+import { useChat } from "../../api/useChat";
 import { Composer } from "../Composer";
 import { MessageList } from "../MessageList";
-import { QuickPrompts } from "../QuickPrompts";
 import styles from "./AssistantPanel.module.css";
 
 type AssistantPanelProps = {
+  campaign: Campaign;
+  open: boolean;
   onClose: () => void;
 };
 
-const SHORT_THREAD = 4;
+export function AssistantPanel({ campaign, open, onClose }: AssistantPanelProps) {
+  const chat = useChat(campaign.id);
+  const { abort } = chat;
 
-export function AssistantPanel({ onClose }: AssistantPanelProps) {
-  const { mode, provider, messages } = CONVERSATION;
-  const showPrompts = messages.length <= SHORT_THREAD;
+  // The panel stays mounted when closed; closing stops the reply in flight.
+  useEffect(() => {
+    if (!open) abort();
+  }, [open, abort]);
 
   return (
-    <section className={styles.panel} aria-label="Assistant">
+    <section className={styles.panel} aria-label="Quillbert">
       <header className={styles.header}>
         <div className={styles.spark} aria-hidden>
           ✦
         </div>
         <div className={styles.titles}>
-          <div className={styles.title}>Assistant</div>
-          <div className={styles.subtitle}>
-            <span className={styles.mode}>{modeLabel(mode)}</span>
-            Grounded in indexed material
-          </div>
+          <div className={styles.title}>Quillbert</div>
+          <div className={styles.subtitle}>Answers from your documents</div>
         </div>
-        <span className={styles.provider}>
-          <span className={styles.dot} aria-hidden />
-          {provider}
-        </span>
-        <button type="button" className={styles.close} aria-label="Close assistant" onClick={onClose}>
+        <button
+          type="button"
+          className={styles.reset}
+          aria-label="New conversation"
+          title="New conversation"
+          disabled={!chat.canReset}
+          onClick={chat.newConversation}
+        >
+          ✎
+        </button>
+        <button type="button" className={styles.close} aria-label="Close Quillbert" onClick={onClose}>
           ×
         </button>
       </header>
 
-      <MessageList messages={messages} />
-      {showPrompts && <QuickPrompts prompts={QUICK_PROMPTS} />}
-      <Composer />
+      <MessageList
+        messages={chat.messages}
+        intro={chat.empty && !chat.loading}
+        error={chat.error}
+        onRetry={chat.retry}
+      />
+      {/* Not while loading: a send before the list arrives would start a second conversation. */}
+      <Composer disabled={chat.sending || chat.loading} onSend={chat.send} />
     </section>
   );
-}
-
-function modeLabel(mode: typeof CONVERSATION.mode) {
-  return mode === "research" ? "Research" : mode;
 }

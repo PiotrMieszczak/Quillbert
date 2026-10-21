@@ -9,7 +9,7 @@ export function Documents({ campaign }: { campaign: Campaign }) {
       <header className={styles.header}>
         <PageTitle>Document Library</PageTitle>
         <p className={styles.sub}>
-          Deterministic extraction · text, stat blocks, and rules indexed for search
+          Upload rulebooks and notes — Quillbert answers from them.
         </p>
       </header>
       <DocumentLibrary campaignId={campaign.id} />

@@ -29,9 +29,15 @@ export async function apiBlob(url: string): Promise<Blob> {
   return response.blob();
 }
 
-async function authorizedFetch(url: string, init: RequestInit = {}) {
+/** The signed-in user's current access token; supabase-js refreshes it when it is close to expiry. */
+export async function accessToken() {
   const { data } = await supabase.auth.getSession();
+  return data.session?.access_token;
+}
+
+async function authorizedFetch(url: string, init: RequestInit = {}) {
+  const token = await accessToken();
   const headers = new Headers(init.headers);
-  if (data.session) headers.set("Authorization", `Bearer ${data.session.access_token}`);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
   return fetch(url, { ...init, headers });
 }
