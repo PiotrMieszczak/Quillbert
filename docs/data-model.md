@@ -458,7 +458,7 @@ was called ([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md)).
 | Field | Type | Notes |
 |-------|------|-------|
 | `prompt_id` | text? | `quillbert` (`research` on rows written before ADR-0026) |
-| `prompt_version` | text? | 12 hex chars of SHA-256 over the profile's system text and its format line |
+| `prompt_version` | text? | 12 hex chars of SHA-256 over the profile's system text, its tool schema and its format line ([assistant-prompts.md](assistant-prompts.md)) |
 | `model` | text? | OpenRouter route actually called |
 | `ttft_ms`, `duration_ms` | int? | time to first token, total |
 | `prompt_tokens`, `completion_tokens` | int? | as reported by the provider |
