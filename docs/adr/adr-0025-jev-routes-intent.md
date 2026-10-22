@@ -1,18 +1,18 @@
 ---
 title: "ADR-0025: One composer; Jev routes each message, and every reply shows its mode"
-status: "Accepted"
+status: "Superseded"
 date: "2026-10-20"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "assistant", "jev", "ux", "privacy"]
 supersedes: "ADR-0022"
-superseded_by: ""
+superseded_by: "ADR-0026"
 ---
 
 # ADR-0025: One composer; Jev routes each message, and every reply shows its mode
 
 ## Status
 
-Proposed | **Accepted** | Rejected | Superseded | Deprecated
+Proposed | Accepted | Rejected | **Superseded** | Deprecated
 
 ## Context
 

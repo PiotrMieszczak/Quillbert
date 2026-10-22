@@ -54,17 +54,20 @@ The differentiating capability. Upload → extract → index → retrieve.
 
 ### Assistant — Full
 
-Modes with different rules about invention ([ADR-0012](adr/adr-0012-two-ai-modes.md)).
-The GM asks in one composer, and Jev routes each message
-([ADR-0025](adr/adr-0025-jev-routes-intent.md)). The safety property is that **every reply
-shows its mode**: a GM must never have to infer whether something was retrieved or invented.
+One assistant, no modes ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)).
+The safety property moves from the reply to the claim: **every fact cites its source, and
+every uncited paragraph is marked as an idea**. A GM must never have to infer whether
+something was retrieved or invented.
 
-| Mode | Where | Invention |
-|------|-------|-----------|
-| **Research** | Side panel, routed; badge "From your material" | Never — cites sources, refuses when unsupported |
-| **Creative** | Side panel, routed; badge "Invented". A Creative page with proposals later | The point — campaign-aware, output is a draft |
-| **Chat** | Side panel, routed; no badge | Greetings and "who are you"; states no facts |
+| Surface | Where | Invention |
+|---------|-------|-----------|
+| **Quillbert** | Side panel | Facts cite `[Sn]`; ideas (plot fixes, hooks, read-aloud) are uncited and marked "Idea — not from your material" |
 | **In character** | Panel, opened from a character | Within one voice; never canon unless saved |
+
+**Memory** is what the GM saves: a `propose_memory` draft becomes a Markdown note in the
+library (indexed and cited like any upload), or an addition to the GM's per-user style
+guide. Conversations themselves are never indexed. Replies and notes follow the language
+of the GM's question.
 
 Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) as a shared system library
 ([ADR-0023](adr/adr-0023-system-rules-library.md)). Traveller rules come from the GM's
@@ -72,7 +75,8 @@ own upload.
 
 
 - Chat panel streaming [AG-UI](https://docs.ag-ui.com/) events over SSE ([ADR-0009](adr/adr-0009-ag-ui-protocol.md))
-- A **Creative page** for drafting adventures, NPCs, factions, regions, and dialogue
+- **Plot analysis and drafting** in the same panel: plot holes, fixes, hooks, read-aloud
+- **Saved notes and a per-user style guide** as the assistant's memory
 - **In-character chat** entered from a character page, with their portrait in the header
 - Retrieval grounded in the active campaign's indexed chunks, with citations
 - LLM Gateway abstracting provider; OpenRouter is the single provider, restricted to a
@@ -147,7 +151,6 @@ Rendered from real relationship data, not mock data.
 | **Local model provider (Ollama)** | The offline justification depends on local deployment, which is itself deferred. v1 uses OpenRouter restricted to zero-retention backends. See [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md). | Local deployment is promoted, or a fully-offline path is needed |
 | **Automatic entity extraction from PDFs** | Auto-creating NPCs from a module is attractive and unreliable. Manual entry first; the extraction path stays open. | Extraction accuracy can be measured against a fixture corpus |
 | **Session recap generation** | Depends on a corpus of session logs existing first. | Session logs are in regular use |
-| **Plot analysis / suggestions** | Same dependency, plus a much fuzzier success criterion. | Core retrieval is trusted |
 
 ## Acceptance criteria for v1
 
@@ -157,8 +160,9 @@ The MVP is done when all of the following hold:
   progress is visible throughout.
 - **AC-002** A rules question against indexed material returns a grounded answer citing
   its source chunk.
-- **AC-003** Asking about material that was never indexed produces an explicit "not in
-  your material" response, not a plausible invention.
+- **AC-003** Asking about material that was never indexed produces an explicit statement
+  that the material does not cover it, in the language of the question, before any idea —
+  never a plausible invention presented as fact.
 - **AC-004** The model is set by admin/env configuration, not a user-facing control;
   changing it serves the next message from the new model with no code change, and the
   Gateway only ever routes to a zero-retention (non-training) provider on the allowlist.
@@ -179,13 +183,21 @@ The MVP is done when all of the following hold:
   Nothing appears in the NPC list until the GM confirms.
 - **AC-014** Each populated field in a proposal cites the chunk it came from; a field with
   no source is marked as unsourced rather than presented as extracted.
-- **AC-015** Research mode refuses an unsupported question; Creative mode answers the same
-  question by inventing. Each reply is visibly labelled with its mode, and the GM can
-  re-ask it in the other mode with one click (ADR-0025).
-- **AC-016** Every message records which mode produced it, and the mode is visible in the
-  interface at the time — not inferable only from the text.
-- **AC-017** Creative and in-character output is never indexed. Asking Research mode about
-  something only invented in Creative mode returns "not in your material".
+- **AC-015** "Find plot holes and propose fixes" returns cited facts and uncited ideas in
+  one reply; every paragraph without a valid citation is visibly marked as an idea, by
+  label and icon, not colour alone (ADR-0026).
+- **AC-016** No citation is attached to invented text: in the model eval, read-aloud and
+  suggested fixes carry no `[Sn]` (ADR-0026 IMP-006).
+- **AC-017** Unsaved assistant and in-character output is never indexed. Asking about
+  something only invented in a conversation returns the AC-003 statement.
+- **AC-020** Saying "yes, go with that" yields a `propose_memory` draft and writes
+  nothing. After the GM saves it, the note appears in the library, and a question in a
+  new conversation cites it.
+- **AC-021** A line saved to the style guide changes later drafts in every campaign of
+  that GM, and appears in no other user's prompt.
+- **AC-022** A question in Polish (or German) over English documents is answered in
+  Polish with citations to the English passages; source names keep their original
+  spelling.
 - **AC-018** A region's page lists its notable children; a region nested three levels deep
   and marked notable is still one click from its parent.
 - **AC-019** Read-aloud text and GM notes are visually distinct everywhere both appear.

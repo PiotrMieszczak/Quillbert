@@ -146,7 +146,7 @@ one query, not across queries. `matchedBy` says which retriever(s) surfaced the 
 which is what makes a bad result diagnosable (ADR-0021 NEG-002).
 
 An empty array means nothing cleared the relevance floor. That is a real answer, not an
-error: Research mode refuses on it rather than answering from weak matches (AC-003).
+error: the assistant says the material does not cover it rather than answering from weak matches (AC-003).
 
 ## Characters
 
@@ -250,14 +250,12 @@ it reads **only the content of the last user message** and ignores client-sent h
 // POST .../conversations/12/messages   (Accept: text/event-stream)
 { "threadId": "12", "runId": "run-88",
   "messages": [{ "id": "u-1", "role": "user", "content": "How does grappling work?" }],
-  "tools": [], "context": [], "state": null,
-  "forwardedProps": { "mode": null } }
-  // mode: optional; "research" | "creative" | "chat" only when the GM flips a reply.
-  // Absent → Jev routes (ADR-0025). Never carries prompt text.
+  "tools": [], "context": [], "state": null, "forwardedProps": {} }
+  // One profile (ADR-0026): no mode field. Nothing in the body carries prompt text.
 
 // GET .../messages → MessageOut[]
 { "id": 57, "role": "assistant", "content": "A grapple is … [S1]",
-  "mode": "research", "routeSource": "jev", "createdAt": "…",
+  "createdAt": "…",
   "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
                   "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
                   "attribution": "SRD 5.2 · CC-BY-4.0" }] }
@@ -277,8 +275,6 @@ documents only what is product-specific.
 ```
 data: {"type":"RUN_STARTED","threadId":"12","runId":"run-88"}
 
-data: {"type":"CUSTOM","name":"dm.route","value":{"mode":"research","source":"jev","confidence":0.94}}
-
 data: {"type":"TOOL_CALL_START","toolCallId":"t1","toolCallName":"search_documents"}
 
 data: {"type":"TOOL_CALL_ARGS","toolCallId":"t1","delta":"{\"query\":\"How does grappling work?\"}"}
@@ -294,8 +290,6 @@ data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"57","delta":"A grapple is"}
 data: {"type":"TEXT_MESSAGE_END","messageId":"57"}
 
 data: {"type":"CUSTOM","name":"dm.citation","value":{"label":"S1","chunkId":812,"documentId":1,"filename":"Core Rulebook v3.pdf","pageFrom":195,"heading":"Opportunity Attacks","attribution":null}}
-
-data: {"type":"CUSTOM","name":"dm.support","value":{"label":"S1","sentence":2,"flagged":true}}
 
 data: {"type":"RUN_FINISHED","threadId":"12","runId":"run-88"}
 ```
@@ -319,6 +313,28 @@ data: {"type":"CUSTOM","name":"dm.proposal","value":{
 result through the ordinary `POST /campaigns/{cid}/characters` — there is no privileged
 assistant write path.
 
+**Memory drafts are a model tool call.** When the GM agrees to something, the model calls
+`propose_memory`; the server streams the call and writes nothing
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)):
+
+```
+data: {"type":"TOOL_CALL_START","toolCallId":"t2","toolCallName":"propose_memory"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"t2","delta":"{\"target\":\"campaign\",\"title\":\"Old Tam kept the signet\",\"body\":\"Old Tam (Abbot Corvin) kept the Abbot's signet ring…\"}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"t2"}
+```
+
+The panel renders the arguments as an editable card. `target` is `campaign` or `style`;
+`title` is under 8 words; `body` is Markdown in the language of the GM's message. Save:
+
+- `campaign` → the ordinary `POST /campaigns/{cid}/documents` with a file
+  `notes/<slug>.md` holding `# <title>` and the body. It is indexed and cited like any
+  upload.
+- `style` → `PATCH /settings` with `styleGuide` set to the current guide plus the body.
+
+Discarding the card sends nothing.
+
 **Citations are a custom event.** AG-UI has no citation type — grounding is a product
 concern, not a protocol one — so they are emitted as a namespaced `dm.citation` custom
 event. That keeps the product-specific part visibly distinct from the protocol.
@@ -327,13 +343,11 @@ Tool-call events drive the design's green check chips. Citation events populate 
 references (AC-002). When retrieval finds nothing relevant, the assistant says so
 explicitly rather than answering unsourced (AC-003).
 
-`dm.route` comes before the first text delta, so the mode badge shows before the reply
-text. Citations follow `TextMessageEnd`: they are parsed from the finished text, and only
-for research. `dm.support` comes only from research replies, only when Jev is enabled, and
-marks a sentence without changing it (ADR-0025). The retrieval step is reported as the
-`search_documents` tool call above even though the server runs it, not the model; there is
-no model-driven tool loop and no `dm.proposal` yet. `dm.route`, the flip and `dm.support`
-arrive in slice 2.
+Citations follow `TextMessageEnd`: they are parsed from the finished text. The panel marks
+each paragraph that holds none of the cited labels as an idea (ADR-0026). The retrieval
+step is reported as the `search_documents` tool call above even though the server runs
+it, not the model; `propose_memory` is the only model-driven tool, in a loop bounded at 5
+iterations. There is no `dm.proposal` yet.
 
 A stream always opens with `RUN_STARTED` and closes with exactly one of `RUN_FINISHED` or
 `RUN_ERROR`. A stream ending without either is a bug: the client cannot tell it from a
@@ -343,8 +357,8 @@ dropped connection.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/settings` | Profile fields |
-| `PATCH` | `/settings` | Update profile fields |
+| `GET` | `/settings` | Profile fields, including `styleGuide` |
+| `PATCH` | `/settings` | Update profile fields, including `styleGuide` (the per-user style guide, ADR-0026) |
 | `POST` | `/settings/avatar` | Multipart upload |
 | `GET` | `/settings/ai` | Gateway reachability and the active model (read-only) |
 

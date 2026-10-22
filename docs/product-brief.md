@@ -22,18 +22,20 @@ books, which is worse than useless at the table.
 Quillbert helps a game master **build** a campaign and **run** it, with an AI that does
 both jobs without confusing them.
 
-Two modes, deliberately separate ([ADR-0012](adr/adr-0012-two-ai-modes.md)):
+**One assistant, Quillbert** — the side panel, available while you work
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)). Your uploaded documents are
+its source of truth: every fact it states cites the passage it came from, and it says
+plainly when your material does not cover a question. Ask it to find a plot hole or
+draft a scene and it invents, but every invented paragraph is marked as an idea, never
+dressed as a fact. It answers in the language you ask in.
 
-**Research** — the side panel, available while you work. It behaves like NotebookLM:
-answers **only** from your indexed material, cites the source, and says plainly when your
-documents do not cover the question. This is where you ask rules questions mid-session.
+**It remembers what you decide.** When you agree to an idea, Quillbert drafts a note; you
+edit it and save it, and it joins your library as a source like any other. Your writing
+standards live in a personal style guide it follows in every campaign. Nothing becomes
+canon without your Save.
 
-**Creative** — its own page. Draft adventures, NPCs, factions, regions, and dialogue. It
-knows your campaign, so new content fits the world it is joining. Everything it produces is
-a **draft you confirm**, never a silent write.
-
-A third mode, **in character**, opens from any character: their portrait and name replace
-the assistant's, their sheet and notes become context, and you talk to them directly.
+**In character** opens from any character: their portrait and name replace the
+assistant's, their sheet and notes become context, and you talk to them directly.
 
 Around all of it sits the session-running workspace the design defines: NPCs, players,
 factions, a quest log, session records, and a knowledge graph of how everyone relates.
@@ -54,19 +56,17 @@ virtual tabletop, not a campaign-sharing platform.
 
 ## Product principles
 
-**PRIN-001 — Research mode is grounded and never invents.**
-In Research mode the assistant answers from indexed material only. When material does not
-cover a question, it says so rather than filling the gap.
+**PRIN-001 — Facts are grounded; inventions are labelled.**
+Every statement about the campaign or its rules cites the indexed passage it came from.
+When material does not cover a factual question, the assistant says so before offering
+anything of its own. Inventing is allowed — finding fixes for a plot hole is invention —
+but an invention never carries a citation
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)).
 
-This is a rule *about Research mode*, not about the product. Creative mode invents — that
-is its purpose. Every reply carries its mode, so the distinction is shown rather than
-something the GM must infer ([ADR-0012](adr/adr-0012-two-ai-modes.md),
-[ADR-0025](adr/adr-0025-jev-routes-intent.md)).
-
-**PRIN-006 — The GM always knows which mode produced something.**
-An invention mistaken for a retrieved fact eventually becomes canon. Each reply carries a
-visible mode badge and is recorded with its mode, so provenance survives past the moment
-it was on screen.
+**PRIN-006 — The GM always knows which parts are from their material.**
+An invention mistaken for a retrieved fact eventually becomes canon. Provenance is shown
+per paragraph: cited text is from the material, uncited text is marked as an idea. Only
+what the GM explicitly saves becomes a source.
 
 **PRIN-002 — Extraction is deterministic.**
 Text extraction and parsing use libraries, not language models. This keeps ingestion
@@ -109,8 +109,9 @@ The MVP is successful if a GM can:
    fast enough not to stall the table.
 3. Keep their campaign's NPCs, factions, and quests in the workspace instead of scattered
    notes, and find them faster than before.
-4. Draft an NPC or an adventure hook in Creative mode, edit the proposal, and save it — with
-   no doubt about which parts came from their books and which the model invented.
+4. Ask for plot holes or a new hook, agree to a fix, and save it as a note — with no
+   doubt about which parts came from their books and which the model invented — then
+   see a later answer cite that note.
 
 If retrieval is not trustworthy, nothing else in the product matters — every other
 feature assumes the GM believes the answers.
@@ -120,6 +121,6 @@ feature assumes the GM believes the answers.
 - **Not a virtual tabletop.** No maps, tokens, initiative tracking, or dice rolling.
 - **Not player-facing.** No player logins, no shared views, no handouts.
 - **Not a rules engine.** It retrieves and explains rules; it does not adjudicate them.
-- **Not a source of truth about your rules.** Creative mode invents; only Research mode's
-  cited answers should be trusted as coming from your books.
+- **Not a source of truth about your rules.** Quillbert invents when asked; only its cited
+  statements should be trusted as coming from your books.
 - **Not multi-tenant.** No hosting, no organisations, no collaboration in v1.

@@ -32,7 +32,8 @@ knowing why it was made, it belongs in an ADR.
 | [0022](adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | Superseded |
 | [0023](adr-0023-system-rules-library.md) | Open rules references ship as a shared system library | Accepted |
 | [0024](adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles, stamped by hash, traced on the message | Accepted |
-| [0025](adr-0025-jev-routes-intent.md) | One composer; Jev routes each message, and every reply shows its mode | Accepted |
+| [0025](adr-0025-jev-routes-intent.md) | One composer; Jev routes each message, and every reply shows its mode | Superseded |
+| [0026](adr-0026-one-assistant-claim-provenance.md) | One assistant; provenance per claim; memory is what the GM saves | Accepted |
 
 ## Format
 

@@ -157,31 +157,35 @@ shows **More** only when something is left over.
 Right column, `--surface-sunken`, left border `1px --border-subtle`.
 
 - Header: 34px spark tile, **"Quillbert"** over "Answers from your documents", a "New
-  conversation" icon button, and a close button. There is no header mode pill. The mode
-  is per reply (below, [ADR-0025](../adr/adr-0025-jev-routes-intent.md)). There is no
-  provider pill, because the provider is not a user choice
+  conversation" icon button, and a close button. There are no modes, so no mode pill;
+  provenance is shown per paragraph (below,
+  [ADR-0026](../adr/adr-0026-one-assistant-claim-provenance.md)). There is no provider
+  pill, because the provider is not a user choice
   ([ADR-0019](../adr/adr-0019-openrouter-privacy-routing.md))
 - Empty state: one assistant bubble in which Quillbert introduces itself: "I'm Quillbert.
   Ask me about your rulebooks and campaign notes — I answer from what you've uploaded,
-  cite the page, and tell you when something isn't there." (Slice 1, research only. The
-  SRD and "ask me to invent" wording returns with the modes.) It is a frontend constant.
+  cite the page, and tell you when something isn't there." (Slice 1 wording. Slice 2 adds
+  that it can find plot holes and draft ideas, marked as ideas; slice 3 that it remembers
+  what you save.) It is a frontend constant.
   It is not stored and makes no model call
 - Message list: assistant bubbles `--surface-raised` with `14px 14px 14px 4px` radius;
   user bubbles mirrored. The retrieval step renders above the reply as a green check row
   in mono at 11.5px ("Searched 2 documents · 6 passages"), driven by the AG-UI tool-call
   events
-- **Mode badge** above every assistant reply (not built in slice 1, which is research only), in mono at 11.5px. It is the safety
-  mechanism (PRIN-006), not decoration:
-  - Research: green check plus "From your material".
-  - Creative: accent ✦ plus "Invented", and the bubble gets a 2px `--accent` left border,
-    so the mode does not rest on colour alone.
-  - Chat: no badge.
-- **Flip** link after research and creative replies, muted, at 12px: "Invent instead" or
-  "Answer from my material". It re-asks the same question with that mode
+- **Idea marking** (slice 2) per paragraph — the safety mechanism (PRIN-006), not
+  decoration. A paragraph with no resolved citation gets a 2px `--accent` left border and
+  a leading mono 11.5px label "✦ Idea — not from your material", so it does not rest on
+  colour alone. Cited paragraphs render plainly. Paragraphs are blank-line-separated
+  blocks of the reply
 - **Citations**: `[Sn]` in the text renders as a small superscript number. Under the bubble
   is a numbered source list (`filename · p.N · heading`), and an SRD source adds its
-  attribution ("SRD 5.2 · CC-BY-4.0"). A sentence that Jev flags gets a dotted underline and
-  a "may not follow from its source" tooltip
+  attribution ("SRD 5.2 · CC-BY-4.0"). A saved note cites as its filename
+  (`notes/old-tam-kept-the-signet.md`)
+- **Memory card** (slice 3) under the reply when the model calls `propose_memory`:
+  "Remember for this campaign" or "Add to my style guide", an editable title and body,
+  **Save** and **Discard**. Save uploads the note or updates the style guide
+  ([api-contract.md](../api-contract.md)); until then nothing is stored. Design gap: the
+  card's exact layout is unspecified
 - Streaming: a 7×15px accent block with `blink` animation trails the streaming message
 - Typing indicator: three dots with staggered `dotpulse`, shown from send until the first
   delta
@@ -280,8 +284,9 @@ defaults **open on desktop** and **closed on mobile**.
 
 ## Adventure Creator
 
-Creative mode ([ADR-0012](../adr/adr-0012-two-ai-modes.md)) has its own page, designed in
-the same prototype:
+The Adventure Creator, the same assistant beside an editor for drafts too large for the
+panel ([ADR-0026](../adr/adr-0026-one-assistant-claim-provenance.md)), has its own page,
+designed in the same prototype:
 
 **▶ [Open the interactive design](https://claude.ai/code/artifact/a7d4de30-0826-4747-b295-a584fe6f0f28)**
 

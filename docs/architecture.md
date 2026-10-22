@@ -72,7 +72,7 @@ place a model is invoked.
 | LLM access | Gateway over OpenRouter (zero-retention allowlist) | [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) |
 | Assistant streaming | AG-UI protocol over SSE | [ADR-0009](adr/adr-0009-ag-ui-protocol.md) |
 | Agent loop | Plain FastAPI — no framework, bounded tool loop | [ADR-0011](adr/adr-0011-assistant-tools.md) |
-| AI modes | Research (grounded) · Creative (invents) · In character | [ADR-0012](adr/adr-0012-two-ai-modes.md) |
+| Assistant | One profile: cited facts, marked ideas · In character | [ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md), [ADR-0012](adr/adr-0012-two-ai-modes.md) |
 | Testing | Vitest + Testing Library, Playwright, pytest | |
 
 ## Repository layout
@@ -168,12 +168,7 @@ sequenceDiagram
 
     U->>API: POST /assistant/messages
     API-->>U: AG-UI: RUN_STARTED
-    par route (ADR-0025)
-        API->>GW: Jev Choice: research / creative / chat
-    and retrieve
-        API->>R: search(campaign, system, query)
-    end
-    API-->>U: AG-UI: CUSTOM dm.route
+    API->>R: search(campaign, system, query)
     API-->>U: AG-UI: TOOL_CALL_START
     R->>R: embed the query (Gemini, keyword-only if unavailable)
     R->>DB: tsvector match + pgvector ANN, one query
@@ -181,9 +176,10 @@ sequenceDiagram
     R->>R: fuse (RRF), apply relevance floor
     R-->>API: context + citations, or nothing above the floor
     API-->>U: AG-UI: TOOL_CALL_RESULT
-    API->>GW: prompt(context, question)
-    GW-->>API: token stream
+    API->>GW: prompt(style guide, context, question)
+    GW-->>API: token stream, or a propose_memory call
     API-->>U: AG-UI: TEXT_MESSAGE_CONTENT (delta, repeated)
+    API-->>U: AG-UI: TOOL_CALL_START/ARGS/END propose_memory (a draft; nothing written)
     API-->>U: AG-UI: CUSTOM dm.citation
     API-->>U: AG-UI: RUN_FINISHED
 ```
@@ -192,10 +188,12 @@ Every arrow back to the GM is an **AG-UI event**; everything between API, Retrie
 Gateway is our own code. The protocol governs the wire, not the logic
 ([ADR-0009](adr/adr-0009-ag-ui-protocol.md), [ADR-0010](adr/adr-0010-no-agent-framework.md)).
 
-**The grounding rule.** The prompt instructs the model to answer only from supplied
-context and to state plainly when the context does not contain the answer (PRIN-001,
-AC-003). Retrieved chunk ids are returned with the response and stored as citations, so
-every factual claim is traceable to a source.
+**The grounding rule.** The prompt instructs the model to cite every factual statement
+from the supplied context, to state plainly when the context does not answer a factual
+question, and to leave its own ideas uncited (PRIN-001, AC-003). Retrieved chunk ids are
+returned with the response and stored as citations, so every factual claim is traceable
+to a source; the panel marks each paragraph without a valid citation as an idea
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)).
 
 GM-private `notes` are excluded from retrieval context by default (DEC-004).
 
@@ -213,7 +211,7 @@ flowchart TB
     end
 
     subgraph PROTO["AG-UI — the wire, and only the wire"]
-        EV["RUN_STARTED · TOOL_CALL_START/ARGS/END · TOOL_CALL_RESULT<br/>TEXT_MESSAGE_START/CONTENT/END<br/>CUSTOM: dm.route · dm.citation · dm.support · RUN_FINISHED · RUN_ERROR"]
+        EV["RUN_STARTED · TOOL_CALL_START/ARGS/END · TOOL_CALL_RESULT<br/>TEXT_MESSAGE_START/CONTENT/END<br/>CUSTOM: dm.citation · RUN_FINISHED · RUN_ERROR"]
     end
 
     subgraph OURS_BE["Our code — backend (no agent framework)"]
@@ -260,11 +258,14 @@ The loop is bounded and the tool set is small ([ADR-0011](adr/adr-0011-assistant
 | `get_session`, `list_sessions` | Session records, for summaries | — |
 | `get_character`, `get_faction` | Campaign entities | — |
 | `propose_character`, `propose_faction` | A draft plus per-field sources | **Draft only** |
+| `propose_memory` | A campaign note or a style-guide addition ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)) | **Draft only** |
 
 **No tool writes.** A proposal returns a populated form with the chunk ids each field came
 from; the GM edits and submits through the normal `POST /characters`. The model suggests,
 the GM commits — which is what keeps this downstream of
-[ADR-0002](adr/adr-0002-deterministic-extraction.md) rather than in violation of it.
+[ADR-0002](adr/adr-0002-deterministic-extraction.md) rather than in violation of it. A
+saved campaign note is submitted through the normal document upload as `notes/<slug>.md`;
+a style addition through `PATCH /settings`.
 
 ### What owns what
 
@@ -286,12 +287,8 @@ the Gateway, owning steps 5 through 8. The Gateway boundary is what keeps that s
 possible without touching the frontend, since AG-UI events would still be what reaches the
 wire.
 
-**Jev sits beside step 1, not inside the loop.** A Jev Choice routes the message to
-research, creative or chat. It runs in parallel with retrieval and falls back to research.
-After a research reply ends, a Jev Noul checks each cited sentence against its chunk. Jev
-never writes the reply, never owns the loop, and is never called from ingestion. A GM flip
-overrides it ([ADR-0025](adr/adr-0025-jev-routes-intent.md); routing table in
-[assistant-prompts.md](assistant-prompts.md)).
+**There is no router.** Every message goes through one profile; there is no classifier
+hop before the model ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)).
 
 ## Frontend state
 
@@ -330,13 +327,13 @@ system_id = :campaign_system` ([ADR-0023](adr/adr-0023-system-rules-library.md))
 own prompt assembly, moving the grounding rule out of the single place that enforces it
 ([ADR-0011](adr/adr-0011-assistant-tools.md)).
 
-**BND-008 — Each mode is one profile, built in one place, and every reply shows its mode.**
-Research, creative, chat and in-character each have one prompt strategy, built in exactly
-one place. A routed reply carries its mode as a visible badge
-([ADR-0025](adr/adr-0025-jev-routes-intent.md)).
-Creative and in-character output is **never indexed** — otherwise invention becomes
-retrievable as fact, defeating [ADR-0002](adr/adr-0002-deterministic-extraction.md) from
-the other direction ([ADR-0012](adr/adr-0012-two-ai-modes.md)).
+**BND-008 — One profile per surface, uncited text shown as an idea, unsaved output never
+indexed.** Quillbert and in-character each have one prompt strategy, built in exactly one
+place. Every paragraph without a valid citation is marked as an idea
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)). Assistant and in-character
+output is **never indexed** unless the GM saves it as a note — otherwise invention
+becomes retrievable as fact, defeating
+[ADR-0002](adr/adr-0002-deterministic-extraction.md) from the other direction.
 
 **BND-007 — No tool writes to the campaign.** `propose_*` tools return drafts; the GM
 confirms through the ordinary create endpoints. A test asserts no proposal tool is
