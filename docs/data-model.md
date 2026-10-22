@@ -384,11 +384,18 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 Retrieval is **hybrid**: `tsv` and `embedding` are queried in the same row and the same
 transaction, then fused with reciprocal rank fusion
 ([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md)). Results below a relevance floor are treated
-as no result, so Research mode still refuses rather than answering from weak matches
+as no result, so the assistant still says the material does not cover it rather than answering from weak matches
 (AC-003). Built as the `ChunkSearch` port (`ports/search.py`), one SQL statement in
 `SqlChunkSearch`: the keyword leg admits only chunks matching the query, the vector leg
 only those at or above `retrieval_floor` cosine similarity, and both are scoped to the
 campaign's `indexed` documents (BND-003). With no query vector it runs keyword-only.
+
+**Saved notes are documents.** When the GM saves a `propose_memory` campaign draft, it is
+uploaded as an ordinary `DOC` named `notes/<slug>.md` and goes through the same
+deterministic pipeline ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)). No
+note table exists: the library lists, edits and deletes notes like any document, and
+retrieval cites them like any chunk. The text is the GM's — they saved it — so BND-001
+holds.
 Once the system library lands it also searches the library chunks of the campaign's
 system in the same query (`campaign_id = :c OR system_id = :s`, ADR-0023). No other
 shared scope exists.
@@ -433,31 +440,31 @@ Session bodies are chunked and indexed like documents, so past sessions are retr
 | Entity | Key fields |
 |--------|-----------|
 | `conversation` | `id`, `campaign_id`, `mode` (legacy, not read), `started_at` |
-| `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode`, `created_at`, `tool_label?`, plus the route and trace columns below on assistant messages |
+| `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode` (legacy, not read), `created_at`, `tool_label?`, plus the trace columns below on assistant messages |
 | `citation` | `id`, `message_id`, `chunk_id`, `label`, `quote?` |
 
-Citations satisfy AC-002 and make grounding auditable. `message.mode` (`research`,
-`creative`, `chat`) is the **authoritative** provenance of a reply. One conversation can
-hold all three, because each message is routed on its own
-([ADR-0025](adr/adr-0025-jev-routes-intent.md); AC-016, ADR-0012 IMP-007).
+Citations satisfy AC-002 and make grounding auditable. They are also the provenance of a
+reply: a paragraph is from the material exactly when it holds a stored citation's label,
+and every other paragraph is shown as an idea
+([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md); AC-015). `message.mode` is
+no longer written for new messages; it stays readable for rows written before ADR-0026.
+
+Conversations are **not** memory. They are never chunked or indexed (AC-017); only notes
+the GM saves become sources.
 
 Assistant-message columns. All are null on user messages. Usage is null when no provider
-was called, as for the deterministic "Not in your material." refusal
-([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md)).
+was called ([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md)).
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `route_source` | enum? | `jev` \| `gm` \| `default` — who chose the mode |
-| `route_confidence` | real? | Jev's Choice confidence; null unless `route_source = jev` |
-| `prompt_id` | text? | `research` \| `creative` \| `chat` |
-| `prompt_version` | text? | 12 hex chars of SHA-256 over the profile's system text and its format line |
+| `prompt_id` | text? | `quillbert` (`research` on rows written before ADR-0026) |
+| `prompt_version` | text? | 12 hex chars of SHA-256 over the profile's system text, its tool schema and its format line ([assistant-prompts.md](assistant-prompts.md)) |
 | `model` | text? | OpenRouter route actually called |
 | `ttft_ms`, `duration_ms` | int? | time to first token, total |
 | `prompt_tokens`, `completion_tokens` | int? | as reported by the provider |
 | `cost_usd` | numeric(12,8)? | as reported by the provider |
 
-Migration 0009 adds the trace columns (`prompt_id` … `cost_usd`). `route_source` and
-`route_confidence` come with routing in slice 2.
+Migration 0009 adds the trace columns (`prompt_id` … `cost_usd`).
 
 ### User
 
@@ -474,6 +481,7 @@ Google identity — live in Supabase's `auth` schema, not here. This record is t
 | `display_name` | text | "Game Master" |
 | `table_name` | text? | "The Ashfall Table" |
 | `avatar_path` | text? | Upload |
+| `style_guide` | text? | "How I write adventures" — the GM's writing standards, placed after the system prompt in every campaign ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)). Edited in Settings or by saving a `propose_memory` style draft |
 | `created_at` | timestamp | |
 
 No password or email-verification columns here — Supabase Auth owns them.

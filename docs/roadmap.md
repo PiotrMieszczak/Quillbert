@@ -74,24 +74,26 @@ Retrieval becomes conversation.
   proper AG-UI on both ends (the `ag-ui-protocol` encoder on the server, `@ag-ui/client` in
   the panel), and the panel cleanup (Quillbert title, intro, no attach button, no chips)
   ([ADR-0024](adr/adr-0024-quillbert-prompt-profiles.md))
-- **Quillbert, slice 2**: creative and chat profiles, Jev routing **on in production**, a
-  mode badge and flip on every reply ([ADR-0025](adr/adr-0025-jev-routes-intent.md)). Jev
-  ships before its zero retention is confirmed, as a recorded exception (ADR-0025 NEG-004)
+- **Quillbert, slice 2**: one profile with cited facts and marked ideas, plot analysis in
+  the panel, replies in the GM's language, and the OpenRouter settings fix
+  (`require_parameters`, `session_id`, reasoning budget)
+  ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md)). Gated on the model eval in
+  [assistant-prompts.md](assistant-prompts.md#model-choice)
+- **Quillbert, slice 3**: memory — `propose_memory`, the proposal card, notes saved as
+  library documents, and the per-user style guide
 - **Built-in rules**: SRD 5.1 / 5.2 seeded as a shared system library
   ([ADR-0023](adr/adr-0023-system-rules-library.md))
-- **Creative page**, campaign-aware, output via proposals — the Adventure Creator in
-  [design/overview.md](design/overview.md), for drafts too large for the panel
+- **Adventure Creator page**, the same assistant beside an editor, output via proposals —
+  in [design/overview.md](design/overview.md), for drafts too large for the panel
 - **In-character mode** opened from a character, with the panel restyled as that NPC
   ([ADR-0012](adr/adr-0012-two-ai-modes.md))
-- Jev support check on cited sentences — after citations stream. Not part of this phase's
-  exit gate
 
-**Exit gate.** AC-002, AC-003, AC-004, AC-012, AC-013, AC-014 — grounded answers with
-visible citations, explicit refusal on unindexed topics, the configured model enforced
-against the zero-retention allowlist, session
-summaries drawn from records, and extraction that produces a **draft** rather than a saved
-row, with per-field sources. Refusal behaviour is verified
-against a set of deliberately-unanswerable questions, not assumed.
+**Exit gate.** AC-002, AC-003, AC-004, AC-012, AC-013, AC-014, AC-015, AC-016, AC-020,
+AC-021, AC-022 — grounded answers with visible citations, explicit refusal on unindexed
+topics, ideas marked and never cited, the configured model enforced against the
+zero-retention allowlist, session summaries drawn from records, drafts rather than saved
+rows (entities and memory notes), and the same behaviour in Polish and German. Refusal
+and cited-invention rates are measured against a question set, not assumed.
 
 ## Phase 4 — Campaign entities
 

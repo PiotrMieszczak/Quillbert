@@ -12,8 +12,9 @@ Product-breaking boundaries (block the PR if broken):
 - BND-002: model calls only through the Gateway (backend/app/adapters/llm/); no provider
   SDK imported elsewhere.
 - BND-007: no assistant tool writes to the campaign; propose_* tools return drafts only.
-- BND-008: Creative and in-character output is never indexed; Research answers only from
-  retrieved material.
+- BND-008: assistant and in-character output is never indexed unless the GM saves it as a
+  note; every statement of fact cites a retrieved source, and uncited text is shown as an
+  idea (ADR-0026).
 
 Data access:
 - BND-003 / DEC-005: every query scopes by campaign_id, and campaigns by owner_id. A route
