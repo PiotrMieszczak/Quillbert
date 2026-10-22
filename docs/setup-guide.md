@@ -84,6 +84,30 @@ Conventional Commit messages on `main`.
 Version bumps: `fix` → patch, `feat` → minor, a breaking change → minor while below 1.0.
 The version is kept in `version.txt`, `frontend/package.json` and `backend/pyproject.toml`.
 
+## Rollback and deploying a version
+
+GitHub cuts versions and starts the release deploy; Openship owns every deployment after
+that. Rollback and redeploy are done by hand, in the Openship app (project → Deployments) or
+the CLI. Each deployment is listed by commit, not by tag:
+
+```bash
+openship deployment list --project proj_cGL8BrBLA8VtUdF5
+```
+
+- **Roll back** to an earlier deployment: `openship deployment rollback <deployment-id>`.
+  `openship deployment pin <deployment-id>` keeps a known-good one's artifact for rollback.
+- **Deploy a specific version** not in the list: resolve the tag to its commit, then deploy
+  it.
+
+  ```bash
+  openship deploy --project proj_cGL8BrBLA8VtUdF5 --branch main --commit "$(git rev-list -n1 v1.0.0)" --watch
+  ```
+
+- **The database does not roll back.** Migrations stay applied; Alembic only moves forward
+  in CI. An older build is safe only if it runs against the newer schema — added tables and
+  nullable columns are fine, renames and drops are not. When they are not, fix forward with
+  a new release instead of rolling back.
+
 ## Runbook
 
 **1. Supabase (dashboard)**
