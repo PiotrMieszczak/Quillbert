@@ -10,6 +10,7 @@
   --surface-raised: #12141a;
   --surface-elevated: #1a1d25;
   --surface-hover: #22262f;
+  --surface-subtle: #151821;
   --gradient-stop-b: #1a1e28;
 
   /* Borders */
@@ -106,6 +107,7 @@
   --surface-raised: #ffffff;
   --surface-elevated: #f0ece5;
   --surface-hover: #dcd5ca;
+  --surface-subtle: #faf7f2;
   --gradient-stop-b: #f0ece5;
   --border-subtle: #e3ddd3;
   --border-default: #dcd5ca;

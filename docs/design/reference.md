@@ -17,6 +17,7 @@ Where a token has no light value it is the same in both.
 | `--surface-raised` | `#12141A` | `#FFFFFF` | Cards, nav rail, composer, citation chips |
 | `--surface-elevated` | `#1A1D25` | `#F0ECE5` | Raised buttons, user chat bubble, action hover |
 | `--surface-hover` | `#22262F` | `#DCD5CA` | Hover states, stat tiles |
+| `--surface-subtle` | `#151821` | `#FAF7F2` | Nav rail item hover |
 | `--gradient-stop-b` | `#1A1E28` | `#F0ECE5` | Placeholder stripes |
 
 ### Borders
@@ -102,7 +103,7 @@ citation chips.
 | Brand wordmark (login) | 27px / 600 Newsreader |
 | Page title | 30px Newsreader |
 | Section heading | 20px Newsreader |
-| Rail brand | 15px / 600 Newsreader |
+| Rail brand | 17px / 600 Newsreader |
 | Body | 13–14px Hanken Grotesk |
 | Assistant reply | 14px / 1.65 |
 | Secondary / meta | 11–13px |

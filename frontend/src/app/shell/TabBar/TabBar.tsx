@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NavIcon } from "../NavIcon";
 import { NAV_ITEMS, TAB_COUNT, TAB_IDS } from "../navItems";
 import styles from "./TabBar.module.css";
 
@@ -52,7 +53,7 @@ export function TabBar({ active, onNavigate }: TabBarProps) {
               onClick={() => onNavigate(item.id)}
             >
               <span className={styles.glyph} aria-hidden>
-                {item.glyph}
+                <NavIcon id={item.id} />
               </span>
               <span className={styles.label}>{item.short ?? item.label}</span>
             </button>
@@ -67,7 +68,7 @@ export function TabBar({ active, onNavigate }: TabBarProps) {
             onClick={() => setMoreOpen((open) => !open)}
           >
             <span className={styles.glyph} aria-hidden>
-              ⋯
+              <NavIcon id="more" />
             </span>
             <span className={styles.label}>More</span>
           </button>
@@ -96,7 +97,7 @@ export function TabBar({ active, onNavigate }: TabBarProps) {
                 }}
               >
                 <span className={styles.glyph} aria-hidden>
-                  {item.glyph}
+                  <NavIcon id={item.id} />
                 </span>
                 {item.label}
               </button>

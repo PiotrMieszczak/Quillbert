@@ -160,8 +160,12 @@ Spans all columns. `rgb(var(--scrim) / .72)` over the ambient background, bottom
 expands to 236px on hover **or** when pinned. `--surface-raised`,
 `1px --border-strong`, `--radius-rail`, shadow swaps with state.
 
-Items, in order: Overview, NPCs, Players, Factions, Quest Log, Documents,
-Knowledge Graph, Sessions. Active item uses `--accent`; labels fade in only when expanded.
+A brand block heads the rail: the quill mark in a 38px tile, then the **Quillbert** wordmark,
+divided from the items by a `--border-subtle` rule. Items, in order: Overview, NPCs, Players,
+Factions, Quest Log, Documents, Knowledge Graph, Sessions, each with an 18px stroke icon
+(`frontend/src/app/shell/NavIcon.tsx`). The active item sits on `--surface-elevated` with a
+`--text-primary` label, an amber icon and a 3px inset `--accent` edge; hover fills
+`--surface-subtle`. Labels and wordmark fade in only when expanded.
 On hover an item's icon turns amber and tilts (`scale(1.12) rotate(-4deg)`), its label
 nudges `3px` right, and a 3px amber bar grows at its left edge; all `.25s
 --ease-spring`. Pressing scales it to `.97`.
