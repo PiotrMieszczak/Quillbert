@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 20px;
   max-width: 1080px;
-  animation: rise 0.3s var(--ease);
+  animation: global(rise) 0.3s var(--ease);
 }
 
 .header {

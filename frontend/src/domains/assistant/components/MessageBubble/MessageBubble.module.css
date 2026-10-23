@@ -1,55 +1,68 @@
-.row {
-  display: flex;
-}
-
-.assistantRow {
-  justify-content: flex-start;
+/* Only live messages arrive; history renders still, so the swap to the stored reply never re-animates. */
+.arrive {
+  animation: global(rise) 0.25s ease both;
 }
 
 .userRow {
+  display: flex;
   justify-content: flex-end;
 }
 
-.bubble {
-  max-width: 92%;
-  padding: 10px 12px;
-  background: var(--surface-raised);
-}
-
-.assistant {
-  border-radius: 14px 14px 14px 4px;
-}
-
 .user {
+  max-width: 85%;
+  padding: 9px 13px;
+  border: 1px solid var(--border-default);
   border-radius: 14px 14px 4px 14px;
-}
-
-.body {
-  margin: 0;
-  color: var(--text-primary);
+  background: var(--surface-elevated);
   font-size: 13.5px;
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.stack {
+.reply {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  max-width: 92%;
+  gap: 10px;
 }
 
-.stack .bubble {
-  max-width: none;
+.name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font: 600 13px/1 var(--font-display);
+}
+
+.name img {
+  display: block;
+  width: 20px;
+  height: auto;
+}
+
+.bob {
+  animation: global(qb-bob) 0.9s ease-in-out infinite;
+}
+
+.body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* Each streamed word arrives in amber and cools to ink. */
+.ink {
+  animation: global(qb-ink) 0.9s ease both;
 }
 
 .cite {
   margin-left: 1px;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 500;
 }
 
@@ -58,42 +71,85 @@
   width: 7px;
   height: 15px;
   margin-left: 2px;
-  vertical-align: text-bottom;
   background: var(--accent);
-  animation: blink 1s step-end infinite;
-}
-
-.dots {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px 0;
-}
-
-.dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  animation: dotpulse 1.2s infinite;
-}
-
-.dots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.dots span:nth-child(3) {
-  animation-delay: 0.4s;
+  vertical-align: text-bottom;
+  animation: global(blink) 1s step-end infinite;
 }
 
 .sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 0;
-  padding: 0 0 0 18px;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.5;
+  padding: 0;
+  list-style: none;
 }
 
-.sources li::marker {
+.source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-thumb);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font: 500 11.5px var(--font-mono);
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+  animation: global(qb-pop) 0.45s var(--ease-spring) both;
+}
+
+.source:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.sourceN {
   color: var(--accent);
+}
+
+.sourcePage {
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: -6px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--radius-thumb);
+  background: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.action:hover {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.copied,
+.copied:hover {
+  color: var(--success);
+}
+
+.failed,
+.failed:hover {
+  color: var(--rel-enemy);
 }

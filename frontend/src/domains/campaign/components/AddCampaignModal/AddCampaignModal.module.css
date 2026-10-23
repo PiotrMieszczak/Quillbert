@@ -8,12 +8,11 @@
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-card);
   color: var(--text-primary);
-  animation: rise 0.25s var(--ease);
+  animation: global(rise) 0.25s var(--ease);
 }
 
 .dialog::backdrop {
-  background: color-mix(in srgb, var(--surface-app) 72%, transparent);
-  backdrop-filter: blur(4px);
+  background: var(--backdrop);
 }
 
 .form {

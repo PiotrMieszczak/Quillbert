@@ -19,7 +19,7 @@
 }
 
 .zone:focus-within {
-  outline: 2px solid var(--accent-glow-soft);
+  outline: 2px solid var(--accent-wash);
   outline-offset: 2px;
 }
 

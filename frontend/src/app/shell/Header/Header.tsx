@@ -1,4 +1,5 @@
 import type { Campaign } from "../../../domains/campaign";
+import { ThemeToggle } from "../../../ui/components";
 import styles from "./Header.module.css";
 
 type HeaderProps = {
@@ -15,6 +16,7 @@ export function Header({ campaign, onSwitchCampaign, onSignOut }: HeaderProps) {
         <span className={styles.system}>{campaign.system}</span>
       </button>
       <div className={styles.actions}>
+        <ThemeToggle />
         <button type="button" className={styles.signOut} onClick={onSignOut}>
           Sign out
         </button>

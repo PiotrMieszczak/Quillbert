@@ -1,4 +1,5 @@
 .row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -11,6 +12,16 @@
 
 .row:hover {
   border-color: var(--border-emphasis);
+}
+
+/* A citation chip opened this document. */
+.flash {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--accent);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: global(qb-flash) 2s ease both;
 }
 
 .thumb {

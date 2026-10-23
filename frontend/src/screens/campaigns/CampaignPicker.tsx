@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AddCampaignModal, CampaignCard, useCampaigns, type Campaign } from "../../domains/campaign";
+import { ThemeToggle } from "../../ui/components";
 import styles from "./CampaignPicker.module.css";
 
 type CampaignPickerProps = {
@@ -24,6 +25,7 @@ export function CampaignPicker({ email, onOpen, onSignOut }: CampaignPickerProps
           <span className={styles.brandName}>Quillbert</span>
         </div>
         <div className={styles.account}>
+          <ThemeToggle />
           <button type="button" className={styles.signOut} onClick={onSignOut}>
             Sign out
           </button>

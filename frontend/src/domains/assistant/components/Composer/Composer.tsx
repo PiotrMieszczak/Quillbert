@@ -1,17 +1,18 @@
-import { useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useLayoutEffect, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import styles from "./Composer.module.css";
 
 const MAX_HEIGHT = 120;
 
 type ComposerProps = {
-  /** True while a reply streams. */
+  value: string;
+  onChange: (value: string) => void;
+  /** Blocks sending (a reply is streaming, or the history is loading); typing stays open. */
   disabled: boolean;
   onSend: (content: string) => void;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
 };
 
-export function Composer({ disabled, onSend }: ComposerProps) {
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [value, setValue] = useState("");
+export function Composer({ value, onChange, disabled, onSend, inputRef }: ComposerProps) {
   const content = value.trim();
 
   useLayoutEffect(() => {
@@ -19,13 +20,13 @@ export function Composer({ disabled, onSend }: ComposerProps) {
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT)}px`;
-  }, [value]);
+  }, [value, inputRef]);
 
   const submit = (event?: FormEvent) => {
     event?.preventDefault();
     if (!content || disabled) return;
     onSend(content);
-    setValue("");
+    onChange("");
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -41,10 +42,14 @@ export function Composer({ disabled, onSend }: ComposerProps) {
         placeholder="Ask about your documents…"
         aria-label="Message Quillbert"
         value={value}
-        disabled={disabled}
-        onChange={(event) => setValue(event.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
       />
+      {!value && (
+        <kbd className={styles.kbd} aria-hidden>
+          ⌘K
+        </kbd>
+      )}
       <button type="submit" className={styles.send} aria-label="Send" disabled={disabled || !content}>
         ➤
       </button>

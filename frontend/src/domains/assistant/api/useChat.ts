@@ -7,7 +7,7 @@ import { sendMessage } from "./run";
 /** The reply in flight, until the stored history replaces it. */
 type Run = {
   question: string;
-  status: "waiting" | "streaming" | "error";
+  status: "waiting" | "streaming" | "done" | "error";
   text: string;
   searched?: string;
   citations: Citation[];
@@ -76,6 +76,7 @@ export function useChat(campaignId: string) {
       await sending.done;
       if (live()) abortRun.current = null;
       if (failed || !live()) return;
+      patch({ status: "done" });
       // Keep the live reply on screen until the stored one has loaded, so nothing flickers.
       await queryClient.invalidateQueries({ queryKey: conversationsKey(campaignId) });
       if (live()) setRun(null);
@@ -87,6 +88,13 @@ export function useChat(campaignId: string) {
     abort();
     setSelected(null);
   }, [abort]);
+
+  /** Drops the failed run and hands its question back for editing. */
+  const editLast = useCallback(() => {
+    const question = run?.status === "error" ? run.question : "";
+    setRun(null);
+    return question;
+  }, [run]);
 
   const messages: Message[] = [...(history.data ?? [])];
   if (run) {
@@ -113,6 +121,7 @@ export function useChat(campaignId: string) {
     canReset: conversationId !== null || run !== null,
     send,
     retry: () => (run ? send(run.question) : undefined),
+    editLast,
     abort,
     newConversation,
   };

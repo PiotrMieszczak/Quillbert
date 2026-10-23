@@ -1,0 +1,9 @@
+/* Below every screen: #root is the stacking context (global.css), so -1 sits behind in-flow content. */
+.canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}

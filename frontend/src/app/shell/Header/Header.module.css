@@ -5,7 +5,7 @@
   justify-content: space-between;
   height: var(--header-height);
   padding: 0 20px 0 100px;
-  background: var(--surface-app);
+  background: rgb(var(--scrim) / 0.72);
   border-bottom: 1px solid var(--border-subtle);
 }
 

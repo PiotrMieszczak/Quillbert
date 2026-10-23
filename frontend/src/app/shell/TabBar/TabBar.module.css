@@ -10,7 +10,6 @@
   height: var(--tabbar-height);
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--surface-tabbar);
-  backdrop-filter: blur(14px);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -57,7 +56,6 @@
   inset: 0;
   z-index: 30;
   background: var(--backdrop);
-  backdrop-filter: blur(2px);
   border: none;
   width: 100%;
 }
@@ -76,7 +74,7 @@
   border-top: 1px solid var(--border-strong);
   border-radius: var(--radius-rail) var(--radius-rail) 0 0;
   box-shadow: var(--shadow-sheet);
-  animation: rise 0.3s var(--ease);
+  animation: global(rise) 0.3s var(--ease);
 }
 
 .handle {

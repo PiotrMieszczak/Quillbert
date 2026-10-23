@@ -1,1 +1,0 @@
-export { ToolChip } from "./ToolChip";

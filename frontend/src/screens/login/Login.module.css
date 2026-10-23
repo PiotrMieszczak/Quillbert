@@ -6,7 +6,6 @@
   gap: 28px;
   min-height: 100vh;
   padding: 24px 16px;
-  background: radial-gradient(circle at 50% -10%, var(--gradient-stop-b), var(--surface-app) 55%);
 }
 
 .brand {
