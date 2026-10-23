@@ -23,6 +23,7 @@ service**; files are object storage. Openship is the deploy manager, run **self-
 | Auth | **Supabase Auth** (GoTrue, hosted) | The backend validates Supabase-issued JWTs. Supersedes hand-built auth — [ADR-0020](adr/adr-0020-supabase-auth.md). |
 | Files | **Cloudflare R2** (S3-compatible, the `FileStore` object-store adapter) | Off-box, zero egress, presigned URLs. Supabase Storage (free 1 GB) is an alternative; R2 keeps files independent. **Today** uploads go through the local-disk `FileStore` onto the `files` Docker volume on `ted106` (`FILE_STORE_PATH`); the R2 adapter replaces it, and until then those files live only on the box. Cloudflare Free caps a proxied upload at 100 MB. |
 | LLM | **OpenRouter**, zero-retention allowlist ([ADR-0019](adr/adr-0019-openrouter-privacy-routing.md)) | Reached with `OPEN_ROUTER_API_KEY`. |
+| Arkon (D0 evaluation) | **Hand-run `docker compose`** in `/opt/arkon` on `ted106`, upstream `nduckmink/arkon` pinned at `5e4069d` | Disposable, synthetic data only ([#95](https://github.com/PiotrMieszczak/Quillbert/issues/95)). Not part of Quillbert's runtime until an ADR adopts it. See [Arkon](#arkon-d0). |
 
 ## How it's wired
 
@@ -110,6 +111,35 @@ tier**:
   yet**.
 - **Next:** build the DM app (backend + frontend) against this foundation, then deploy it to
   `ted106` via Openship and wire its env to Supabase Cloud + R2 + OpenRouter.
+
+## Arkon (D0)
+
+Evaluation stack for the shared rules library
+([report](../reports/Modular%20TTRPG%20knowledge%20service.md) §2). It runs as plain
+`docker compose` in `/opt/arkon`, **not through Openship**. Openship can't deploy it: upstream
+commits a `.claude/worktrees/…` gitlink with no `.gitmodules`, Openship always runs
+`git submodule update` after cloning, and folder deploys need an Openship Cloud plan.
+
+- **Layout:** the upstream checkout plus `docker-compose.override.yml` (ports, images, memory
+  caps, network) and the untracked `.env` / `.env.docker` (mode 600).
+- **Services:** `postgres` (pgvector), `redis`, `minio`, `migrator`, `api`, `worker`,
+  `worker_skills`, `frontend`. Its own databases on the box, not Supabase: both free Supabase
+  projects are taken, and Arkon's migrations own the `public` schema.
+- **Images:** postgres and redis pinned by digest. `minio/minio` left Docker Hub, so MinIO is
+  `cgr.dev/chainguard/minio` pinned by digest.
+- **Memory caps** (`mem_limit`): postgres and api and worker 1 GB, worker_skills and frontend
+  768 MB, minio and migrator 512 MB, redis 256 MB.
+- **No public ports.** UI `127.0.0.1:3119`, API `127.0.0.1:5055`, MinIO `127.0.0.1:9002`.
+  `api` also joins the `openship-dm-assistant` network, so Quillbert's backend reaches it at
+  `http://arkon_api:5055`. Reach the UI through a tunnel, then open `http://localhost:3119`:
+  `ssh -N -p 10106 root@37.27.111.248 -L 3119:127.0.0.1:3119 -L 5055:127.0.0.1:5055`
+- **Operate:** `cd /opt/arkon && docker compose up -d` (or `down`, `ps`, `logs <svc>`). Build
+  images over a normal SSH session, not a short-lived remote exec, which kills the build when
+  it returns. Openship doesn't manage or back up this stack.
+- **Secrets** live only in `/opt/arkon/.env` and `.env.docker`: Postgres, Redis and MinIO
+  passwords, `SECRET_KEY`, `MCP_TOKEN_PEPPER`, admin password (`DEFAULT_ADMIN_PASSWORD`).
+- **Licence:** PolyForm Internal Use 1.0.0. Private evaluation only; ask the licensor before
+  any use beyond the maintainer.
 
 ## Notes / risks
 
