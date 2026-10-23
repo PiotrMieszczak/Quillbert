@@ -166,3 +166,26 @@
     width: 96px;
   }
 }
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Tag chip (design reference: --radius-sm). Which system a library document is for. */
+.tag {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font: 500 10.5px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.titleLine .name {
+  min-width: 0;
+}

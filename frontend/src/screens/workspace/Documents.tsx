@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Campaign } from "../../domains/campaign";
+import { type Campaign, useSystems } from "../../domains/campaign";
 import { DocumentLibrary } from "../../domains/library";
 import { PageTitle } from "../../ui/components";
 import styles from "./Documents.module.css";
@@ -10,6 +10,8 @@ export type DocumentFocus = { documentId: string; at: number };
 export function Documents({ campaign, focus }: { campaign: Campaign; focus: DocumentFocus | null }) {
   // The GM's library is read by every campaign of theirs (ADR-0027); add to it from here too.
   const [shelf, setShelf] = useState<"campaign" | "library">("campaign");
+  // Files added from a campaign start on its system; the campaign carries the name, not the id.
+  const systemId = useSystems().data?.find((system) => system.name === campaign.system)?.id;
 
   return (
     <div className={styles.view}>
@@ -43,7 +45,7 @@ export function Documents({ campaign, focus }: { campaign: Campaign; focus: Docu
       {shelf === "campaign" ? (
         <DocumentLibrary source={{ campaignId: campaign.id }} focus={focus} />
       ) : (
-        <DocumentLibrary source="library" />
+        <DocumentLibrary source="library" defaultSystem={systemId} />
       )}
     </div>
   );

@@ -5,12 +5,14 @@ import {
   deleteDocument,
   documentsKey,
   type DocumentSource,
+  type UploadTags,
   uploadDocument,
   useDocuments,
 } from "../../api/documents";
 import { pendingFromFile } from "../../model/queued";
 import type { LibraryDocument } from "../../model/types";
 import { DocumentRow } from "../DocumentRow";
+import { type StagedFile, UploadReview } from "../UploadReview";
 import { UploadZone } from "../UploadZone";
 import styles from "./DocumentLibrary.module.css";
 
@@ -19,16 +21,18 @@ type DocumentLibraryProps = {
   source: DocumentSource;
   /** List only: no upload and no remove (the vault, for a GM who is not the admin). */
   readOnly?: boolean;
+  /** System id new library uploads start on, e.g. the campaign's; none means every system. */
+  defaultSystem?: string;
   /** Scroll to and flash this document; `at` changes on every request, so a repeat flashes again. */
   focus?: { documentId: string; at: number } | null;
 };
 
-export function DocumentLibrary({ source, readOnly = false, focus }: DocumentLibraryProps) {
+export function DocumentLibrary({ source, readOnly = false, defaultSystem = "", focus }: DocumentLibraryProps) {
   const documents = useDocuments(source);
+  const systems = useSystems();
+  // Library and vault files wait here for their system (ADR-0027); campaign files upload at once.
+  const [staged, setStaged] = useState<StagedFile[]>([]);
   const shared = typeof source === "string";
-  // Tags for the next library or vault upload: no systems means every system.
-  const [systems, setSystems] = useState<string[]>([]);
-  const [attribution, setAttribution] = useState("");
   const queryClient = useQueryClient();
   // Files the API has not accepted yet: in flight, or refused with the server's reason.
   const [pending, setPending] = useState<LibraryDocument[]>([]);
@@ -39,13 +43,24 @@ export function DocumentLibrary({ source, readOnly = false, focus }: DocumentLib
   const dismiss = (id: string) => setPending((rows) => rows.filter((row) => row.id !== id));
   const refresh = () => queryClient.invalidateQueries({ queryKey: documentsKey(source) });
 
-  async function upload(file: File) {
+  function stage(files: File[]) {
+    const fresh = files.map((file) => ({ id: crypto.randomUUID(), file, system: defaultSystem, attribution: "" }));
+    setStaged((rows) => [...rows, ...fresh]);
+  }
+
+  function uploadStaged() {
+    staged.forEach(({ file, system, attribution }) =>
+      void upload(file, { systems: system ? [system] : [], attribution: attribution.trim() }),
+    );
+    setStaged([]);
+  }
+
+  async function upload(file: File, tags: UploadTags = {}) {
     const id = crypto.randomUUID();
     const controller = new AbortController();
     uploads.current.set(id, controller);
     setPending((rows) => [...rows, pendingFromFile(file, id)]);
     try {
-      const tags = { systems, attribution: attribution.trim() };
       const { document, duplicate } = await uploadDocument(source, file, tags, controller.signal);
       if (duplicate) {
         const as = document.name === file.name ? "" : ` as “${document.name}”`;
@@ -83,21 +98,24 @@ export function DocumentLibrary({ source, readOnly = false, focus }: DocumentLib
 
   return (
     <div className={styles.library}>
-      {shared && !readOnly && (
-        <ShelfTags
-          vault={source === "vault"}
-          systems={systems}
-          onSystems={setSystems}
-          attribution={attribution}
-          onAttribution={setAttribution}
-        />
-      )}
       {!readOnly && (
         <UploadZone
           onFiles={(files) => {
             setNotice(null);
-            files.forEach((file) => void upload(file));
+            if (shared) stage(files);
+            else files.forEach((file) => void upload(file));
           }}
+        />
+      )}
+      {staged.length > 0 && (
+        <UploadReview
+          files={staged}
+          systems={systems.data ?? []}
+          vault={source === "vault"}
+          onChange={(id, patch) => setStaged((rows) => rows.map((row) => (row.id === id ? { ...row, ...patch } : row)))}
+          onRemove={(id) => setStaged((rows) => rows.filter((row) => row.id !== id))}
+          onCancel={() => setStaged([])}
+          onUpload={uploadStaged}
         />
       )}
 
@@ -134,6 +152,7 @@ export function DocumentLibrary({ source, readOnly = false, focus }: DocumentLib
             <DocumentRow
               key={document.id}
               document={document}
+              tags={document.systems.map((id) => systems.data?.find((system) => system.id === id)?.name ?? id)}
               flash={focus?.documentId === document.id ? focus.at : undefined}
               onRemove={readOnly ? undefined : () => remove(document)}
             />
@@ -152,43 +171,3 @@ export function DocumentLibrary({ source, readOnly = false, focus }: DocumentLib
   );
 }
 
-type ShelfTagsProps = {
-  vault: boolean;
-  systems: string[];
-  onSystems: (systems: string[]) => void;
-  attribution: string;
-  onAttribution: (attribution: string) => void;
-};
-
-/** What the next upload applies to. Shown on the library and the vault, not on a campaign. */
-function ShelfTags({ vault, systems, onSystems, attribution, onAttribution }: ShelfTagsProps) {
-  const known = useSystems();
-  const toggle = (id: string) =>
-    onSystems(systems.includes(id) ? systems.filter((s) => s !== id) : [...systems, id]);
-
-  return (
-    <div className={styles.tags}>
-      <fieldset className={styles.systems}>
-        <legend className={styles.legend}>Applies to</legend>
-        {known.data?.map((system) => (
-          <label key={system.id} className={styles.check}>
-            <input type="checkbox" checked={systems.includes(system.id)} onChange={() => toggle(system.id)} />
-            {system.name}
-          </label>
-        ))}
-        <span className={styles.hint}>{systems.length === 0 ? "None ticked: every system." : ""}</span>
-      </fieldset>
-      {vault && (
-        <label className={styles.attribution}>
-          <span className={styles.legend}>Attribution</span>
-          <input
-            type="text"
-            value={attribution}
-            placeholder="e.g. SRD 5.2 · CC-BY-4.0"
-            onChange={(event) => onAttribution(event.target.value)}
-          />
-        </label>
-      )}
-    </div>
-  );
-}

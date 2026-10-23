@@ -265,8 +265,8 @@ anything is deleted; bytes the campaign already has show "already in the library
 | **Knowledge Graph** | Interactive node graph with relationship legend and search |
 | **Sessions** | Date-tile entries with title, duration, tags, and summary; a rich-text composer creates new entries |
 | **Settings** | Reached via avatar, not the rail |
-| **My library** | A top-level screen from the Campaign Picker header (*My library*), and the *My library* tab on Documents. The Documents list and upload, plus an *Applies to* row of system checkboxes (none ticked = every system). Every one of the GM's campaigns reads it ([ADR-0027](../adr/adr-0027-layered-knowledge-admin-vault.md)) |
-| **Vault** | A top-level screen from the Campaign Picker header (*Vault*). Read-only for a GM. For the admin, upload and remove with *Applies to* plus an *Attribution* field (licence line). A citation from the library or the vault shows its layer in the chip's tooltip and doesn't open Documents |
+| **My library** | A top-level screen from the Campaign Picker header (*My library*), and the *My library* tab on Documents. The Documents list and upload. Dropped files don't upload at once: a review card lists them, each with a system select (*All systems* by default; from a campaign's tab, that campaign's system), a *Set all* select, and *Upload N files* / *Cancel*. Rows show a mono tag chip per system, none for every system. Every one of the GM's campaigns reads it ([ADR-0027](../adr/adr-0027-layered-knowledge-admin-vault.md)) |
+| **Vault** | A top-level screen from the Campaign Picker header (*Vault*). Read-only for a GM. For the admin, the same review card adds an attribution field (licence line) per file. A citation from the library or the vault shows its layer in the chip's tooltip and doesn't open Documents |
 
 ### Detail views
 
