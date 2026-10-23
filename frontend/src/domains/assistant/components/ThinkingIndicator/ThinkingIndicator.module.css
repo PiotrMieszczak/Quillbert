@@ -1,0 +1,104 @@
+.thinking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: global(rise) 0.3s ease both;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tile {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-button);
+  background: var(--surface-raised);
+}
+
+.ring {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-button);
+  animation: global(qb-ring) 1.8s ease-out infinite;
+}
+
+.quill {
+  display: block;
+  width: 28px;
+  height: auto;
+  transform-origin: 30% 85%;
+  animation: global(qb-scribble) 1.2s ease-in-out infinite;
+}
+
+.title {
+  font: 600 14px/1.2 var(--font-display);
+}
+
+.scribble {
+  display: block;
+  margin-top: 4px;
+}
+
+.scribble path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 64 200;
+  animation: global(qb-draw) 1.6s ease-in-out infinite;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 0 0 0 52px;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  animation: global(rise) 0.3s ease both;
+}
+
+.done {
+  color: var(--text-muted);
+}
+
+.active {
+  color: var(--text-secondary);
+}
+
+.check {
+  stroke: var(--success);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14;
+  animation: global(qb-check) 0.4s ease both;
+}
+
+.spinner {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin: 1px;
+  border: 1.6px solid var(--border-emphasis);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: global(qb-spin) 0.8s linear infinite;
+}

@@ -24,6 +24,7 @@
 }
 
 .item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -39,7 +40,47 @@
 
 .item:hover {
   background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.item:active {
+  transform: scale(0.97);
+}
+
+/* Hover marker: a short amber bar that grows from the item's left edge. */
+.item::before {
+  content: "";
+  position: absolute;
+  top: 22%;
+  bottom: 22%;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleY(0.2);
+  transition:
+    transform 0.25s var(--ease-spring),
+    opacity 0.2s;
+}
+
+.item:hover::before {
+  opacity: 0.45;
+  transform: scaleY(0.7);
+}
+
+.active::before,
+.active:hover::before {
+  opacity: 0;
+}
+
+.item:hover .glyph {
+  transform: scale(1.12) rotate(-4deg);
   color: var(--accent);
+}
+
+.item:hover .label {
+  transform: translateX(3px);
 }
 
 /* Active keeps the wash so it reads as current, not merely hovered. */
@@ -54,12 +95,17 @@
   width: 22px;
   font-size: 15px;
   text-align: center;
+  transition:
+    transform 0.25s var(--ease-spring),
+    color 0.2s;
 }
 
 .label {
   font-size: 13px;
   opacity: 0;
-  transition: opacity 0.26s var(--ease);
+  transition:
+    opacity 0.26s var(--ease),
+    transform 0.25s var(--ease-spring);
 }
 
 .rail:hover .label,

@@ -22,7 +22,7 @@ project *RPG Assistant Design Spec* and the decisions recorded here.
 | 5 | [design/overview.md](design/overview.md) | Screens, layout, and interaction behaviour |
 | 6 | [design/reference.md](design/reference.md) | Colors, type, spacing, radii, shadows |
 
-**▶ [Open the interactive design](https://claude.ai/code/artifact/a7d4de30-0826-4747-b295-a584fe6f0f28)** — the running prototype, and
+**▶ [Open the interactive design](https://claude.ai/artifact/Mj2PbfYr7chU4rxyJtrZMh)** — the running prototype, and
 the source of truth for anything visual. Click through it rather than reading about it.
 
 **▶ [Open the architecture board](https://miro.com/app/board/uXjVHrcVIJQ=/)** — the system shape and both
@@ -38,7 +38,7 @@ work; the repository is scaffolded in a later phase (see [roadmap.md](roadmap.md
 
 ## Source of truth
 
-- **Design** — the [published prototype](https://claude.ai/code/artifact/a7d4de30-0826-4747-b295-a584fe6f0f28), from Claude
+- **Design** — the [published prototype](https://claude.ai/artifact/Mj2PbfYr7chU4rxyJtrZMh), from Claude
   Design project `ec1d38ec-c81f-42b8-8952-7a922851f405` ("RPG Assistant Design Spec"),
   file `Referee Workspace.dc.html`. It is a *reference*, not production code: read it for
   structure, layout, and exact values, and rebuild with the project's own primitives. Its

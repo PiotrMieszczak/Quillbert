@@ -7,7 +7,13 @@ import { DocumentRow } from "../DocumentRow";
 import { UploadZone } from "../UploadZone";
 import styles from "./DocumentLibrary.module.css";
 
-export function DocumentLibrary({ campaignId }: { campaignId: string }) {
+type DocumentLibraryProps = {
+  campaignId: string;
+  /** Scroll to and flash this document; `at` changes on every request, so a repeat flashes again. */
+  focus?: { documentId: string; at: number } | null;
+};
+
+export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
   const documents = useDocuments(campaignId);
   const queryClient = useQueryClient();
   // Files the API has not accepted yet: in flight, or refused with the server's reason.
@@ -99,7 +105,12 @@ export function DocumentLibrary({ campaignId }: { campaignId: string }) {
       {(rows.length > 0 || pending.length > 0) && (
         <ul className={styles.list}>
           {rows.map((document) => (
-            <DocumentRow key={document.id} document={document} onRemove={() => remove(document)} />
+            <DocumentRow
+              key={document.id}
+              document={document}
+              flash={focus?.documentId === document.id ? focus.at : undefined}
+              onRemove={() => remove(document)}
+            />
           ))}
           {pending.map((document) => (
             <DocumentRow

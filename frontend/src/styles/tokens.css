@@ -2,6 +2,8 @@
    Authoritative. Components reference tokens, never literals. */
 
 :root {
+  color-scheme: dark;
+
   /* Surfaces */
   --surface-app: #0a0c0f;
   --surface-sunken: #0d0f14;
@@ -15,17 +17,18 @@
   --border-default: #22262f;
   --border-strong: #262a33;
   --border-emphasis: #2e3340;
+  --border-hover: #3a404e;
   --border-emphasis-hover: #5a6270;
 
   /* Text */
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
+  --text-muted: #8d97a9;
+  --text-faint: #5c6474; /* decorative and disabled only, never body copy */
 
   /* Accent and status */
   --accent: #e8b87a;
   --accent-hover: #f5d4a6;
-  --accent-glow-soft: rgba(232, 184, 122, 0.28);
   --accent-wash: rgba(232, 184, 122, 0.1);
   --success: #7fd4a0;
   --success-wash: rgba(127, 212, 160, 0.06);
@@ -36,17 +39,18 @@
   --rel-enemy: #ef7777;
   --rel-family: #e8b87a;
   --rel-professional: #7ba3d6;
-  --rel-neutral: #6b6f76;
+  --rel-neutral: #868b94;
 
   /* Other */
   --quest-subquest: #8b6fc4;
   --scrollbar-thumb: #2e3340;
-  --backdrop: rgba(6, 8, 11, 0.6);
-  --surface-tabbar: rgba(14, 16, 21, 0.94);
+  --scrim: 10 12 15; /* RGB triplet: rgb(var(--scrim) / .6) */
+  --backdrop: rgb(var(--scrim) / 0.6);
+  --surface-tabbar: rgb(var(--scrim) / 0.94);
 
   /* Typography */
-  --font-display: "Crimson Pro", Georgia, serif;
-  --font-body: Inter, system-ui, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   /* Radii */
@@ -64,15 +68,13 @@
   --radius-tile: 12px;
   --radius-zone: 16px;
 
-  /* Shadows */
-  --shadow-rail-collapsed: 0 12px 30px rgba(0, 0, 0, 0.5);
-  --shadow-rail-expanded: 0 30px 80px rgba(0, 0, 0, 0.75);
-  --shadow-card: 0 30px 80px rgba(0, 0, 0, 0.5);
-  --shadow-accent: 0 6px 20px rgba(232, 184, 122, 0.28);
-  --shadow-fab: 0 8px 28px rgba(232, 184, 122, 0.35);
-  --shadow-fab-mobile: 0 10px 30px rgba(232, 184, 122, 0.4);
-  --shadow-sheet: 0 -24px 60px rgba(0, 0, 0, 0.6);
-  --shadow-slideover: -24px 0 60px rgba(0, 0, 0, 0.6);
+  /* Shadows: --sh is the shadow colour, --sha scales its strength per theme. No accent glows. */
+  --sh: 0 0 0;
+  --sha: 1;
+  --shadow-rail-collapsed: 0 12px 30px rgb(var(--sh) / calc(0.5 * var(--sha)));
+  --shadow-rail-expanded: 0 30px 80px rgb(var(--sh) / calc(0.75 * var(--sha)));
+  --shadow-card: 0 20px 50px rgb(var(--sh) / calc(0.55 * var(--sha)));
+  --shadow-sheet: 0 -24px 60px rgb(var(--sh) / calc(0.6 * var(--sha)));
 
   /* Layout */
   --header-height: 72px;
@@ -81,17 +83,60 @@
   --rail-column: 76px;
   --rail-offset-left: 24px;
   --panel-width: 400px;
-  --panel-width-mobile: min(420px, 100vw);
+  --panel-width-collapsed: 56px;
+  --panel-height-mobile: 86vh;
   --tabbar-height: calc(64px + env(safe-area-inset-bottom));
   --main-padding: 28px 32px 48px;
   --main-padding-mobile: 20px 18px calc(90px + env(safe-area-inset-bottom));
 
   /* Motion */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition-rail: width 0.26s var(--ease), padding 0.26s;
-  --transition-slideover: transform 0.3s var(--ease);
+  --transition-panel: grid-template-columns 0.28s var(--ease);
+  --transition-sheet: transform 0.3s var(--ease);
   --transition-fast: all 0.15s;
 }
+
+/* Light theme: <html data-theme="light">. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --surface-app: #f4f1eb;
+  --surface-sunken: #f8f6f1;
+  --surface-raised: #ffffff;
+  --surface-elevated: #f0ece5;
+  --surface-hover: #dcd5ca;
+  --gradient-stop-b: #f0ece5;
+  --border-subtle: #e3ddd3;
+  --border-default: #dcd5ca;
+  --border-strong: #d5cdc1;
+  --border-emphasis: #c6bdaf;
+  --border-hover: #b2a899;
+  --border-emphasis-hover: #7f766a;
+  --text-primary: #1c1916;
+  --text-secondary: #3a342d;
+  --text-muted: #665e54;
+  --text-faint: #958b7d;
+  --accent: #94560f;
+  --accent-hover: #74400a;
+  --accent-wash: rgba(148, 86, 15, 0.1);
+  --success: #1d7444;
+  --success-wash: rgba(29, 116, 68, 0.06);
+  --success-border: rgba(29, 116, 68, 0.2);
+  --rel-ally: #1d7444;
+  --rel-enemy: #be3838;
+  --rel-family: #94560f;
+  --rel-professional: #2d61a4;
+  --rel-neutral: #6b645b;
+  --quest-subquest: #6a4fb0;
+  --scrollbar-thumb: #c6bdaf;
+  --scrim: 250 248 243;
+  --sh: 60 45 25;
+  --sha: 0.22;
+}
+
+/* Keyframes are global. A CSS Module must reference them as `animation: global(rise) …`,
+   or CSS Modules renames the name per module and the animation silently never runs. */
 
 @keyframes rise {
   from {
@@ -114,15 +159,119 @@
   }
 }
 
-@keyframes dotpulse {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.4;
+/* A streamed word arrives in amber and cools to ink. */
+@keyframes qb-ink {
+  0% {
+    opacity: 0;
+    color: var(--accent);
   }
-  30% {
-    transform: translateY(-4px);
+  35% {
     opacity: 1;
+    color: var(--accent);
+  }
+  100% {
+    opacity: 1;
+    color: inherit;
+  }
+}
+
+@keyframes qb-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes qb-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@keyframes qb-scribble {
+  0%,
+  100% {
+    transform: rotate(-7deg) translate(0, 0);
+  }
+  25% {
+    transform: rotate(4deg) translate(2px, -1px);
+  }
+  50% {
+    transform: rotate(-3deg) translate(4px, 1px);
+  }
+  75% {
+    transform: rotate(6deg) translate(1px, -2px);
+  }
+}
+
+@keyframes qb-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(2deg);
+  }
+}
+
+@keyframes qb-draw {
+  0% {
+    stroke-dashoffset: 64;
+  }
+  55% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -64;
+  }
+}
+
+@keyframes qb-check {
+  from {
+    stroke-dashoffset: 14;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A highlighted row: an amber wash and outline that fade out. */
+@keyframes qb-flash {
+  0% {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    opacity: 1;
+  }
+  100% {
+    background: transparent;
+    opacity: 0;
+  }
+}
+
+@keyframes qb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

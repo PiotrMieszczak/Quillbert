@@ -32,6 +32,7 @@ type MessageDto = {
 /** Also the shape of the `dm.citation` custom event's value (docs/api-contract.md → Streaming response). */
 export const toCitation = (dto: CitationDto): Citation => ({
   label: dto.label,
+  documentId: String(dto.documentId),
   filename: dto.filename,
   page: dto.pageFrom,
   heading: dto.heading,

@@ -166,7 +166,7 @@ See [ADR-0001](docs/adr/adr-0001-react-vite-spa.md) for the stack rationale.
 
 ## Design
 
-**▶ [Open the interactive design](https://claude.ai/code/artifact/a7d4de30-0826-4747-b295-a584fe6f0f28)**
+**▶ [Open the interactive design](https://claude.ai/artifact/Mj2PbfYr7chU4rxyJtrZMh)**
 
 The running prototype, and the source of truth for layout, tokens, and interaction. Click
 through it — login, campaign picker, the workspace views, the graph, and the mobile shell

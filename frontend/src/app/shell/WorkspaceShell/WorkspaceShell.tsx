@@ -13,6 +13,7 @@ type WorkspaceShellProps = {
   onNavigate: (id: string) => void;
   onSwitchCampaign: () => void;
   onSignOut: () => void;
+  onOpenSource: (documentId: string) => void;
   children: ReactNode;
 };
 
@@ -22,6 +23,7 @@ export function WorkspaceShell({
   onNavigate,
   onSwitchCampaign,
   onSignOut,
+  onOpenSource,
   children,
 }: WorkspaceShellProps) {
   useLayoutMode();
@@ -52,14 +54,39 @@ export function WorkspaceShell({
           onClick={closePanel}
         />
       )}
-      <aside className={styles.panelSlot} aria-hidden={!panelOpen} inert={!panelOpen || undefined}>
-        <AssistantPanel key={campaign.id} campaign={campaign} open={panelOpen} onClose={closePanel} />
+      <aside className={styles.panelSlot}>
+        {!mob && !panelOpen && (
+          <div className={styles.rail}>
+            <button type="button" className={styles.railSpark} onClick={openPanel} title="Open Quillbert (⌘K)" aria-label="Open Quillbert">
+              ✦
+            </button>
+            <kbd className={styles.railKbd} aria-hidden>
+              ⌘K
+            </kbd>
+            <button type="button" className={styles.railLabel} onClick={openPanel} tabIndex={-1}>
+              <span>Ask Quillbert</span>
+            </button>
+          </div>
+        )}
+        <div className={styles.panelBody} aria-hidden={!panelOpen} inert={!panelOpen || undefined}>
+          <AssistantPanel
+            key={campaign.id}
+            campaign={campaign}
+            open={panelOpen}
+            onOpen={openPanel}
+            onClose={closePanel}
+            // On a phone the sheet covers the library, so step aside to show the source.
+            onOpenSource={(documentId) => {
+              if (mob) closePanel();
+              onOpenSource(documentId);
+            }}
+          />
+        </div>
       </aside>
       <TabBar active={activeView} onNavigate={onNavigate} />
-      {!panelOpen && (
-        <button type="button" className={styles.fab} onClick={openPanel}>
-          <span aria-hidden>✦</span>
-          <span className={styles.fabLabel}>Assistant</span>
+      {mob && !panelOpen && (
+        <button type="button" className={styles.fab} onClick={openPanel} aria-label="Open Quillbert">
+          ✦
         </button>
       )}
     </div>

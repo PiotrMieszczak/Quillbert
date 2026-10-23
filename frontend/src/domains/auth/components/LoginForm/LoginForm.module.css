@@ -6,7 +6,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-card);
-  animation: rise 0.3s var(--ease);
+  animation: global(rise) 0.3s var(--ease);
 }
 
 .title {
@@ -91,7 +91,6 @@
   background: var(--accent);
   border: 0;
   border-radius: var(--radius-button);
-  box-shadow: var(--shadow-accent);
   color: var(--surface-app);
   font-weight: 600;
 }

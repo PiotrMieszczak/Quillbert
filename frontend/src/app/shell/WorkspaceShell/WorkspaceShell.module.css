@@ -1,9 +1,12 @@
+/* Transparent so the ambient background shows through; surfaces sit on top of it. */
 .shell {
   display: grid;
-  grid-template-columns: var(--rail-column) minmax(0, 1fr) 0;
+  grid-template-columns: var(--rail-column) minmax(0, 1fr) var(--panel-width-collapsed);
   grid-template-rows: var(--header-height) minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
+  transition: var(--transition-panel);
 }
 
 .panelOpen {
@@ -18,7 +21,12 @@
   overflow-y: auto;
 }
 
+.main > * {
+  animation: global(rise) 0.3s ease both;
+}
+
 .panelSlot {
+  position: relative;
   grid-column: 3;
   grid-row: 2;
   height: 100%;
@@ -29,26 +37,86 @@
   border-left: 1px solid var(--border-subtle);
 }
 
+/* Fixed width so the panel never reflows while the column animates; the slot clips it. */
+.panelBody {
+  width: var(--panel-width);
+  height: 100%;
+}
+
+/* Collapsed desktop panel: a thin rail that reopens it. */
+.rail {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  background: var(--surface-sunken);
+}
+
+.railSpark {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.railSpark:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.railKbd {
+  padding: 3px 5px;
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  color: var(--text-muted);
+  font: 500 11px var(--font-mono);
+}
+
+.railLabel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-top: 8px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+}
+
+.railLabel span {
+  writing-mode: vertical-rl;
+  font: 600 13px var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.railLabel:hover {
+  color: var(--text-primary);
+}
+
 .backdrop {
   display: none;
 }
 
 .fab {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
+  right: 18px;
+  bottom: 80px;
   z-index: 15;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 18px;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
   border: none;
-  border-radius: var(--radius-button);
+  border-radius: 50%;
   background: var(--accent);
   color: var(--surface-app);
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: var(--shadow-fab);
+  font-size: 20px;
 }
 
 .fab:hover {
@@ -74,40 +142,29 @@
     width: 100%;
     border: none;
     background: var(--backdrop);
-    backdrop-filter: blur(2px);
   }
 
+  /* Bottom sheet. */
   .panelSlot {
     position: fixed;
-    top: 0;
     right: 0;
     bottom: 0;
+    left: 0;
     z-index: 25;
-    width: var(--panel-width-mobile);
-    height: auto;
-    grid-column: 1;
-    grid-row: 2;
-    transform: translateX(105%);
-    transition: var(--transition-slideover);
-    box-shadow: var(--shadow-slideover);
+    height: var(--panel-height-mobile);
+    border-top: 1px solid var(--border-strong);
+    border-left: none;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(105%);
+    transition: var(--transition-sheet);
+    box-shadow: var(--shadow-sheet);
   }
 
   .panelOpen .panelSlot {
-    transform: translateX(0);
+    transform: translateY(0);
   }
 
-  .fab {
-    right: 18px;
-    bottom: 80px;
-    width: 54px;
-    height: 54px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-    box-shadow: var(--shadow-fab-mobile);
-  }
-
-  .fabLabel {
-    display: none;
+  .panelBody {
+    width: 100%;
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DocumentStatus, LibraryDocument } from "../../model/types";
 import styles from "./DocumentRow.module.css";
 
@@ -19,13 +19,22 @@ type DocumentRowProps = {
   onCancel?: () => void;
   /** A stored document: delete it and its file, after the user confirms. */
   onRemove?: () => Promise<void>;
+  /** Set (to a new value each time) to scroll this row into view and flash it. */
+  flash?: number;
 };
 
-export function DocumentRow({ document, onDismiss, onCancel, onRemove }: DocumentRowProps) {
+export function DocumentRow({ document, onDismiss, onCancel, onRemove, flash }: DocumentRowProps) {
+  const rowRef = useRef<HTMLLIElement>(null);
   const [confirming, setConfirming] = useState(false);
   const [removing, setRemoving] = useState(false);
   const tone = STATUS_TONE[document.status];
   const failed = document.status === "Failed";
+
+  useEffect(() => {
+    if (!flash) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    rowRef.current?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }, [flash]);
 
   async function remove() {
     setRemoving(true);
@@ -38,7 +47,9 @@ export function DocumentRow({ document, onDismiss, onCancel, onRemove }: Documen
   }
 
   return (
-    <li className={styles.row}>
+    <li ref={rowRef} className={styles.row}>
+      {/* Keyed by the request, so a second click restarts the animation. */}
+      {flash && <span key={flash} className={styles.flash} aria-hidden />}
       <span className={styles.thumb}>{document.kind}</span>
       <span className={styles.body}>
         <span className={styles.name}>{document.name}</span>

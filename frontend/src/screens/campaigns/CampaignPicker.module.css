@@ -1,6 +1,5 @@
 .page {
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 0%, var(--gradient-stop-b), var(--surface-app) 60%);
 }
 
 .header {
@@ -92,6 +91,13 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
+
+/* Stagger the cards' entrance; past the sixth they arrive together. */
+.grid > :nth-child(2) { animation-delay: 0.06s; }
+.grid > :nth-child(3) { animation-delay: 0.12s; }
+.grid > :nth-child(4) { animation-delay: 0.18s; }
+.grid > :nth-child(5) { animation-delay: 0.24s; }
+.grid > :nth-child(n + 6) { animation-delay: 0.3s; }
 
 .add {
   display: flex;
