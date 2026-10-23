@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.0.0...v1.1.0) (2026-10-23)
+
+
+### Features
+
+* **design:** theme, ambient orrery, animated chat ([#93](https://github.com/PiotrMieszczak/Quillbert/issues/93)) ([43b26f8](https://github.com/PiotrMieszczak/Quillbert/commit/43b26f8d707d13fd232238e2ea557dac3c27f397))
+
 ## 1.0.0 (2026-10-22)
 
 
