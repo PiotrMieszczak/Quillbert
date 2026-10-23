@@ -73,17 +73,20 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
 | [0021](docs/adr/adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval; Gemini Embedding 2 via OpenRouter, zero-retention pinned | Accepted |
 | [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | **Superseded by 0025** |
-| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | Accepted |
+| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | **Superseded by 0027** |
 | [0024](docs/adr/adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles, hash-versioned, traced | Accepted; profile split replaced by 0026 |
 | [0025](docs/adr/adr-0025-jev-routes-intent.md) | One composer; Jev routes intent; every reply shows its mode | **Superseded by 0026** |
 | [0026](docs/adr/adr-0026-one-assistant-claim-provenance.md) | One assistant; provenance per claim; memory is what the GM saves | Accepted |
+| [0027](docs/adr/adr-0027-layered-knowledge-admin-vault.md) | Layered knowledge: admin vault, GM library, campaign; admin UI | Accepted |
+| [0028](docs/adr/adr-0028-safety-without-surveillance.md) | Safety without surveillance: limits, metadata, flag-only review | Accepted |
 
-Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, 0022, or 0025 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, 0022, 0023, or 0025 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 
 1. **No model touches ingestion** (ADR-0002, BND-001). Citations are trustworthy only
-   because extraction is deterministic.
+   because extraction is deterministic. The one exception is flag-only content screening,
+   which can never change text (ADR-0028 NEG-001).
 2. **All model calls go through the Gateway** (ADR-0019, BND-002). Provider switching is
    configuration, not code; the Gateway routes only to a zero-retention allowlist.
 3. **No tool writes to the campaign** (ADR-0011, BND-007). AI output is a draft the GM

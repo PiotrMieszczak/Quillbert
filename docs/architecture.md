@@ -312,15 +312,20 @@ and wrong for the app: server data and UI chrome have different lifetimes.
 the ingestion use cases and `adapters/extraction/` have no import path to `adapters/llm/`
 (the Gateway). A test asserts this. The embedding model is
 not in scope: it derives vectors from the document's own text and writes no content
-([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) IMP-008).
+([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) IMP-008). Neither is
+flag-only content screening: it runs after extraction, through the Gateway, and writes a
+flag, never text ([ADR-0028](adr/adr-0028-safety-without-surveillance.md) NEG-001).
 
 **BND-002 — All model calls go through the Gateway.** No provider SDK is imported outside
 `adapters/llm/`. Provider switching is configuration, not code.
 
 **BND-003 — Campaign scoping is enforced server-side.** Every query filters by
-`campaign_id`. The frontend never sees another campaign's data. The one shared read scope
-is the system rules library, reached only through retrieval as `campaign_id = :c OR
-system_id = :campaign_system` ([ADR-0023](adr/adr-0023-system-rules-library.md)).
+`campaign_id`. The frontend never sees another campaign's data. Two shared read scopes
+exist, both reached only through retrieval: the campaign owner's GM library and the admin
+vault, each filtered to the campaign's system
+([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). One GM's library never
+reaches another GM's campaign. The admin sees GMs' content only through a flagged item
+([ADR-0028](adr/adr-0028-safety-without-surveillance.md)).
 
 **BND-006 — No agent framework owns the loop.** The tool loop is plain code in
 `application/assistant/run_turn.py`, bounded to a fixed number of iterations. A framework there would also
