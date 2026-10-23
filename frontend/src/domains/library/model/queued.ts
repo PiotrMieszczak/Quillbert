@@ -10,5 +10,7 @@ export function pendingFromFile(file: File, id: string, error?: string): Library
     meta: error ?? "uploading…",
     status: error ? "Failed" : "Uploading",
     progress: 0,
+    systems: [],
+    attribution: null,
   };
 }

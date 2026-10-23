@@ -144,7 +144,13 @@ def test_conversation_survives_a_new_process(sessions, migrated: str) -> None:
 def test_citations_resolve_to_their_passage(sessions, migrated: str) -> None:
     """Postgres only: a citation stores a chunk id; the passage is joined on read."""
     from app.adapters.persistence.sqlalchemy.repositories import SqlDocumentRepo
-    from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
+    from app.domain.documents import (
+        Chunk,
+        Document,
+        DocumentKind,
+        DocumentStatus,
+        Shelf,
+    )
 
     documents = SqlDocumentRepo(sessions)
     document = Document(
@@ -180,5 +186,5 @@ def test_citations_resolve_to_their_passage(sessions, migrated: str) -> None:
     assert repo.list_for_campaign("ashfall")[0].messages == [reply]
 
     # Deleting the document deletes its chunks, and the citations to them go too.
-    documents.remove("ashfall", document.id)
+    documents.remove(Shelf.campaign("ashfall"), document.id)
     assert repo.get(conversation.id).messages[0].citations == ()

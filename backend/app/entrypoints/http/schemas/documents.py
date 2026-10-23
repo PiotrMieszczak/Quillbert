@@ -14,3 +14,7 @@ class DocumentOut(BaseModel):
     status: DocumentStatus
     progress: int
     error: str | None
+    # Library and vault only (ADR-0027): the systems it applies to (empty = all), and
+    # the vault licence line.
+    systems: list[str] = []
+    attribution: str | None = None

@@ -10,6 +10,8 @@ class InvalidToken(Exception):
 class Identity:
     user_id: str
     email: str | None
+    # Supabase app_metadata.role == "admin"; only the service role can set it.
+    is_admin: bool = False
 
 
 class TokenVerifier(Protocol):

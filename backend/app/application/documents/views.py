@@ -12,4 +12,6 @@ def document_view(document: Document) -> DocumentView:
         status=document.status,
         progress=document.progress,
         error=document.error,
+        systems=document.systems,
+        attribution=document.attribution,
     )

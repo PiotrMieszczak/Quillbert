@@ -31,4 +31,9 @@ class SupabaseJwtVerifier:
             )
         except jwt.PyJWTError as error:
             raise InvalidToken(str(error)) from error
-        return Identity(user_id=claims["sub"], email=claims.get("email"))
+        metadata = claims.get("app_metadata") or {}
+        return Identity(
+            user_id=claims["sub"],
+            email=claims.get("email"),
+            is_admin=metadata.get("role") == "admin",
+        )

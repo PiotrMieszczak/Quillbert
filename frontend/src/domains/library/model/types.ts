@@ -1,4 +1,4 @@
-/** A document in the campaign's library. Mirrors docs/data-model.md Document. */
+/** A document on a shelf: a campaign, a GM's library, or the vault. Mirrors docs/data-model.md Document. */
 
 export type DocumentKind = "PDF" | "DOC" | "IMG";
 
@@ -21,4 +21,8 @@ export type LibraryDocument = {
   status: DocumentStatus;
   /** 0–100 */
   progress: number;
+  /** Systems a library or vault document applies to; empty means all. */
+  systems: string[];
+  /** Vault licence line, e.g. "SRD 5.2 · CC-BY-4.0". */
+  attribution: string | null;
 };

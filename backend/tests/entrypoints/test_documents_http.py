@@ -31,6 +31,8 @@ def test_upload_returns_202_with_a_queued_document(client: TestClient) -> None:
         "status": "queued",
         "progress": 0,
         "error": None,
+        "systems": [],
+        "attribution": None,
     }
 
 
@@ -132,3 +134,55 @@ def test_deleting_a_missing_or_foreign_document_is_404(client: TestClient) -> No
 
 def test_delete_needs_a_token(anonymous_client: TestClient) -> None:
     assert anonymous_client.delete(f"{URL}/1").status_code == 401
+
+
+ADMIN = {"Authorization": "Bearer admin-token"}
+
+
+def test_a_gm_cannot_write_the_vault(client: TestClient) -> None:
+    """ADR-0027: only an admin writes the vault; the server decides, not the UI."""
+    assert _upload(client, url="/api/v1/vault/documents").status_code == 403
+    assert client.delete("/api/v1/vault/documents/1").status_code == 403
+
+
+def test_an_admin_adds_to_the_vault_and_every_gm_reads_it(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/vault/documents",
+        files={"file": ("SRD.pdf", PDF, "application/octet-stream")},
+        data={"systems": "dnd-2024", "attribution": "SRD 5.2 · CC-BY-4.0"},
+        headers=ADMIN,
+    )
+
+    assert response.status_code == 202
+    assert response.json()["systems"] == ["dnd-2024"]
+    assert response.json()["attribution"] == "SRD 5.2 · CC-BY-4.0"
+    assert [d["filename"] for d in client.get("/api/v1/vault/documents").json()] == [
+        "SRD.pdf"
+    ]
+    # Not in any campaign's own list.
+    assert client.get(URL).json() == []
+
+
+def test_an_unknown_system_is_rejected(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/library/documents",
+        files={"file": ("x.pdf", PDF, "application/octet-stream")},
+        data={"systems": "no-such-system"},
+    )
+    assert response.status_code == 400
+
+
+def test_the_library_is_the_callers_own(client: TestClient) -> None:
+    assert _upload(client, url="/api/v1/library/documents").status_code == 202
+
+    mine = client.get("/api/v1/library/documents").json()
+    admins = client.get("/api/v1/library/documents", headers=ADMIN).json()
+
+    assert [d["filename"] for d in mine] == ["Core Rulebook.pdf"]
+    assert admins == []
+    assert (
+        client.delete(
+            f"/api/v1/library/documents/{mine[0]['id']}", headers=ADMIN
+        ).status_code
+        == 404
+    )

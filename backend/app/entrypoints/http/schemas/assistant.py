@@ -27,7 +27,8 @@ class CitationOut(BaseModel):
     filename: str
     page_from: int | None = Field(default=None, alias="pageFrom")
     heading: str | None = None
-    # Set for a shared-library passage; none exist yet.
+    # The layer outside the campaign, e.g. "My library" or a vault licence line
+    # (ADR-0027); null for the campaign's own documents.
     attribution: str | None = None
 
 

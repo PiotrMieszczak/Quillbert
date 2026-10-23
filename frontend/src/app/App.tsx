@@ -2,6 +2,7 @@ import { useState, type ComponentType } from "react";
 import { signOut, useAuthStore } from "../domains/auth";
 import type { Campaign } from "../domains/campaign";
 import { CampaignPicker } from "../screens/campaigns/CampaignPicker";
+import { Shelf } from "../screens/library/Shelf";
 import { Login } from "../screens/login/Login";
 import { Documents, type DocumentFocus } from "../screens/workspace/Documents";
 import { AmbientCanvas } from "./ambient";
@@ -26,6 +27,7 @@ function Screen() {
   const { ready, session, recovering } = useAuthStore();
   const [view, setView] = useState("documents");
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [shelf, setShelf] = useState<"library" | "vault" | null>(null);
   // The document a citation chip asked to see; `at` re-triggers the highlight on a repeat click.
   const [focus, setFocus] = useState<DocumentFocus | null>(null);
   if (!ready) return null;
@@ -34,10 +36,18 @@ function Screen() {
 
   const leave = () => {
     setCampaign(null);
+    setShelf(null);
     void signOut();
   };
+  if (shelf) {
+    // Shows the vault's write controls; the API refuses a non-admin anyway (ADR-0027).
+    const admin = session.user.app_metadata?.role === "admin";
+    return <Shelf shelf={shelf} admin={admin} onBack={() => setShelf(null)} />;
+  }
   if (!campaign) {
-    return <CampaignPicker email={session.user.email} onOpen={setCampaign} onSignOut={leave} />;
+    return (
+      <CampaignPicker email={session.user.email} onOpen={setCampaign} onOpenShelf={setShelf} onSignOut={leave} />
+    );
   }
 
   const View = VIEWS[view] ?? Documents;

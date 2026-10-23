@@ -13,6 +13,9 @@ type DocumentDto = {
   status: "queued" | "processing" | "indexed" | "failed" | "awaiting_ocr";
   progress: number;
   error: string | null;
+  /** Library and vault only (ADR-0027): systems it applies to (empty = all), vault licence line. */
+  systems: string[];
+  attribution: string | null;
 };
 
 const STATUS: Record<DocumentDto["status"], DocumentStatus> = {
@@ -31,11 +34,18 @@ const toDocument = (dto: DocumentDto): LibraryDocument => ({
   meta: dto.status === "failed" ? (dto.error ?? "extraction failed") : (dto.meta ?? "waiting for extraction"),
   status: STATUS[dto.status],
   progress: dto.progress,
+  systems: dto.systems ?? [],
+  attribution: dto.attribution ?? null,
 });
 
-const documentsPath = (campaignId: string) => `/campaigns/${encodeURIComponent(campaignId)}/documents`;
+/** Which shelf (ADR-0027): a campaign's documents, the signed-in GM's library, or the vault. */
+export type DocumentSource = { campaignId: string } | "library" | "vault";
 
-export const documentsKey = (campaignId: string) => ["documents", campaignId] as const;
+const documentsPath = (source: DocumentSource) =>
+  typeof source === "string" ? `/${source}/documents` : `/campaigns/${encodeURIComponent(source.campaignId)}/documents`;
+
+export const documentsKey = (source: DocumentSource) =>
+  ["documents", typeof source === "string" ? source : source.campaignId] as const;
 
 const moving = (documents: LibraryDocument[] | undefined) =>
   documents?.some((document) =>
@@ -44,25 +54,32 @@ const moving = (documents: LibraryDocument[] | undefined) =>
     document.status === "Awaiting OCR",
   ) ?? false;
 
-/** The campaign's library. Polls while anything is queued, processing, or awaiting OCR, then stops. */
-export function useDocuments(campaignId: string) {
+/** A shelf's documents. Polls while anything is queued, processing, or awaiting OCR, then stops. */
+export function useDocuments(source: DocumentSource) {
   return useQuery({
-    queryKey: documentsKey(campaignId),
-    queryFn: async () => (await apiFetch<DocumentDto[]>(documentsPath(campaignId))).data.map(toDocument),
+    queryKey: documentsKey(source),
+    queryFn: async () => (await apiFetch<DocumentDto[]>(documentsPath(source))).data.map(toDocument),
     refetchInterval: (query) => (moving(query.state.data) ? 4000 : false),
   });
 }
 
-/** `duplicate` is true when the campaign already had these bytes (the API answers 200, not 202).
+/** Tags for a library or vault upload; a campaign upload ignores them. */
+export type UploadTags = { systems?: string[]; attribution?: string };
+
+/** `duplicate` is true when the shelf already had these bytes (the API answers 200, not 202).
  *  Aborting `signal` cancels the upload. */
-export async function uploadDocument(campaignId: string, file: File, signal?: AbortSignal) {
+export async function uploadDocument(source: DocumentSource, file: File, tags: UploadTags = {}, signal?: AbortSignal) {
   const form = new FormData();
   form.append("file", file);
-  const { status, data } = await apiFetch<DocumentDto>(documentsPath(campaignId), { method: "POST", body: form, signal });
+  if (typeof source === "string") {
+    form.append("systems", (tags.systems ?? []).join(","));
+    if (source === "vault" && tags.attribution) form.append("attribution", tags.attribution);
+  }
+  const { status, data } = await apiFetch<DocumentDto>(documentsPath(source), { method: "POST", body: form, signal });
   return { document: toDocument(data), duplicate: status === 200 };
 }
 
 /** Removes the document and its stored file. */
-export async function deleteDocument(campaignId: string, documentId: string) {
-  await apiFetch<null>(`${documentsPath(campaignId)}/${encodeURIComponent(documentId)}`, { method: "DELETE" });
+export async function deleteDocument(source: DocumentSource, documentId: string) {
+  await apiFetch<null>(`${documentsPath(source)}/${encodeURIComponent(documentId)}`, { method: "DELETE" });
 }

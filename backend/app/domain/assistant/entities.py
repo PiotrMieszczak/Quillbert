@@ -14,6 +14,8 @@ class Citation:
     filename: str
     page_from: int | None
     heading: str | None
+    # The layer outside the campaign it came from (ADR-0027); None for the campaign.
+    attribution: str | None = None
 
 
 @dataclass(frozen=True)

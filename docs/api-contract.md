@@ -120,6 +120,25 @@ fetches it and shows it from a blob URL rather than pointing an `<img>` at it.
 A document is only visible inside its campaign: another campaign's id answers `404`, and
 the same bytes in two campaigns are two documents.
 
+### Library and vault ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md))
+
+The same document shape on two more shelves, outside any campaign. Research in a campaign
+also searches its owner's library and the vault documents for the campaign's system.
+
+| Method | Path | Who | Purpose |
+|--------|------|-----|---------|
+| `GET` | `/library/documents` | the caller | Their own library |
+| `POST` | `/library/documents` | the caller | Upload: `file`, `systems` (comma-separated system ids; empty = all) |
+| `DELETE` | `/library/documents/{id}` | the caller | Remove; another GM's id is `404` |
+| `GET` | `/vault/documents` | any signed-in GM | The vault, read-only |
+| `POST` | `/vault/documents` | **admin** | Upload: `file`, `systems`, `attribution` (licence line) |
+| `DELETE` | `/vault/documents/{id}` | **admin** | Remove |
+
+A vault write by a non-admin is `403`. Admin is the `app_metadata.role = "admin"` claim in
+the Supabase token, checked by the server ([setup guide](setup-guide.md)). An unknown
+system id is `400`. Library and vault documents carry `"systems": [...]` and
+`"attribution"` in the response; campaign documents have `[]` and `null`.
+
 `DELETE` answers `204` with no body and removes the row and its stored file (chunks and
 index rows go with it once extraction exists). A missing id, or one from another campaign,
 is `404`. Afterwards the same bytes can be uploaded again as a new document.
@@ -259,6 +278,8 @@ it reads **only the content of the last user message** and ignores client-sent h
   "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
                   "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
                   "attribution": "SRD 5.2 · CC-BY-4.0" }] }
+  // attribution is the layer outside the campaign: "My library", the vault document's
+  // licence line, or "Vault". null for the campaign's own documents (ADR-0027).
 ```
 
 `GET /campaigns/{cid}/conversations` lists newest first. The panel opens the newest one, or

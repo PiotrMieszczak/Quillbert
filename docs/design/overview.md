@@ -166,7 +166,9 @@ On hover an item's icon turns amber and tilts (`scale(1.12) rotate(-4deg)`), its
 nudges `3px` right, and a 3px amber bar grows at its left edge; all `.25s
 --ease-spring`. Pressing scales it to `.97`.
 Until a destination's view is built it is hidden from the rail and the tab bar, never shown
-leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The tab
+leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The one
+exception is NPCs, Players and Factions: they are listed while they render sample data, with
+a **Sample data** badge in the page header, until the cast API lands (#108). The tab
 bar fills its four tabs from Home, NPCs, Party, Quests first, then any other built view, and
 shows **More** only when something is left over.
 
@@ -263,6 +265,8 @@ anything is deleted; bytes the campaign already has show "already in the library
 | **Knowledge Graph** | Interactive node graph with relationship legend and search |
 | **Sessions** | Date-tile entries with title, duration, tags, and summary; a rich-text composer creates new entries |
 | **Settings** | Reached via avatar, not the rail |
+| **My library** | A top-level screen from the Campaign Picker header (*My library*), and the *My library* tab on Documents. The Documents list and upload, plus an *Applies to* row of system checkboxes (none ticked = every system). Every one of the GM's campaigns reads it ([ADR-0027](../adr/adr-0027-layered-knowledge-admin-vault.md)) |
+| **Vault** | A top-level screen from the Campaign Picker header (*Vault*). Read-only for a GM. For the admin, upload and remove with *Applies to* plus an *Attribution* field (licence line). A citation from the library or the vault shows its layer in the chip's tooltip and doesn't open Documents |
 
 ### Detail views
 

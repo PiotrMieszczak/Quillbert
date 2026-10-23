@@ -73,7 +73,7 @@ def _events(turn: Iterable[TurnEvent]) -> Iterator[BaseEvent]:
                         "filename": c.filename,
                         "pageFrom": c.page_from,
                         "heading": c.heading,
-                        "attribution": None,
+                        "attribution": c.attribution,
                     },
                 )
             case TurnFinished():

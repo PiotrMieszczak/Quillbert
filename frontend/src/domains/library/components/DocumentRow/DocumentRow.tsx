@@ -54,7 +54,14 @@ export function DocumentRow({ document, onDismiss, onCancel, onRemove, flash }: 
       <span className={styles.body}>
         <span className={styles.name}>{document.name}</span>
         <span className={failed ? styles.metaError : styles.meta}>
-          {document.pages === null ? document.meta : `${document.pages} pp · ${document.meta}`}
+          {[
+            document.pages === null ? null : `${document.pages} pp`,
+            document.meta,
+            document.systems.length > 0 ? document.systems.join(", ") : null,
+            document.attribution,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </span>
       <span className={styles.progress}>

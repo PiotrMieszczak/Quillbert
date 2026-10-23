@@ -6,11 +6,13 @@ import styles from "./CampaignPicker.module.css";
 type CampaignPickerProps = {
   email: string | undefined;
   onOpen: (campaign: Campaign) => void;
+  /** The GM's library and the shared vault, outside any campaign (ADR-0027). */
+  onOpenShelf: (shelf: "library" | "vault") => void;
   onSignOut: () => void;
 };
 
 /** The landing screen after sign-in (docs/design/overview.md §2). */
-export function CampaignPicker({ email, onOpen, onSignOut }: CampaignPickerProps) {
+export function CampaignPicker({ email, onOpen, onOpenShelf, onSignOut }: CampaignPickerProps) {
   const campaigns = useCampaigns();
   const [adding, setAdding] = useState(false);
   const empty = campaigns.data?.length === 0;
@@ -25,6 +27,12 @@ export function CampaignPicker({ email, onOpen, onSignOut }: CampaignPickerProps
           <span className={styles.brandName}>Quillbert</span>
         </div>
         <div className={styles.account}>
+          <button type="button" className={styles.signOut} onClick={() => onOpenShelf("library")}>
+            My library
+          </button>
+          <button type="button" className={styles.signOut} onClick={() => onOpenShelf("vault")}>
+            Vault
+          </button>
           <ThemeToggle />
           <button type="button" className={styles.signOut} onClick={onSignOut}>
             Sign out

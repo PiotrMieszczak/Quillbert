@@ -19,6 +19,8 @@ FROZEN = datetime(2026, 10, 7, 14, 0, tzinfo=UTC)
 
 GOOD_TOKEN = "good-token"
 USER_ID = "user-1"
+ADMIN_TOKEN = "admin-token"
+ADMIN_ID = "admin-1"
 
 
 def owned_campaigns(*ids: str, owner_id: str = USER_ID) -> InMemoryCampaignRepo:
@@ -40,6 +42,10 @@ def owned_campaigns(*ids: str, owner_id: str = USER_ID) -> InMemoryCampaignRepo:
 
 class FakeVerifier:
     def verify(self, token: str) -> Identity:
+        if token == ADMIN_TOKEN:
+            return Identity(
+                user_id=ADMIN_ID, email="admin@quillbert.app", is_admin=True
+            )
         if token != GOOD_TOKEN:
             raise InvalidToken("nope")
         return Identity(user_id=USER_ID, email="gm@ashfall.table")

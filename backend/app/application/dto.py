@@ -53,6 +53,8 @@ class DocumentView:
     status: DocumentStatus
     progress: int
     error: str | None
+    systems: tuple[str, ...] = ()
+    attribution: str | None = None
 
 
 @dataclass(frozen=True)

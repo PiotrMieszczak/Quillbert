@@ -1,12 +1,12 @@
 from collections.abc import Sequence
 
-from sqlalchemy import delete, insert, select, text, update
+from sqlalchemy import and_, delete, insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.adapters.persistence.sqlalchemy import mappers
 from app.adapters.persistence.sqlalchemy.tables import ChunkRow, DocumentRow
-from app.domain.documents import Chunk, Document, DocumentStatus
+from app.domain.documents import Chunk, Document, DocumentStatus, Shelf
 from app.domain.shared import NotFound
 
 _FOREIGN_KEY_VIOLATION = "23503"
@@ -35,37 +35,27 @@ class SqlDocumentRepo:
                 raise NotFound("campaign not found") from exc
             raise
 
-    def get(self, campaign_id: str, document_id: int) -> Document | None:
-        query = select(DocumentRow).where(
-            DocumentRow.id == document_id, DocumentRow.campaign_id == campaign_id
-        )
+    def get(self, shelf: Shelf, document_id: int) -> Document | None:
+        query = select(DocumentRow).where(DocumentRow.id == document_id, _on(shelf))
         with self._sessions() as session:
             row = session.scalars(query).one_or_none()
             return None if row is None else mappers.document_from_row(row)
 
-    def list_for_campaign(self, campaign_id: str) -> list[Document]:
-        query = (
-            select(DocumentRow)
-            .where(DocumentRow.campaign_id == campaign_id)
-            .order_by(DocumentRow.id)
-        )
+    def list_shelf(self, shelf: Shelf) -> list[Document]:
+        query = select(DocumentRow).where(_on(shelf)).order_by(DocumentRow.id)
         with self._sessions() as session:
             return [mappers.document_from_row(row) for row in session.scalars(query)]
 
-    def find_by_sha256(self, campaign_id: str, sha256: str) -> Document | None:
-        query = select(DocumentRow).where(
-            DocumentRow.campaign_id == campaign_id, DocumentRow.sha256 == sha256
-        )
+    def find_by_sha256(self, shelf: Shelf, sha256: str) -> Document | None:
+        query = select(DocumentRow).where(_on(shelf), DocumentRow.sha256 == sha256)
         with self._sessions() as session:
             row = session.scalars(query).one_or_none()
             return None if row is None else mappers.document_from_row(row)
 
-    def remove(self, campaign_id: str, document_id: int) -> Document | None:
+    def remove(self, shelf: Shelf, document_id: int) -> Document | None:
         query = (
             delete(DocumentRow)
-            .where(
-                DocumentRow.id == document_id, DocumentRow.campaign_id == campaign_id
-            )
+            .where(DocumentRow.id == document_id, _on(shelf))
             .returning(DocumentRow)
         )
         with self._sessions.begin() as session:
@@ -122,6 +112,8 @@ class SqlDocumentRepo:
                         {
                             "document_id": document.id,
                             "campaign_id": document.campaign_id,
+                            "owner_id": document.owner_id,
+                            "systems": list(document.systems),
                             "ordinal": chunk.ordinal,
                             "page_from": chunk.page_from,
                             "page_to": chunk.page_to,
@@ -146,6 +138,14 @@ class SqlDocumentRepo:
                 )
             for field, value in _progress_fields(document).items():
                 setattr(row, field, value)
+
+
+def _on(shelf: Shelf):
+    """Rows on exactly this shelf; `IS NOT DISTINCT FROM` makes None match NULL."""
+    return and_(
+        DocumentRow.campaign_id.is_not_distinct_from(shelf.campaign_id),
+        DocumentRow.owner_id.is_not_distinct_from(shelf.owner_id),
+    )
 
 
 def _progress_fields(document: Document) -> dict[str, object]:
