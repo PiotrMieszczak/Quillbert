@@ -69,8 +69,12 @@ function Reply({ message, onOpenSource }: MessageBubbleProps) {
                 type="button"
                 className={styles.source}
                 style={live ? { animationDelay: `${index * 0.12}s` } : { animation: "none" }}
-                title={["Open in Documents", citation.heading, citation.attribution].filter(Boolean).join(" · ")}
-                onClick={() => onOpenSource(citation.documentId)}
+                title={[citation.documentId && "Open in Documents", citation.heading, citation.attribution]
+                  .filter(Boolean)
+                  .join(" · ")}
+                // Not `disabled`: the tooltip carries the attribution and must still show.
+                aria-disabled={citation.documentId === null}
+                onClick={() => citation.documentId && onOpenSource(citation.documentId)}
               >
                 <span className={styles.sourceN}>{citation.label.slice(1)}</span>
                 {citation.filename}

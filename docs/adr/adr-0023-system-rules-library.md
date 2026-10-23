@@ -1,11 +1,11 @@
 ---
 title: "ADR-0023: Open rules references ship as a shared system library"
-status: "Accepted"
+status: "Superseded"
 date: "2026-10-20"
 authors: "Piotr Mieszczak"
 tags: ["architecture", "decision", "retrieval", "assistant", "licensing"]
 supersedes: ""
-superseded_by: ""
+superseded_by: "ADR-0027"
 ---
 
 # ADR-0023: Open rules references ship as a shared system library

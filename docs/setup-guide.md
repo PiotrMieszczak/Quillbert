@@ -25,6 +25,9 @@ hiding the publishable key — that's why it's public.
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT` | **secret** | — | ✓ (backend) | ✗ | Cloudflare → R2 → API tokens |
 | `FILE_STORE_PATH` | config | — | set by compose (`/data/files`) | ✗ | Where uploads live until the R2 adapter ships; a named volume (`files`) |
 | `MAX_UPLOAD_MB` | config | — | optional (default 200) | ✗ | Upload size limit. Behind Cloudflare Free the real cap is 100 MB |
+| `ARKON_URL` | config | — | optional | ✗ | Shared rules library ([ADR-0027](adr/adr-0027-arkon-shared-library.md)); `http://arkon_api:5055` on `ted106`. Unset: no library |
+| `ARKON_TOKENS` | **secret** | — | ✓ (backend) with `ARKON_URL` | ✗ | JSON `{"dnd-2024": "<token>"}`: one read-only Arkon MCP token per system (Arkon → Profile → MCP token) |
+| `LIBRARY_TOP_K` | config | — | optional (default 2) | ✗ | How many of the answer's passages the library may supply |
 
 **No JWT secret.** This project uses asymmetric signing keys, so there's no shared secret to
 store — see [Auth tokens](#auth-tokens-verified-via-jwks-no-secret) below.

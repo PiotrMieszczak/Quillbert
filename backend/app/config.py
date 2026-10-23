@@ -61,3 +61,14 @@ class Settings(BaseSettings):
 
     # Most recent messages replayed to the model, the new question included.
     history_messages: int = 6
+
+    # Arkon base URL for the shared rules library (ADR-0027), e.g. http://arkon_api:5055.
+    # Unset: campaign documents only.
+    arkon_url: str | None = None
+
+    # ARKON_TOKENS, JSON: game system id -> read-only Arkon MCP token for that
+    # system department, e.g. {"dnd-2024": "..."}. No token: no library for it.
+    arkon_tokens: dict[str, str] = {}
+
+    # Of the retrieval_top_k slots, how many the shared library may fill.
+    library_top_k: int = 2

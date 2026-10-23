@@ -229,3 +229,44 @@ def test_empty_content_is_rejected(
                 campaign_id="ashfall", conversation_id=conversation.id, content="  "
             )
         )
+
+
+def test_the_campaign_system_reaches_search_and_library_citations_keep_attribution(
+    fake_llm: FakeLLM,
+) -> None:
+    from app.adapters.clock.frozen import FrozenClock
+    from app.ports.search import Hit
+
+    library_hit = Hit(
+        None, None, "SRD 5.2", 12, None, "Speed is 0.", 0.8, "Shared library · dnd-2024"
+    )
+    systems: list[str | None] = []
+
+    class Library:
+        def search(self, campaign_id, system_id, text, vector, k):
+            systems.append(system_id)
+            return [library_hit]
+
+    repo = InMemoryConversationRepo()
+    clock = FrozenClock(FROZEN)
+    conversation_id = (
+        StartConversation(repo, clock)
+        .execute(campaign_id="ashfall", mode=Mode.RESEARCH)
+        .id
+    )
+    turn = RunAssistantTurn(repo, fake_llm, clock, Library(), None)
+
+    events = list(
+        turn.execute(
+            campaign_id="ashfall",
+            conversation_id=conversation_id,
+            content=QUESTION,
+            system_id="dnd-2024",
+        )
+    )
+
+    assert systems == ["dnd-2024"]
+    assert events[1] == TurnSearched(QUESTION, "Searched 1 document · 1 passage")
+    (cited,) = [event for event in events if isinstance(event, TurnCited)]
+    assert cited.citation.chunk_id is None
+    assert cited.citation.attribution == "Shared library · dnd-2024"

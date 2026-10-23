@@ -57,7 +57,12 @@ class RunAssistantTurn:
         self._history_messages = history_messages
 
     def execute(
-        self, *, campaign_id: str, conversation_id: int, content: str
+        self,
+        *,
+        campaign_id: str,
+        conversation_id: int,
+        content: str,
+        system_id: str | None = None,
     ) -> Generator[TurnEvent, None, None]:
         text = content.strip()
         if not text:
@@ -88,7 +93,7 @@ class RunAssistantTurn:
 
         try:
             yield from self._answer(
-                campaign_id, conversation.id, assistant_id, text, run_id
+                campaign_id, system_id, conversation.id, assistant_id, text, run_id
             )
         except LLMError:
             logger.exception("assistant turn failed at the provider")
@@ -100,6 +105,7 @@ class RunAssistantTurn:
     def _answer(
         self,
         campaign_id: str,
+        system_id: str | None,
         conversation_id: int,
         assistant_id: int,
         text: str,
@@ -117,9 +123,10 @@ class RunAssistantTurn:
             history = history[1:]
 
         hits = self._search.search(
-            campaign_id, None, text, self._query_vector(text), self._top_k
+            campaign_id, system_id, text, self._query_vector(text), self._top_k
         )
-        documents = len({hit.document_id for hit in hits})
+        # A library passage has no document id; its title tells it apart.
+        documents = len({(hit.document_id, hit.filename) for hit in hits})
         searched = (
             f"Searched {_plural(documents, 'document')} · "
             f"{_plural(len(hits), 'passage')}"
@@ -203,6 +210,7 @@ class RunAssistantTurn:
                 hit.filename,
                 hit.page_from,
                 hit.heading,
+                hit.attribution,
             )
             for label, hit in seen.items()
         )

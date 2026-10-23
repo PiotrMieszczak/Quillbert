@@ -73,12 +73,13 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 | [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
 | [0021](docs/adr/adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval; Gemini Embedding 2 via OpenRouter, zero-retention pinned | Accepted |
 | [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | **Superseded by 0025** |
-| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | Accepted |
+| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | **Superseded by 0027** |
 | [0024](docs/adr/adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles, hash-versioned, traced | Accepted; profile split replaced by 0026 |
 | [0025](docs/adr/adr-0025-jev-routes-intent.md) | One composer; Jev routes intent; every reply shows its mode | **Superseded by 0026** |
 | [0026](docs/adr/adr-0026-one-assistant-claim-provenance.md) | One assistant; provenance per claim; memory is what the GM saves | Accepted |
+| [0027](docs/adr/adr-0027-arkon-shared-library.md) | Shared rules library is Arkon; citations are snapshots | Accepted |
 
-Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, 0022, or 0025 as current. Cite what superseded them.
+Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, 0022, 0023, or 0025 as current. Cite what superseded them.
 
 ### The four that break the product if broken
 

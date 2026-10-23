@@ -4,14 +4,17 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class Hit:
-    chunk_id: int
-    document_id: int
+    # None for a passage from the shared library (ADR-0027): it has no chunk here.
+    chunk_id: int | None
+    document_id: int | None
     filename: str
     page_from: int | None
     heading: str | None
     content: str
     # Reciprocal-rank-fusion score: only the order and the floor mean anything.
     score: float
+    # Where a library passage comes from, shown with its citation; None for campaign.
+    attribution: str | None = None
 
 
 class ChunkSearch(Protocol):
@@ -29,8 +32,7 @@ class ChunkSearch(Protocol):
 
         Only INDEXED documents of `campaign_id` are searched (BND-003). `vector` is
         the query embedding, or None when the embedder was unavailable: keyword
-        search alone then (ADR-0016). `system_id` names the shared rules library to
-        search as well; it is accepted now and ignored until that column exists
-        (ADR-0023).
+        search alone then (ADR-0016). `system_id` is the campaign's game system; the
+        shared library searches it (ADR-0027), campaign search ignores it.
         """
         ...

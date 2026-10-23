@@ -31,15 +31,21 @@ def message_to_row(message: Message) -> MessageRow:
         completion_tokens=trace and trace.completion_tokens,
         cost_usd=trace and trace.cost_usd,
         citations=[
-            CitationRow(chunk_id=c.chunk_id, label=c.label) for c in message.citations
+            CitationRow(
+                chunk_id=c.chunk_id,
+                document_id=c.document_id,
+                filename=c.filename,
+                page_from=c.page_from,
+                heading=c.heading,
+                attribution=c.attribution,
+                label=c.label,
+            )
+            for c in message.citations
         ],
     )
 
 
-def message_from_row(
-    row: MessageRow, citations: dict[int, Citation] | None = None
-) -> Message:
-    """`citations` maps a citation row id to its resolved passage; see the repo."""
+def message_from_row(row: MessageRow) -> Message:
     trace = None
     if row.prompt_id is not None and row.prompt_version is not None:
         trace = Trace(
@@ -60,7 +66,18 @@ def message_from_row(
         created_at=row.created_at,
         mode=Mode(row.mode),
         tool_label=row.tool_label,
-        citations=tuple((citations or {})[c.id] for c in row.citations),
+        citations=tuple(
+            Citation(
+                c.label,
+                c.chunk_id,
+                c.document_id,
+                c.filename,
+                c.page_from,
+                c.heading,
+                c.attribution,
+            )
+            for c in row.citations
+        ),
         trace=trace,
     )
 
@@ -75,15 +92,13 @@ def conversation_to_row(conversation: Conversation) -> ConversationRow:
     )
 
 
-def conversation_from_row(
-    row: ConversationRow, citations: dict[int, Citation] | None = None
-) -> Conversation:
+def conversation_from_row(row: ConversationRow) -> Conversation:
     return Conversation(
         id=row.id,
         campaign_id=row.campaign_id,
         mode=Mode(row.mode),
         started_at=row.started_at,
-        messages=[message_from_row(m, citations) for m in row.messages],
+        messages=[message_from_row(m) for m in row.messages],
     )
 
 

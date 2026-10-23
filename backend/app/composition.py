@@ -14,6 +14,8 @@ from app.adapters.auth.supabase_jwt import SupabaseJwtVerifier
 from app.adapters.clock.system import SystemClock
 from app.adapters.extraction import FileExtractor, TesseractOcr
 from app.adapters.files import LocalDiskFileStore
+from app.adapters.library.arkon import ArkonLibrary
+from app.adapters.library.combined import CampaignAndLibrarySearch
 from app.adapters.llm.fake import FakeLLM
 from app.adapters.llm.fake_embedder import FakeEmbedder
 from app.adapters.llm.openrouter import OpenRouterChat
@@ -186,6 +188,12 @@ def build_use_cases(
         if sessions is not None
         else InMemoryChunkSearch(document_repo)
     )
+    if settings.arkon_url:
+        search = CampaignAndLibrarySearch(
+            search,
+            ArkonLibrary(url=settings.arkon_url, tokens=settings.arkon_tokens),
+            library_k=settings.library_top_k,
+        )
     time = clock or SystemClock()
     return UseCases(
         list_systems=ListSystems(campaign_repo),

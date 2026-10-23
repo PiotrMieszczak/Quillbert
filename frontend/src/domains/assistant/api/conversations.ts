@@ -13,8 +13,9 @@ type ConversationDto = {
 
 export type CitationDto = {
   label: string;
-  chunkId: number;
-  documentId: number;
+  /** Both null for a shared-library passage (ADR-0027). */
+  chunkId: number | null;
+  documentId: number | null;
   filename: string;
   pageFrom: number | null;
   heading: string | null;
@@ -32,7 +33,7 @@ type MessageDto = {
 /** Also the shape of the `dm.citation` custom event's value (docs/api-contract.md → Streaming response). */
 export const toCitation = (dto: CitationDto): Citation => ({
   label: dto.label,
-  documentId: String(dto.documentId),
+  documentId: dto.documentId === null ? null : String(dto.documentId),
   filename: dto.filename,
   page: dto.pageFrom,
   heading: dto.heading,

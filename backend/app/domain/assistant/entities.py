@@ -9,11 +9,13 @@ class Citation:
     """A passage an assistant message cites, as the GM sees it (AC-002)."""
 
     label: str
-    chunk_id: int
-    document_id: int
+    # None for a shared-library passage (ADR-0027).
+    chunk_id: int | None
+    document_id: int | None
     filename: str
     page_from: int | None
     heading: str | None
+    attribution: str | None = None
 
 
 @dataclass(frozen=True)

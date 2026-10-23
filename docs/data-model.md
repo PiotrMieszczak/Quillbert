@@ -78,10 +78,10 @@ migration, and the campaign picker offers them.
 Many-to-one: each campaign has exactly one system, and a system is shared by any number of
 campaigns. A system that a campaign uses cannot be deleted.
 
-A system can own a **rules library**: openly licensed documents (SRD 5.1 for `dnd-2014`,
-SRD 5.2 for `dnd-2024`) that every campaign of that system retrieves from
-([ADR-0023](adr/adr-0023-system-rules-library.md)). `traveller-2e` has none; its rules
-arrive as the GM's own upload.
+A system can have a **rules library** in Arkon that every campaign of that system
+retrieves from ([ADR-0027](adr/adr-0027-arkon-shared-library.md)). It is not stored here:
+a system maps to a read-only Arkon token (`ARKON_TOKENS`). `traveller-2e` has none; its
+rules arrive as the GM's own upload.
 
 ### Character
 
@@ -348,9 +348,7 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | Field | Type | Notes |
 |-------|------|-------|
 | `id` | int PK | |
-| `campaign_id` | text? FK | set for a GM's document; null for a library document |
-| `system_id` | text? FK → `system.id` | set for a system library document (ADR-0023); exactly one of `campaign_id` / `system_id` is set |
-| `attribution` | text? | licence line shown beside a library citation, e.g. "SRD 5.2 · CC-BY-4.0" |
+| `campaign_id` | text FK | the GM's campaign; library documents live in Arkon, not here (ADR-0027) |
 | `filename` | text | "Core Rulebook v3.pdf" |
 | `kind` | enum | `PDF` \| `DOC` \| `IMG` |
 | `page_count` | int? | |
@@ -396,9 +394,9 @@ deterministic pipeline ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.m
 note table exists: the library lists, edits and deletes notes like any document, and
 retrieval cites them like any chunk. The text is the GM's — they saved it — so BND-001
 holds.
-Once the system library lands it also searches the library chunks of the campaign's
-system in the same query (`campaign_id = :c OR system_id = :s`, ADR-0023). No other
-shared scope exists.
+When `ARKON_URL` is set, Arkon's library for the campaign's system is searched as well,
+and its hits fill up to `LIBRARY_TOP_K` of the slots
+([ADR-0027](adr/adr-0027-arkon-shared-library.md)). No other shared scope exists.
 
 **`embedding_space`** — one row, the model that produced every stored embedding.
 
@@ -441,9 +439,12 @@ Session bodies are chunked and indexed like documents, so past sessions are retr
 |--------|-----------|
 | `conversation` | `id`, `campaign_id`, `mode` (legacy, not read), `started_at` |
 | `message` | `id`, `conversation_id`, `role` (`user`\|`assistant`), `content`, `mode` (legacy, not read), `created_at`, `tool_label?`, plus the trace columns below on assistant messages |
-| `citation` | `id`, `message_id`, `chunk_id`, `label`, `quote?` |
+| `citation` | `id`, `message_id`, `chunk_id?`, `document_id?`, `filename`, `page_from?`, `heading?`, `attribution?`, `label`, `quote?` |
 
-Citations satisfy AC-002 and make grounding auditable. They are also the provenance of a
+Citations satisfy AC-002 and make grounding auditable. A citation is a snapshot of what
+the GM saw (DEC-014). `chunk_id` and `document_id` are set for a campaign passage, which
+still cascades away with its document. A library passage has both null and an
+`attribution`. They are also the provenance of a
 reply: a paragraph is from the material exactly when it holds a stored citation's label,
 and every other paragraph is shown as an idea
 ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.md); AC-015). `message.mode` is
@@ -564,6 +565,11 @@ opposite of what makes a world feel alive.
 Three common templates use three different beat vocabularies. An enum would have privileged
 one and made the others awkward, and templates are prompts for a GM outlining, not a schema
 to conform to.
+
+**DEC-014 — A citation copies its passage's file, page and heading.**
+A shared-library passage comes from Arkon and has no chunk row here, so a citation cannot
+rely on a join for what it shows. The copy also keeps a citation stable after its source
+changes. ([ADR-0027](adr/adr-0027-arkon-shared-library.md))
 
 **DEC-013 — The game system is a table, referenced by the campaign.**
 Free text let "D&D 2024", "DnD 2024", and a typo become three systems silently, and the

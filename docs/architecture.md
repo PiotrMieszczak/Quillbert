@@ -319,8 +319,8 @@ not in scope: it derives vectors from the document's own text and writes no cont
 
 **BND-003 — Campaign scoping is enforced server-side.** Every query filters by
 `campaign_id`. The frontend never sees another campaign's data. The one shared read scope
-is the system rules library, reached only through retrieval as `campaign_id = :c OR
-system_id = :campaign_system` ([ADR-0023](adr/adr-0023-system-rules-library.md)).
+is the system rules library in Arkon, reached only through retrieval with the campaign's
+system's read-only token ([ADR-0027](adr/adr-0027-arkon-shared-library.md)).
 
 **BND-006 — No agent framework owns the loop.** The tool loop is plain code in
 `application/assistant/run_turn.py`, bounded to a fixed number of iterations. A framework there would also

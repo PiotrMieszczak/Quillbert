@@ -205,7 +205,8 @@ class ChunkRow(Base):
 
 
 class CitationRow(Base):
-    """An assistant message's source. The chunk is the source of truth."""
+    """An assistant message's source, as cited. A snapshot, so a passage from the
+    shared library (no chunk here, ADR-0027) reloads the same as a campaign one."""
 
     __tablename__ = "citation"
 
@@ -213,9 +214,15 @@ class CitationRow(Base):
     message_id: Mapped[int] = mapped_column(
         ForeignKey("message.id", ondelete="CASCADE"), index=True
     )
-    chunk_id: Mapped[int] = mapped_column(
+    # Deleting the campaign document still deletes its citations.
+    chunk_id: Mapped[int | None] = mapped_column(
         ForeignKey("chunk.id", ondelete="CASCADE"), index=True
     )
+    document_id: Mapped[int | None]
+    filename: Mapped[str] = mapped_column(Text)
+    page_from: Mapped[int | None]
+    heading: Mapped[str | None] = mapped_column(Text)
+    attribution: Mapped[str | None] = mapped_column(Text)
     # The label the model was shown, such as S1.
     label: Mapped[str] = mapped_column(Text)
     quote: Mapped[str | None] = mapped_column(Text)

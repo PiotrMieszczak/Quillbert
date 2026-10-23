@@ -22,12 +22,13 @@ class CitationOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True, ser_json_by_alias=True)
 
     label: str
-    chunk_id: int = Field(alias="chunkId")
-    document_id: int = Field(alias="documentId")
+    # Both null for a shared-library passage: it is not a campaign document (ADR-0027).
+    chunk_id: int | None = Field(alias="chunkId")
+    document_id: int | None = Field(alias="documentId")
     filename: str
     page_from: int | None = Field(default=None, alias="pageFrom")
     heading: str | None = None
-    # Set for a shared-library passage; none exist yet.
+    # Set for, and only for, a shared-library passage.
     attribution: str | None = None
 
 

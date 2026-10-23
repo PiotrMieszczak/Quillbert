@@ -3,14 +3,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from app.adapters.persistence.sqlalchemy import mappers
-from app.adapters.persistence.sqlalchemy.tables import (
-    ChunkRow,
-    CitationRow,
-    ConversationRow,
-    DocumentRow,
-    MessageRow,
-)
-from app.domain.assistant import Citation, Conversation, Message
+from app.adapters.persistence.sqlalchemy.tables import ConversationRow, MessageRow
+from app.domain.assistant import Conversation, Message
 from app.domain.shared import NotFound
 
 _FOREIGN_KEY_VIOLATION = "23503"
@@ -57,7 +51,7 @@ class SqlConversationRepo:
             )
             if row is None:
                 return None
-            return mappers.conversation_from_row(row, _passages(session, [row]))
+            return mappers.conversation_from_row(row)
 
     def add_message(self, message: Message) -> None:
         try:
@@ -76,9 +70,9 @@ class SqlConversationRepo:
             .order_by(ConversationRow.id.desc())
         )
         with self._sessions() as session:
-            rows = list(session.scalars(query))
-            passages = _passages(session, rows)
-            return [mappers.conversation_from_row(row, passages) for row in rows]
+            return [
+                mappers.conversation_from_row(row) for row in session.scalars(query)
+            ]
 
     def _next_id(self, table: str) -> int:
         # The port hands out ids before insert; the identity column's sequence is
@@ -88,35 +82,3 @@ class SqlConversationRepo:
                 text("SELECT nextval(pg_get_serial_sequence(:table, 'id'))"),
                 {"table": table},
             ).scalar_one()
-
-
-def _passages(
-    session: Session, conversations: list[ConversationRow]
-) -> dict[int, Citation]:
-    """Citation row id -> the passage it points at, for every citation given."""
-    ids = [
-        citation.id
-        for conversation in conversations
-        for message in conversation.messages
-        for citation in message.citations
-    ]
-    if not ids:
-        return {}
-    query = (
-        select(
-            CitationRow.id,
-            CitationRow.label,
-            ChunkRow.id,
-            ChunkRow.document_id,
-            DocumentRow.filename,
-            ChunkRow.page_from,
-            ChunkRow.heading,
-        )
-        .join(ChunkRow, ChunkRow.id == CitationRow.chunk_id)
-        .join(DocumentRow, DocumentRow.id == ChunkRow.document_id)
-        .where(CitationRow.id.in_(ids))
-    )
-    return {
-        row_id: Citation(label, *rest)
-        for row_id, label, *rest in session.execute(query)
-    }

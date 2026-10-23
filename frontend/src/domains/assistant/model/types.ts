@@ -2,8 +2,9 @@
 
 export type Citation = {
   label: string;
-  /** The library document the passage came from; the chip opens it in Documents. */
-  documentId: string;
+  /** The campaign document the passage came from; the chip opens it in Documents.
+   *  Null for a shared-library passage, which has no document here. */
+  documentId: string | null;
   filename: string;
   page: number | null;
   heading: string | null;

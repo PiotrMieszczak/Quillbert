@@ -81,8 +81,8 @@ Retrieval becomes conversation.
   [assistant-prompts.md](assistant-prompts.md#model-choice)
 - **Quillbert, slice 3**: memory — `propose_memory`, the proposal card, notes saved as
   library documents, and the per-user style guide
-- **Built-in rules**: SRD 5.1 / 5.2 seeded as a shared system library
-  ([ADR-0023](adr/adr-0023-system-rules-library.md))
+- **Built-in rules**: SRD 5.1 / 5.2 loaded into the Arkon shared library
+  ([ADR-0027](adr/adr-0027-arkon-shared-library.md))
 - **Adventure Creator page**, the same assistant beside an editor, output via proposals —
   in [design/overview.md](design/overview.md), for drafts too large for the panel
 - **In-character mode** opened from a character, with the panel restyled as that NPC

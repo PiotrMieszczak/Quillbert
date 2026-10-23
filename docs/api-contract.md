@@ -257,8 +257,12 @@ it reads **only the content of the last user message** and ignores client-sent h
 { "id": 57, "role": "assistant", "content": "A grapple is … [S1]",
   "createdAt": "…",
   "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
-                  "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
-                  "attribution": "SRD 5.2 · CC-BY-4.0" }] }
+                  "filename": "Core Rulebook v3.pdf", "pageFrom": 195,
+                  "heading": "Opportunity Attacks", "attribution": null },
+                // A shared-library passage (ADR-0027): no chunk or document here.
+                { "label": "S2", "chunkId": null, "documentId": null,
+                  "filename": "SRD 5.2", "pageFrom": 177, "heading": null,
+                  "attribution": "Shared library · dnd-2024" }] }
 ```
 
 `GET /campaigns/{cid}/conversations` lists newest first. The panel opens the newest one, or

@@ -142,7 +142,7 @@ def test_conversation_survives_a_new_process(sessions, migrated: str) -> None:
 
 
 def test_citations_resolve_to_their_passage(sessions, migrated: str) -> None:
-    """Postgres only: a citation stores a chunk id; the passage is joined on read."""
+    """Postgres only: a citation keeps a snapshot of its passage and its chunk id."""
     from app.adapters.persistence.sqlalchemy.repositories import SqlDocumentRepo
     from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
 
@@ -182,3 +182,26 @@ def test_citations_resolve_to_their_passage(sessions, migrated: str) -> None:
     # Deleting the document deletes its chunks, and the citations to them go too.
     documents.remove("ashfall", document.id)
     assert repo.get(conversation.id).messages[0].citations == ()
+
+
+def test_a_library_citation_has_no_chunk_and_reads_back(
+    sessions, migrated: str
+) -> None:
+    """ADR-0027: a shared-library passage is cited without a chunk row."""
+    repo = SqlConversationRepo(sessions)
+    conversation = _conversation(repo)
+    citation = Citation(
+        "S1", None, None, "SRD 5.2", 12, None, "Shared library · dnd-2024"
+    )
+    reply = Message(
+        id=repo.next_message_id(),
+        conversation_id=conversation.id,
+        role=Role.ASSISTANT,
+        content="Your Speed is 0 [S1].",
+        created_at=T0,
+        mode=Mode.RESEARCH,
+        citations=(citation,),
+    )
+    repo.add_message(reply)
+
+    assert repo.get(conversation.id).messages == [reply]

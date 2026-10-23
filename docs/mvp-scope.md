@@ -69,8 +69,8 @@ library (indexed and cited like any upload), or an addition to the GM's per-user
 guide. Conversations themselves are never indexed. Replies and notes follow the language
 of the GM's question.
 
-Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) as a shared system library
-([ADR-0023](adr/adr-0023-system-rules-library.md)). Traveller rules come from the GM's
+Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) as a shared library in Arkon
+([ADR-0027](adr/adr-0027-arkon-shared-library.md)). Traveller rules come from the GM's
 own upload.
 
 
