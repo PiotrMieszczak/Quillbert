@@ -81,8 +81,11 @@ Retrieval becomes conversation.
   [assistant-prompts.md](assistant-prompts.md#model-choice)
 - **Quillbert, slice 3**: memory — `propose_memory`, the proposal card, notes saved as
   library documents, and the per-user style guide
-- **Built-in rules**: SRD 5.1 / 5.2 seeded as a shared system library
-  ([ADR-0023](adr/adr-0023-system-rules-library.md))
+- **Layered knowledge**: admin vault (SRD 5.1 / 5.2, craft, templates), GM library, admin
+  UI ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md), epic #99)
+- **Safety without surveillance**: limits, metadata overview, flag-only moderation, Terms
+  and privacy policy before public sign-up
+  ([ADR-0028](adr/adr-0028-safety-without-surveillance.md))
 - **Adventure Creator page**, the same assistant beside an editor, output via proposals —
   in [design/overview.md](design/overview.md), for drafts too large for the panel
 - **In-character mode** opened from a character, with the panel restyled as that NPC
