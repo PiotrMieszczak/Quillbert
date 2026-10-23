@@ -1,0 +1,1 @@
+export { FactionCard } from "./FactionCard";

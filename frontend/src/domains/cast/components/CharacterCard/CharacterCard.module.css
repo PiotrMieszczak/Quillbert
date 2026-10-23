@@ -1,0 +1,65 @@
+.card {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding: 16px 16px 16px 19px;
+  overflow: hidden;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  animation: global(qb-pop) 0.5s var(--ease-spring) backwards;
+}
+
+/* Relationship accent down the leading edge. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--tone);
+}
+
+.portrait {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-button);
+  background: repeating-linear-gradient(135deg, var(--surface-elevated) 0 6px, var(--surface-hover) 6px 12px);
+  color: var(--tone);
+  font: 600 22px/1 var(--font-display);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font: 600 18px/1.15 var(--font-display);
+  color: var(--text-primary);
+}
+
+.role {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
