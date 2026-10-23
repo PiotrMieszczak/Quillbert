@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type ComponentType } from "react";
 import { signOut, useAuthStore } from "../domains/auth";
 import type { Campaign } from "../domains/campaign";
@@ -30,6 +31,7 @@ function Screen() {
   const [library, setLibrary] = useState(false);
   // The document a citation chip asked to see; `at` re-triggers the highlight on a repeat click.
   const [focus, setFocus] = useState<DocumentFocus | null>(null);
+  const queryClient = useQueryClient();
   if (!ready) return null;
   // A reset link signs the user in; keep them on the form until they pick a new password.
   if (!session || recovering) return <Login />;
@@ -37,6 +39,8 @@ function Screen() {
   const leave = () => {
     setCampaign(null);
     setLibrary(false);
+    // Some query keys (the GM's library) carry no user id; the next GM must not see them.
+    queryClient.clear();
     void signOut();
   };
   if (library) return <MyLibrary onBack={() => setLibrary(false)} />;
