@@ -13,9 +13,8 @@ type DocumentDto = {
   status: "queued" | "processing" | "indexed" | "failed" | "awaiting_ocr";
   progress: number;
   error: string | null;
-  /** Library and vault only (ADR-0027): systems it applies to (empty = all), vault licence line. */
+  /** Library only (ADR-0027): systems it applies to; empty means all. */
   systems: string[];
-  attribution: string | null;
 };
 
 const STATUS: Record<DocumentDto["status"], DocumentStatus> = {
@@ -35,11 +34,10 @@ const toDocument = (dto: DocumentDto): LibraryDocument => ({
   status: STATUS[dto.status],
   progress: dto.progress,
   systems: dto.systems ?? [],
-  attribution: dto.attribution ?? null,
 });
 
-/** Which shelf (ADR-0027): a campaign's documents, the signed-in GM's library, or the vault. */
-export type DocumentSource = { campaignId: string } | "library" | "vault";
+/** Which shelf (ADR-0027): a campaign's documents, or the signed-in GM's library. */
+export type DocumentSource = { campaignId: string } | "library";
 
 const documentsPath = (source: DocumentSource) =>
   typeof source === "string" ? `/${source}/documents` : `/campaigns/${encodeURIComponent(source.campaignId)}/documents`;
@@ -63,18 +61,15 @@ export function useDocuments(source: DocumentSource) {
   });
 }
 
-/** Tags for a library or vault upload; a campaign upload ignores them. */
-export type UploadTags = { systems?: string[]; attribution?: string };
+/** Tags for a library upload; a campaign upload ignores them. */
+export type UploadTags = { systems?: string[] };
 
 /** `duplicate` is true when the shelf already had these bytes (the API answers 200, not 202).
  *  Aborting `signal` cancels the upload. */
 export async function uploadDocument(source: DocumentSource, file: File, tags: UploadTags = {}, signal?: AbortSignal) {
   const form = new FormData();
   form.append("file", file);
-  if (typeof source === "string") {
-    form.append("systems", (tags.systems ?? []).join(","));
-    if (source === "vault" && tags.attribution) form.append("attribution", tags.attribution);
-  }
+  if (typeof source === "string") form.append("systems", (tags.systems ?? []).join(","));
   const { status, data } = await apiFetch<DocumentDto>(documentsPath(source), { method: "POST", body: form, signal });
   return { document: toDocument(data), duplicate: status === 200 };
 }

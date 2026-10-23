@@ -9,17 +9,16 @@ from app.application.documents import (
 from app.application.dto import DocumentView
 from app.domain.documents import Shelf
 from app.domain.shared import ValidationFailed
-from app.entrypoints.http.auth import require_admin, require_campaign, require_identity
+from app.entrypoints.http.auth import require_campaign, require_identity
 from app.entrypoints.http.schemas.documents import DocumentOut
 from app.ports.auth import Identity
 
-# Three shelves, one set of handlers (ADR-0027): a campaign's documents, the caller's
-# own library, and the vault (everyone reads it, only an admin writes it).
+# Two shelves, one set of handlers (ADR-0027): a campaign's documents and the caller's
+# own library.
 router = APIRouter(
     prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_campaign)]
 )
 library_router = APIRouter(prefix="/api/v1/library")
-vault_router = APIRouter(prefix="/api/v1/vault")
 
 
 def _out(view: DocumentView) -> DocumentOut:
@@ -33,7 +32,6 @@ def _out(view: DocumentView) -> DocumentOut:
         progress=view.progress,
         error=view.error,
         systems=list(view.systems),
-        attribution=view.attribution,
     )
 
 
@@ -53,7 +51,6 @@ def _upload(
     shelf: Shelf,
     file: UploadFile,
     systems: tuple[str, ...] = (),
-    attribution: str | None = None,
 ) -> DocumentOut:
     upload: UploadDocument = request.app.state.upload_document
     result = upload.execute(
@@ -61,7 +58,6 @@ def _upload(
         filename=file.filename or "",
         content=file.file,
         systems=systems,
-        attribution=attribution,
     )
     if not result.created:
         # The same bytes were already on this shelf: that document, nothing new.
@@ -143,47 +139,3 @@ def delete_library_document(
     identity: Identity = Depends(require_identity),  # noqa: B008
 ) -> Response:
     return _delete(request, Shelf.gm(identity.user_id), document_id)
-
-
-# --- the vault: read by every GM, written by an admin -------------------------------
-
-
-@vault_router.post(
-    "/documents",
-    status_code=202,
-    response_model=DocumentOut,
-    dependencies=[Depends(require_admin)],
-)
-def upload_vault_document(
-    request: Request,
-    response: Response,
-    file: UploadFile = File(),  # noqa: B008
-    systems: str = Form(""),
-    attribution: str = Form(""),
-) -> DocumentOut:
-    return _upload(
-        request,
-        response,
-        Shelf.vault(),
-        file,
-        _systems(request, systems),
-        attribution,
-    )
-
-
-@vault_router.get(
-    "/documents",
-    response_model=list[DocumentOut],
-    dependencies=[Depends(require_identity)],
-)
-def list_vault_documents(request: Request) -> list[DocumentOut]:
-    return _list(request, Shelf.vault())
-
-
-@vault_router.delete(
-    "/documents/{document_id}",
-    status_code=204,
-    dependencies=[Depends(require_admin)],
-)
-def delete_vault_document(document_id: int, request: Request) -> Response:
-    return _delete(request, Shelf.vault(), document_id)

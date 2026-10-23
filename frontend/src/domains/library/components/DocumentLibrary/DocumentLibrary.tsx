@@ -17,20 +17,18 @@ import { UploadZone } from "../UploadZone";
 import styles from "./DocumentLibrary.module.css";
 
 type DocumentLibraryProps = {
-  /** A campaign's documents, the GM's library, or the vault (ADR-0027). */
+  /** A campaign's documents, or the GM's library (ADR-0027). */
   source: DocumentSource;
-  /** List only: no upload and no remove (the vault, for a GM who is not the admin). */
-  readOnly?: boolean;
   /** System id new library uploads start on, e.g. the campaign's; none means every system. */
   defaultSystem?: string;
   /** Scroll to and flash this document; `at` changes on every request, so a repeat flashes again. */
   focus?: { documentId: string; at: number } | null;
 };
 
-export function DocumentLibrary({ source, readOnly = false, defaultSystem = "", focus }: DocumentLibraryProps) {
+export function DocumentLibrary({ source, defaultSystem = "", focus }: DocumentLibraryProps) {
   const documents = useDocuments(source);
   const systems = useSystems();
-  // Library and vault files wait here for their system (ADR-0027); campaign files upload at once.
+  // Library files wait here for their system (ADR-0027); campaign files upload at once.
   const [staged, setStaged] = useState<StagedFile[]>([]);
   const shared = typeof source === "string";
   const queryClient = useQueryClient();
@@ -44,14 +42,12 @@ export function DocumentLibrary({ source, readOnly = false, defaultSystem = "", 
   const refresh = () => queryClient.invalidateQueries({ queryKey: documentsKey(source) });
 
   function stage(files: File[]) {
-    const fresh = files.map((file) => ({ id: crypto.randomUUID(), file, system: defaultSystem, attribution: "" }));
+    const fresh = files.map((file) => ({ id: crypto.randomUUID(), file, system: defaultSystem }));
     setStaged((rows) => [...rows, ...fresh]);
   }
 
   function uploadStaged() {
-    staged.forEach(({ file, system, attribution }) =>
-      void upload(file, { systems: system ? [system] : [], attribution: attribution.trim() }),
-    );
+    staged.forEach(({ file, system }) => void upload(file, { systems: system ? [system] : [] }));
     setStaged([]);
   }
 
@@ -98,20 +94,17 @@ export function DocumentLibrary({ source, readOnly = false, defaultSystem = "", 
 
   return (
     <div className={styles.library}>
-      {!readOnly && (
-        <UploadZone
-          onFiles={(files) => {
-            setNotice(null);
-            if (shared) stage(files);
-            else files.forEach((file) => void upload(file));
-          }}
-        />
-      )}
+      <UploadZone
+        onFiles={(files) => {
+          setNotice(null);
+          if (shared) stage(files);
+          else files.forEach((file) => void upload(file));
+        }}
+      />
       {staged.length > 0 && (
         <UploadReview
           files={staged}
           systems={systems.data ?? []}
-          vault={source === "vault"}
           onChange={(id, patch) => setStaged((rows) => rows.map((row) => (row.id === id ? { ...row, ...patch } : row)))}
           onRemove={(id) => setStaged((rows) => rows.filter((row) => row.id !== id))}
           onCancel={() => setStaged([])}
@@ -154,7 +147,7 @@ export function DocumentLibrary({ source, readOnly = false, defaultSystem = "", 
               document={document}
               tags={document.systems.map((id) => systems.data?.find((system) => system.id === id)?.name ?? id)}
               flash={focus?.documentId === document.id ? focus.at : undefined}
-              onRemove={readOnly ? undefined : () => remove(document)}
+              onRemove={() => remove(document)}
             />
           ))}
           {pending.map((document) => (

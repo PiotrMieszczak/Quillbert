@@ -199,7 +199,6 @@ def _shelved(
         campaign_id=shelf.campaign_id,
         owner_id=shelf.owner_id,
         systems=systems,
-        attribution="SRD 5.2 · CC-BY-4.0" if shelf == Shelf.vault() else None,
         filename="SRD.pdf",
         kind=DocumentKind.PDF,
         sha256=sha256,
@@ -211,13 +210,8 @@ def _shelved(
 
 
 def test_each_shelf_lists_only_its_own_documents(document_repo: DocumentRepo) -> None:
-    """ADR-0027: a campaign, a GM's library and the vault never see each other."""
-    shelves = [
-        Shelf.campaign("ashfall"),
-        Shelf.gm("gm-a"),
-        Shelf.gm("gm-b"),
-        Shelf.vault(),
-    ]
+    """ADR-0027: a campaign and each GM's library never see each other."""
+    shelves = [Shelf.campaign("ashfall"), Shelf.gm("gm-a"), Shelf.gm("gm-b")]
     added = {shelf: _shelved(document_repo, shelf, "a" * 64) for shelf in shelves}
 
     for shelf, document in added.items():
@@ -232,13 +226,12 @@ def test_the_same_file_is_found_per_shelf(document_repo: DocumentRepo) -> None:
 
     assert document_repo.find_by_sha256(Shelf.gm("gm-a"), "b" * 64).id == mine.id
     assert document_repo.find_by_sha256(Shelf.gm("gm-b"), "b" * 64) is None
-    assert document_repo.find_by_sha256(Shelf.vault(), "b" * 64) is None
 
 
-def test_systems_and_attribution_read_back(document_repo: DocumentRepo) -> None:
-    added = _shelved(document_repo, Shelf.vault(), "c" * 64, ("dnd-2014", "dnd-2024"))
+def test_systems_read_back(document_repo: DocumentRepo) -> None:
+    shelf = Shelf.gm("gm-a")
+    added = _shelved(document_repo, shelf, "c" * 64, ("dnd-2014", "dnd-2024"))
 
-    read = document_repo.get(Shelf.vault(), added.id)
+    read = document_repo.get(shelf, added.id)
     assert read.systems == ("dnd-2014", "dnd-2024")
-    assert read.attribution == "SRD 5.2 · CC-BY-4.0"
-    assert read.shelf == Shelf.vault()
+    assert read.shelf == shelf

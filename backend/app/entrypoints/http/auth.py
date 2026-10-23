@@ -31,12 +31,5 @@ def require_campaign(
     return identity
 
 
-def require_admin(identity: Identity = Depends(require_identity)) -> Identity:
-    """Dependency for vault writes (ADR-0027): the caller must be an admin, or 403."""
-    if not identity.is_admin:
-        raise HTTPException(403, "admin only")
-    return identity
-
-
 def _unauthorized(detail: str) -> HTTPException:
     return HTTPException(401, detail, headers={"WWW-Authenticate": "Bearer"})

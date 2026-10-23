@@ -1,23 +1,21 @@
 import type { GameSystem } from "../../../campaign";
 import styles from "./UploadReview.module.css";
 
-/** A dropped file waiting for its tags. `system` is a system id; "" means every system. */
-export type StagedFile = { id: string; file: File; system: string; attribution: string };
+/** A dropped file waiting for its system. `system` is a system id; "" means every system. */
+export type StagedFile = { id: string; file: File; system: string };
 
 type UploadReviewProps = {
   files: StagedFile[];
   systems: GameSystem[];
-  /** The vault also takes a licence line per file. */
-  vault: boolean;
   onChange: (id: string, patch: Partial<StagedFile>) => void;
   onRemove: (id: string) => void;
   onCancel: () => void;
   onUpload: () => void;
 };
 
-/** Library and vault uploads ask, per file, which system it applies to (ADR-0027).
+/** Library uploads ask, per file, which system it applies to (ADR-0027).
  *  A campaign upload never stops here. */
-export function UploadReview({ files, systems, vault, onChange, onRemove, onCancel, onUpload }: UploadReviewProps) {
+export function UploadReview({ files, systems, onChange, onRemove, onCancel, onUpload }: UploadReviewProps) {
   const count = files.length === 1 ? "1 file" : `${files.length} files`;
 
   return (
@@ -45,15 +43,6 @@ export function UploadReview({ files, systems, vault, onChange, onRemove, onCanc
             <span className={styles.name} title={staged.file.name}>
               {staged.file.name}
             </span>
-            {vault && (
-              <input
-                className={styles.input}
-                aria-label={`Attribution for ${staged.file.name}`}
-                placeholder="SRD 5.2 · CC-BY-4.0"
-                value={staged.attribution}
-                onChange={(event) => onChange(staged.id, { attribution: event.target.value })}
-              />
-            )}
             <SystemSelect
               label={`System for ${staged.file.name}`}
               systems={systems}

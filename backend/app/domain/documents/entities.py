@@ -11,11 +11,11 @@ from app.domain.documents.values import (
 
 @dataclass
 class Document:
-    """A file on a shelf: a campaign, a GM's library, or the vault (ADR-0027).
+    """A file on a shelf: a campaign or a GM's library (ADR-0027).
     Mirrors docs/data-model.md `document`."""
 
     id: int
-    # Set for a campaign document; owner_id for a GM's library; neither for the vault.
+    # Set for a campaign document; owner_id instead for a GM's library.
     campaign_id: str | None
     filename: str
     kind: DocumentKind
@@ -31,10 +31,8 @@ class Document:
     source: DocumentSource = DocumentSource.UPLOAD
     source_ref: str | None = None
     owner_id: str | None = None
-    # Systems a library or vault document applies to; empty means all.
+    # Systems a library document applies to; empty means all.
     systems: tuple[str, ...] = ()
-    # Licence line shown beside a vault citation, e.g. "SRD 5.2 · CC-BY-4.0".
-    attribution: str | None = None
 
     @property
     def shelf(self) -> Shelf:

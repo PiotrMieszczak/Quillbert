@@ -51,22 +51,6 @@ Those are verify-only public keys, so nothing secret is involved — consistent 
 [ADR-0020](adr/adr-0020-supabase-auth.md) IMP-001 ("JWKS / shared secret"). The legacy shared
 JWT secret (Settings → JWT Keys) is deprecated for new projects; don't use it.
 
-## Making a user admin
-
-The admin manages the vault ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)).
-Admin is `app_metadata.role = "admin"` on the Supabase user. Only the service role can write
-`app_metadata`; a user can't grant it to themself. In the Supabase SQL editor of the
-project:
-
-```sql
-update auth.users
-set raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'
-where email = 'you@example.com';
-```
-
-The claim reaches the backend in the next access token, so **sign out and in again**. Remove
-it the same way with `raw_app_meta_data - 'role'`.
-
 ## Database migrations run in CI, not on app boot
 
 Migrations are applied by the **`Migrate database`** GitHub Action

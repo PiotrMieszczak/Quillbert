@@ -115,8 +115,8 @@ class DocumentRow(Base):
 
     __tablename__ = "document"
     __table_args__ = (
-        # One copy of a file per shelf (ADR-0021 IMP-003, ADR-0027): per campaign,
-        # per GM library, and once in the vault.
+        # One copy of a file per shelf (ADR-0021 IMP-003, ADR-0027): per campaign
+        # and per GM library.
         Index(
             "uq_document_campaign_sha256",
             "campaign_id",
@@ -131,14 +131,10 @@ class DocumentRow(Base):
             unique=True,
             postgresql_where=text("owner_id IS NOT NULL"),
         ),
-        Index(
-            "uq_document_vault_sha256",
-            "sha256",
-            unique=True,
-            postgresql_where=text("campaign_id IS NULL AND owner_id IS NULL"),
+        # Exactly one shelf: a campaign, or a GM's library.
+        CheckConstraint(
+            "(campaign_id IS NULL) <> (owner_id IS NULL)", name="one_shelf"
         ),
-        # A campaign document is not also on a GM's shelf.
-        CheckConstraint("campaign_id IS NULL OR owner_id IS NULL", name="one_shelf"),
         CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
         CheckConstraint(
             "status IN ('queued', 'processing', 'indexed', 'failed', 'awaiting_ocr')",
@@ -147,14 +143,13 @@ class DocumentRow(Base):
     )
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    # Campaign → campaign_id; GM library → owner_id; vault → neither (ADR-0027).
+    # Campaign → campaign_id; GM library → owner_id (ADR-0027).
     campaign_id: Mapped[str | None] = mapped_column(
         ForeignKey("campaign.id", ondelete="CASCADE"), index=True
     )
     owner_id: Mapped[str | None] = mapped_column(Text, index=True)
-    # Systems a library or vault document applies to; empty means all.
+    # Systems a library document applies to; empty means all.
     systems: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
-    attribution: Mapped[str | None] = mapped_column(Text)
     filename: Mapped[str] = mapped_column(Text)
     kind: Mapped[str] = mapped_column(Text)
     page_count: Mapped[int | None] = mapped_column(Integer)

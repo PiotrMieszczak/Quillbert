@@ -39,14 +39,12 @@ def _index(
     *,
     owner_id: str | None = None,
     systems: tuple[str, ...] = (),
-    attribution: str | None = None,
 ) -> Document:
     document = Document(
         id=repo.next_document_id(),
         campaign_id=campaign_id,
         owner_id=owner_id,
         systems=systems,
-        attribution=attribution,
         filename=filename,
         kind=DocumentKind.PDF,
         sha256=f"{repo.next_document_id():064d}",
@@ -215,23 +213,3 @@ def test_a_gms_library_reaches_their_campaigns_and_no_one_elses(
     (hit,) = search.search("ashfall", "gm-a", "dnd-2024", "dragon", None, 6)
     assert (hit.filename, hit.attribution) == ("Mine.md", "My library")
     assert search.search("other", "gm-b", "dnd-2024", "dragon", None, 6) == []
-
-
-def test_vault_documents_reach_only_the_systems_they_list(
-    repo: SqlDocumentRepo, search: SqlChunkSearch
-) -> None:
-    _index(
-        repo,
-        None,
-        "SRD 5.1.pdf",
-        [_chunk(0, "grapple", None)],
-        systems=("dnd-2014",),
-        attribution="SRD 5.1 · CC-BY-4.0",
-    )
-    _index(repo, None, "Pacing.md", [_chunk(0, "grapple pacing", None)])
-
-    for_2014 = search.search("ashfall", "gm-a", "dnd-2014", "grapple", None, 6)
-    for_2024 = search.search("ashfall", "gm-a", "dnd-2024", "grapple", None, 6)
-
-    assert {h.attribution for h in for_2014} == {"SRD 5.1 · CC-BY-4.0", "Vault"}
-    assert [h.filename for h in for_2024] == ["Pacing.md"]

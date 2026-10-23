@@ -64,10 +64,8 @@ def _layer(
     """The hit's attribution, or False when the document is out of reach."""
     if document.campaign_id is not None:
         return None if document.campaign_id == campaign_id else False
-    if document.owner_id is not None and document.owner_id != owner_id:
+    if document.owner_id != owner_id:
         return False
     if document.systems and system_id not in document.systems:
         return False
-    if document.owner_id is not None:
-        return "My library"
-    return document.attribution or "Vault"
+    return "My library"

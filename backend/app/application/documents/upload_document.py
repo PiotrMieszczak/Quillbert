@@ -28,13 +28,12 @@ class UploadDocument:
         filename: str,
         content: BinaryIO,
         systems: tuple[str, ...] = (),
-        attribution: str | None = None,
     ) -> UploadResult:
-        """`systems` and `attribution` apply to a library or vault document only."""
+        """`systems` applies to a library document only."""
         if shelf.campaign_id is not None and not shelf.campaign_id.strip():
             raise ValidationFailed("campaign_id is required")
         if shelf.campaign_id is not None:
-            systems, attribution = (), None
+            systems = ()
         name = _clean_filename(filename)
         kind = classify(name, content.read(SNIFF_BYTES))
         content.seek(0)
@@ -55,7 +54,6 @@ class UploadDocument:
                 campaign_id=shelf.campaign_id,
                 owner_id=shelf.owner_id,
                 systems=tuple(dict.fromkeys(systems)),
-                attribution=(attribution or "").strip() or None,
                 filename=name,
                 kind=kind,
                 sha256=stored.sha256,

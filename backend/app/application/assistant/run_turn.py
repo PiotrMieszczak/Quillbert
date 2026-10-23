@@ -66,7 +66,7 @@ class RunAssistantTurn:
         system_id: str | None = None,
     ) -> Generator[TurnEvent, None, None]:
         """`owner_id` and `system_id` are the campaign's: they reach the GM's library
-        and the vault's documents for that system (ADR-0027)."""
+        documents for that system (ADR-0027)."""
         text = content.strip()
         if not text:
             raise ValidationFailed("content is required")

@@ -1,4 +1,4 @@
-from sqlalchemy import case, func, select, text
+from sqlalchemy import case, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
@@ -112,11 +112,7 @@ def _passages(
             ChunkRow.page_from,
             ChunkRow.heading,
             # Same rule as the search's layer label.
-            case(
-                (DocumentRow.campaign_id.is_not(None), None),
-                (DocumentRow.owner_id.is_not(None), "My library"),
-                else_=func.coalesce(DocumentRow.attribution, "Vault"),
-            ),
+            case((DocumentRow.campaign_id.is_(None), "My library")),
         )
         .join(ChunkRow, ChunkRow.id == CitationRow.chunk_id)
         .join(DocumentRow, DocumentRow.id == ChunkRow.document_id)

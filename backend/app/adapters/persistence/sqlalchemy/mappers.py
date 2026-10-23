@@ -105,7 +105,6 @@ def document_to_row(document: Document) -> DocumentRow:
         uploaded_at=document.uploaded_at,
         owner_id=document.owner_id,
         systems=list(document.systems),
-        attribution=document.attribution,
     )
 
 
@@ -127,7 +126,6 @@ def document_from_row(row: DocumentRow) -> Document:
         uploaded_at=row.uploaded_at,
         owner_id=row.owner_id,
         systems=tuple(row.systems),
-        attribution=row.attribution,
     )
 
 

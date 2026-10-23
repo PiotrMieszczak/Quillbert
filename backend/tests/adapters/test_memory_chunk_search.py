@@ -49,7 +49,8 @@ def test_scopes_to_the_campaign_and_to_indexed_documents() -> None:
 
 
 def test_layers_follow_the_sql_rules() -> None:
-    """ADR-0027: same reach as SqlChunkSearch, so unit tests see real behaviour."""
+    """ADR-0027: same reach as SqlChunkSearch, so unit tests see real behaviour:
+    the owner's library for the campaign's system, never another GM's."""
     from datetime import UTC, datetime
 
     from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
@@ -58,8 +59,7 @@ def test_layers_follow_the_sql_rules() -> None:
     for owner, systems, name in [
         ("gm-a", (), "Mine.md"),
         ("gm-b", (), "Theirs.md"),
-        (None, ("traveller-2e",), "Traveller.md"),
-        (None, (), "Vault.md"),
+        ("gm-a", ("traveller-2e",), "Traveller.md"),
     ]:
         document = Document(
             id=repo.next_document_id(),
@@ -82,5 +82,4 @@ def test_layers_follow_the_sql_rules() -> None:
 
     assert {(h.filename, h.attribution) for h in hits} == {
         ("Mine.md", "My library"),
-        ("Vault.md", "Vault"),
     }

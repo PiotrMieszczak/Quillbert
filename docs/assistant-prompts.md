@@ -305,7 +305,7 @@ in the same change that builds the turn.
 POST content + optional focus
   → reject empty content
   → persist the user message (no prompt columns)
-  → hits = embed query + hybrid search (campaign ∪ GM library ∪ vault, ADR-0027); may be empty
+  → hits = embed query + hybrid search (campaign ∪ GM library, ADR-0027; the vault is external, #112); may be empty
   → load the GM's style guide (owner of the campaign)
   → Gateway.stream(quillbert, history, hits, focus, style guide, tools)
       loop, at most 5 rounds (ADR-0011 IMP-002):

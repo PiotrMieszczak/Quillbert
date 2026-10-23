@@ -83,13 +83,3 @@ def test_garbage_is_rejected(verifier) -> None:
 def test_deny_all_rejects_everything() -> None:
     with pytest.raises(InvalidToken):
         DenyAllVerifier().verify("anything")
-
-
-def test_the_admin_role_comes_only_from_app_metadata(verifier, private_key) -> None:
-    """ADR-0027: only the service role can write app_metadata; user_metadata is the
-    user's own and must not grant anything."""
-    admin = verifier.verify(_token(private_key, app_metadata={"role": "admin"}))
-    claimed = verifier.verify(_token(private_key, user_metadata={"role": "admin"}))
-    assert admin.is_admin
-    assert not claimed.is_admin
-    assert not verifier.verify(_token(private_key)).is_admin

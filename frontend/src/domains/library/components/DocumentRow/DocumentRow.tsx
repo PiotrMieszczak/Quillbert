@@ -13,7 +13,7 @@ const STATUS_TONE: Record<DocumentStatus, string> = {
 
 type DocumentRowProps = {
   document: LibraryDocument;
-  /** System names a library or vault document applies to; none means every system. */
+  /** System names a library document applies to; none means every system. */
   tags?: string[];
   /** A refused upload: clear the row. */
   onDismiss?: () => void;
@@ -66,7 +66,6 @@ export function DocumentRow({ document, tags, onDismiss, onCancel, onRemove, fla
           {[
             document.pages === null ? null : `${document.pages} pp`,
             document.meta,
-            document.attribution,
           ]
             .filter(Boolean)
             .join(" · ")}

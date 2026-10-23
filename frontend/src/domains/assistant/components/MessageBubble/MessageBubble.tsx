@@ -72,7 +72,7 @@ function Reply({ message, onOpenSource }: MessageBubbleProps) {
                 title={[!citation.attribution && "Open in Documents", citation.heading, citation.attribution]
                   .filter(Boolean)
                   .join(" · ")}
-                // A library or vault passage is not in this campaign's Documents (ADR-0027).
+                // A library passage is not in this campaign's Documents (ADR-0027).
                 // Not `disabled`: the tooltip carries the layer and must still show.
                 aria-disabled={citation.attribution !== null}
                 onClick={() => citation.attribution === null && onOpenSource(citation.documentId)}

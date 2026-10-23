@@ -78,8 +78,7 @@
   text-overflow: ellipsis;
 }
 
-.select,
-.input {
+.select {
   height: 34px;
   border-radius: var(--radius-input);
   border: 1px solid var(--border-default);
@@ -101,22 +100,11 @@
   background-repeat: no-repeat;
 }
 
-.input {
-  width: 200px;
-  padding: 0 12px;
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-.select:hover,
-.input:hover {
+.select:hover {
   border-color: var(--border-emphasis);
 }
 
-.select:focus-visible,
-.input:focus-visible {
+.select:focus-visible {
   border-color: var(--accent);
   outline: 2px solid var(--accent-wash);
   outline-offset: 1px;
@@ -190,8 +178,7 @@
     flex-basis: 100%;
   }
 
-  .select,
-  .input {
+  .select {
     flex: 1;
     width: auto;
   }

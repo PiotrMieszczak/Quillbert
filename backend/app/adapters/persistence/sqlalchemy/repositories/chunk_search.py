@@ -12,19 +12,16 @@ _RRF_K = 60
 # filter it usually scans that campaign's chunks exactly, which is cheap at this
 # size and never misses a match to approximate recall. The floor trims after the
 # limit, which is safe because the rows are already in distance order.
-# The campaign's own chunks, plus its owner's library and the vault for the campaign's
-# system (ADR-0027). One GM's library never reaches another GM's campaign.
+# The campaign's own chunks, plus its owner's library for the campaign's system
+# (ADR-0027). One GM's library never reaches another GM's campaign.
 _IN_REACH = """(
     c.campaign_id = :campaign_id
-    OR (c.campaign_id IS NULL
-        AND (c.owner_id = :owner_id OR c.owner_id IS NULL)
+    OR (c.owner_id = :owner_id
         AND (cardinality(c.systems) = 0 OR :system_id = ANY(c.systems)))
 )"""
 
 # The layer a hit comes from, shown beside its citation; none for the campaign's own.
-_LAYER = """CASE WHEN c.campaign_id IS NOT NULL THEN NULL
-                WHEN c.owner_id IS NOT NULL THEN 'My library'
-                ELSE COALESCE(d.attribution, 'Vault') END"""
+_LAYER = "CASE WHEN c.campaign_id IS NULL THEN 'My library' END"
 
 _SEARCH = text(
     f"""
