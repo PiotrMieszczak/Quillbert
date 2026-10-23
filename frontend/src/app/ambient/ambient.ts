@@ -300,7 +300,7 @@ export function mountAmbient(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return () => {};
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W = 0, H = 0, dpr = 1, raf = 0, last = 0;
+  let W = 0, H = 0, dpr = 1, raf = 0, last = 0, alive = true;
   let mx = 0.65, my = 0.3, gx = 0.65, gy = 0.3, glow = 0, flareUntil = 0, spin = 0;
   let orrery: { key: string; layers: Orrery } | null = null;
   let sparks: Spark[] = [];
@@ -531,6 +531,8 @@ export function mountAmbient(canvas: HTMLCanvasElement) {
   }
 
   function frame(ts: number) {
+    // A late callback (fonts.ready, a queued redraw) must not restart the loop after unmount.
+    if (!alive) return;
     gx += (mx - gx) * 0.025;
     gy += (my - gy) * 0.025;
     glow += ((flareUntil > ts ? 1 : 0) - glow) * 0.035;
@@ -581,6 +583,7 @@ export function mountAmbient(canvas: HTMLCanvasElement) {
   raf = requestAnimationFrame(frame);
 
   return () => {
+    alive = false;
     cancelAnimationFrame(raf);
     themeObserver.disconnect();
     window.removeEventListener("resize", size);

@@ -31,7 +31,9 @@ export function DocumentRow({ document, onDismiss, onCancel, onRemove, flash }: 
   const failed = document.status === "Failed";
 
   useEffect(() => {
-    if (flash) rowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (!flash) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    rowRef.current?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
   }, [flash]);
 
   async function remove() {
