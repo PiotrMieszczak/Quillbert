@@ -2,8 +2,8 @@
 
 Working agreement for this repository. Read this file, then load only what the task needs.
 
-**Status: pre-implementation.** `docs/` is the product; no application code exists yet.
-Until it does, most tasks are documentation tasks — and a wrong doc becomes wrong code.
+**Status:** v1 is live at quillbert.app: FastAPI in `backend/`, React in `frontend/`.
+`docs/` is the spec the code follows — a wrong doc becomes wrong code.
 
 ## Progressive disclosure
 
@@ -49,38 +49,10 @@ and PRs.
 Accepted ADRs are **in force**. Records are **immutable** once accepted — a changed
 decision is a *new* ADR that supersedes the old one, never an edit to history.
 
-| ADR | Decision | Status |
-|-----|----------|--------|
-| [0001](docs/adr/adr-0001-react-vite-spa.md) | React + Vite SPA, FastAPI backend | Accepted |
-| [0002](docs/adr/adr-0002-deterministic-extraction.md) | No LLM in the ingestion path | Accepted |
-| [0003](docs/adr/adr-0003-sqlite-single-store.md) | SQLite single store, no graph DB in v1 | **Superseded by 0013** |
-| [0004](docs/adr/adr-0004-css-modules-over-tailwind.md) | CSS Modules + tokens; **no Tailwind** | Accepted |
-| [0005](docs/adr/adr-0005-fts5-before-vectors.md) | FTS5 before semantic search | **Superseded by 0014** |
-| [0006](docs/adr/adr-0006-llm-gateway.md) | One LLM Gateway, runtime provider switching | **Superseded by 0019** |
-| [0007](docs/adr/adr-0007-local-profile-auth.md) | Local profile, deferred auth | **Superseded by 0008** |
-| [0008](docs/adr/adr-0008-own-auth-v1.md) | Build auth by hand in v1 | **Superseded by 0020** |
-| [0009](docs/adr/adr-0009-ag-ui-protocol.md) | AG-UI for assistant streaming | Accepted |
-| [0010](docs/adr/adr-0010-no-agent-framework.md) | No agent framework | **Superseded by 0011** |
-| [0011](docs/adr/adr-0011-assistant-tools.md) | Assistant tools; writes via proposal | Accepted |
-| [0012](docs/adr/adr-0012-two-ai-modes.md) | Research / Creative / in-character modes | Accepted for in-character only; research/creative replaced by 0026 |
-| [0013](docs/adr/adr-0013-postgres-for-local-and-hosted.md) | PostgreSQL for local **and** hosted | **Superseded by 0018** |
-| [0014](docs/adr/adr-0014-hybrid-retrieval.md) | Hybrid keyword + vector retrieval | **Superseded by 0016, then 0021** |
-| [0015](docs/adr/adr-0015-frontend-api-contract.md) | Generated API types; FE adapters, DTOs stay in `api/` | Accepted |
-| [0016](docs/adr/adr-0016-voyage-embeddings.md) | Hybrid retrieval; one fixed hosted embedding model (Voyage) | **Superseded by 0021** |
-| [0017](docs/adr/adr-0017-import-sources.md) | Google Drive as import source; storage per deployment | Accepted |
-| [0018](docs/adr/adr-0018-hosted-first-local-v2.md) | Hosted-first MVP; local deployment deferred to v2 | Accepted |
-| [0019](docs/adr/adr-0019-openrouter-privacy-routing.md) | OpenRouter single provider, zero-retention allowlist | Accepted |
-| [0020](docs/adr/adr-0020-supabase-auth.md) | Supabase Auth in v1; project is tool-first | Accepted |
-| [0021](docs/adr/adr-0021-gemini-embeddings-via-openrouter.md) | Hybrid retrieval; Gemini Embedding 2 via OpenRouter, zero-retention pinned | Accepted |
-| [0022](docs/adr/adr-0022-jev-after-chat-prototype.md) | Jev judges Research answers after the chat prototype; the GM keeps the mode | **Superseded by 0025** |
-| [0023](docs/adr/adr-0023-system-rules-library.md) | SRD 5.1 / 5.2 as a shared, read-only system library | **Superseded by 0027** |
-| [0024](docs/adr/adr-0024-quillbert-prompt-profiles.md) | Quillbert prompt profiles, hash-versioned, traced | Accepted; profile split replaced by 0026 |
-| [0025](docs/adr/adr-0025-jev-routes-intent.md) | One composer; Jev routes intent; every reply shows its mode | **Superseded by 0026** |
-| [0026](docs/adr/adr-0026-one-assistant-claim-provenance.md) | One assistant; provenance per claim; memory is what the GM saves | Accepted |
-| [0027](docs/adr/adr-0027-layered-knowledge-admin-vault.md) | Layered knowledge: admin vault, GM library, campaign; admin UI | Accepted |
-| [0028](docs/adr/adr-0028-safety-without-surveillance.md) | Safety without surveillance: limits, metadata, flag-only review | Accepted |
-
-Do not cite 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016, 0022, 0023, or 0025 as current. Cite what superseded them.
+Index, titles and status: [docs/adr/README.md](docs/adr/README.md). Superseded — never cite
+as current, cite what replaced them: 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016,
+0022, 0023, 0025. Partly replaced by 0026: 0012 (in-character mode stands) and 0024 (the
+profile split).
 
 ### The four that break the product if broken
 
@@ -150,8 +122,7 @@ Rules of thumb:
 
 ## Conventions
 
-- **Documentation is the deliverable right now.** A change to behaviour changes `docs/`
-  in the same commit.
+- **A change to behaviour changes `docs/` in the same commit.**
 - **Commit messages:** [Conventional Commits](https://www.conventionalcommits.org) —
   `<type>(<scope>): <imperative summary>`, subject ≤50 chars (hard cap 72), no trailing
   period. Types: `feat` `fix` `refactor` `perf` `docs` `test` `chore` `build` `ci` `style`
@@ -163,11 +134,23 @@ Rules of thumb:
 - **PRs:** short, using [.github/pull_request_template.md](.github/pull_request_template.md):
   What / Heads-up / Deferred. The diff and the linked ADR carry the detail.
 - **No screenshots in PRs.** Never add a Screenshots section or screenshot files to a PR.
-- **New decision?** Write an ADR (`docs/adr/adr-NNNN-slug.md`, four-digit sequential) and
-  add it to both index tables. Follow the format in
-  [docs/adr/README.md](docs/adr/README.md).
+- **New decision?** Write an ADR (`docs/adr/adr-NNNN-slug.md`, four-digit sequential), add
+  it to the index in [docs/adr/README.md](docs/adr/README.md), and follow its format.
 - **The design prototype is a reference, never imported** (BND-004). Transcribe values
   into tokens; rebuild markup with project primitives.
 - **Starting new work?** Research → issue with acceptance criteria → project board →
   branch and PR linked with `Closes #n`. The `task-flow` skill carries the detail.
 - **Never commit or push unless asked.** Branch first if on `main`.
+- **Stage by explicit path, never `git add <dir>` or `-A`.** Other sessions may share this
+  checkout: check `git status` and `git log` for files or commits you didn't make before
+  committing or pushing.
+
+## Quick commands
+
+```bash
+cd backend && .venv/bin/ruff check app tests && .venv/bin/python -m pytest -q   # Postgres tests skip without TEST_DATABASE_URL
+cd frontend && npm test && npx tsc -b && npm run lint && npm run build
+```
+
+Postgres tests need a throwaway pgvector: [backend/README.md → Run the Postgres tests](backend/README.md#run-the-postgres-tests).
+Never point them at a Supabase project — they empty the tables.
