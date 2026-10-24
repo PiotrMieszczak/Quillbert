@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type ComponentType } from "react";
 import { signOut, useAuthStore } from "../domains/auth";
 import type { Campaign } from "../domains/campaign";
 import { CampaignPicker } from "../screens/campaigns/CampaignPicker";
+import { MyLibrary } from "../screens/library/MyLibrary";
 import { Login } from "../screens/login/Login";
 import { Documents, type DocumentFocus } from "../screens/workspace/Documents";
 import { AmbientCanvas } from "./ambient";
@@ -26,18 +28,26 @@ function Screen() {
   const { ready, session, recovering } = useAuthStore();
   const [view, setView] = useState("documents");
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [library, setLibrary] = useState(false);
   // The document a citation chip asked to see; `at` re-triggers the highlight on a repeat click.
   const [focus, setFocus] = useState<DocumentFocus | null>(null);
+  const queryClient = useQueryClient();
   if (!ready) return null;
   // A reset link signs the user in; keep them on the form until they pick a new password.
   if (!session || recovering) return <Login />;
 
   const leave = () => {
     setCampaign(null);
+    setLibrary(false);
+    // Some query keys (the GM's library) carry no user id; the next GM must not see them.
+    queryClient.clear();
     void signOut();
   };
+  if (library) return <MyLibrary onBack={() => setLibrary(false)} />;
   if (!campaign) {
-    return <CampaignPicker email={session.user.email} onOpen={setCampaign} onSignOut={leave} />;
+    return (
+      <CampaignPicker email={session.user.email} onOpen={setCampaign} onOpenLibrary={() => setLibrary(true)} onSignOut={leave} />
+    );
   }
 
   const View = VIEWS[view] ?? Documents;

@@ -1,15 +1,22 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.domain.documents.values import DocumentKind, DocumentSource, DocumentStatus
+from app.domain.documents.values import (
+    DocumentKind,
+    DocumentSource,
+    DocumentStatus,
+    Shelf,
+)
 
 
 @dataclass
 class Document:
-    """A file in a campaign's library. Mirrors docs/data-model.md `document`."""
+    """A file on a shelf: a campaign or a GM's library (ADR-0027).
+    Mirrors docs/data-model.md `document`."""
 
     id: int
-    campaign_id: str
+    # Set for a campaign document; owner_id instead for a GM's library.
+    campaign_id: str | None
     filename: str
     kind: DocumentKind
     sha256: str
@@ -23,3 +30,10 @@ class Document:
     error: str | None = None
     source: DocumentSource = DocumentSource.UPLOAD
     source_ref: str | None = None
+    owner_id: str | None = None
+    # Systems a library document applies to; empty means all.
+    systems: tuple[str, ...] = ()
+
+    @property
+    def shelf(self) -> Shelf:
+        return Shelf(self.campaign_id, self.owner_id)

@@ -120,6 +120,22 @@ fetches it and shows it from a blob URL rather than pointing an `<img>` at it.
 A document is only visible inside its campaign: another campaign's id answers `404`, and
 the same bytes in two campaigns are two documents.
 
+### My library ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md))
+
+The same document shape on one more shelf, outside any campaign. Research in a campaign
+also searches its owner's library documents for the campaign's system. The shared vault is
+an external service ([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)), not
+a shelf here.
+
+| Method | Path | Who | Purpose |
+|--------|------|-----|---------|
+| `GET` | `/library/documents` | the caller | Their own library |
+| `POST` | `/library/documents` | the caller | Upload: `file`, `systems` (comma-separated system ids; empty = all) |
+| `DELETE` | `/library/documents/{id}` | the caller | Remove; another GM's id is `404` |
+
+An unknown system id is `400`. Library documents carry `"systems": [...]` in the response;
+campaign documents have `[]`.
+
 `DELETE` answers `204` with no body and removes the row and its stored file (chunks and
 index rows go with it once extraction exists). A missing id, or one from another campaign,
 is `404`. Afterwards the same bytes can be uploaded again as a new document.
@@ -259,6 +275,8 @@ it reads **only the content of the last user message** and ignores client-sent h
   "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
                   "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
                   "attribution": "SRD 5.2 · CC-BY-4.0" }] }
+  // attribution: "My library" for a GM-library passage (ADR-0027); null for the
+  // campaign's own documents.
 ```
 
 `GET /campaigns/{cid}/conversations` lists newest first. The panel opens the newest one, or

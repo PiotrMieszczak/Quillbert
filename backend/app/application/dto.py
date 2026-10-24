@@ -53,6 +53,7 @@ class DocumentView:
     status: DocumentStatus
     progress: int
     error: str | None
+    systems: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

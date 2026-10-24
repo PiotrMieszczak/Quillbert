@@ -13,6 +13,8 @@ const STATUS_TONE: Record<DocumentStatus, string> = {
 
 type DocumentRowProps = {
   document: LibraryDocument;
+  /** System names a library document applies to; none means every system. */
+  tags?: string[];
   /** A refused upload: clear the row. */
   onDismiss?: () => void;
   /** An upload in flight: stop it. */
@@ -23,7 +25,7 @@ type DocumentRowProps = {
   flash?: number;
 };
 
-export function DocumentRow({ document, onDismiss, onCancel, onRemove, flash }: DocumentRowProps) {
+export function DocumentRow({ document, tags, onDismiss, onCancel, onRemove, flash }: DocumentRowProps) {
   const rowRef = useRef<HTMLLIElement>(null);
   const [confirming, setConfirming] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -52,9 +54,21 @@ export function DocumentRow({ document, onDismiss, onCancel, onRemove, flash }: 
       {flash && <span key={flash} className={styles.flash} aria-hidden />}
       <span className={styles.thumb}>{document.kind}</span>
       <span className={styles.body}>
-        <span className={styles.name}>{document.name}</span>
+        <span className={styles.titleLine}>
+          <span className={styles.name}>{document.name}</span>
+          {tags?.map((tag) => (
+            <span key={tag} className={styles.tag}>
+              {tag}
+            </span>
+          ))}
+        </span>
         <span className={failed ? styles.metaError : styles.meta}>
-          {document.pages === null ? document.meta : `${document.pages} pp · ${document.meta}`}
+          {[
+            document.pages === null ? null : `${document.pages} pp`,
+            document.meta,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </span>
       <span className={styles.progress}>

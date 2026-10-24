@@ -3,12 +3,12 @@
   left: var(--rail-offset-left);
   top: 50%;
   transform: translateY(-50%);
-  z-index: 10;
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   width: var(--rail-width-collapsed);
-  padding: 10px 8px;
+  padding: 14px 8px;
   overflow: hidden;
   background: var(--surface-raised);
   border: 1px solid var(--border-strong);
@@ -20,31 +20,91 @@
 .rail:hover,
 .rail:has(:focus-visible) {
   width: var(--rail-width-expanded);
+  padding: 16px 14px;
   box-shadow: var(--shadow-rail-expanded);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 2px 2px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mark {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-button);
+  background: linear-gradient(135deg, var(--border-default), var(--surface-elevated));
+  border: 1px solid var(--border-emphasis);
+}
+
+.mark img {
+  display: block;
+  width: 26px;
+  height: auto;
+}
+
+.brandName {
+  font: 600 17px/1.1 var(--font-display);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Collapsed shows icons only; labels and the wordmark fade in when the rail expands. */
+.brandName,
+.label {
+  opacity: 0;
+  transition:
+    opacity 0.26s var(--ease),
+    transform 0.25s var(--ease-spring);
+}
+
+.rail:hover :is(.brandName, .label),
+.rail:has(:focus-visible) :is(.brandName, .label) {
+  opacity: 1;
 }
 
 .item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 9px 10px;
+  gap: 13px;
+  width: 100%;
+  padding: 11px 12px;
   border: none;
-  border-radius: var(--radius-button);
+  border-radius: var(--radius-input);
   background: none;
   color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 500;
   text-align: left;
   white-space: nowrap;
-  transition: var(--transition-fast);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    box-shadow 0.3s var(--ease-spring),
+    transform 0.12s;
 }
 
 .item:hover {
-  background: var(--surface-hover);
+  background: var(--surface-subtle);
   color: var(--text-secondary);
 }
 
 .item:active {
   transform: scale(0.97);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Hover marker: a short amber bar that grows from the item's left edge. */
@@ -69,11 +129,6 @@
   transform: scaleY(0.7);
 }
 
-.active::before,
-.active:hover::before {
-  opacity: 0;
-}
-
 .item:hover .glyph {
   transform: scale(1.12) rotate(-4deg);
   color: var(--accent);
@@ -83,34 +138,30 @@
   transform: translateX(3px);
 }
 
-/* Active keeps the wash so it reads as current, not merely hovered. */
+/* Active: raised fill, ink label, amber icon and a full-height amber edge. */
 .active,
 .active:hover {
-  background: var(--accent-wash);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.active::before,
+.active:hover::before {
+  opacity: 0;
+}
+
+.active .glyph {
   color: var(--accent);
 }
 
 .glyph {
   flex: none;
-  width: 22px;
-  font-size: 15px;
-  text-align: center;
+  display: flex;
   transition:
     transform 0.25s var(--ease-spring),
     color 0.2s;
-}
-
-.label {
-  font-size: 13px;
-  opacity: 0;
-  transition:
-    opacity 0.26s var(--ease),
-    transform 0.25s var(--ease-spring);
-}
-
-.rail:hover .label,
-.rail:has(:focus-visible) .label {
-  opacity: 1;
 }
 
 @media (max-width: 900px) {

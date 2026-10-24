@@ -31,6 +31,7 @@ def test_upload_returns_202_with_a_queued_document(client: TestClient) -> None:
         "status": "queued",
         "progress": 0,
         "error": None,
+        "systems": [],
     }
 
 
@@ -132,3 +133,31 @@ def test_deleting_a_missing_or_foreign_document_is_404(client: TestClient) -> No
 
 def test_delete_needs_a_token(anonymous_client: TestClient) -> None:
     assert anonymous_client.delete(f"{URL}/1").status_code == 401
+
+
+OTHER = {"Authorization": "Bearer other-token"}
+
+
+def test_an_unknown_system_is_rejected(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/library/documents",
+        files={"file": ("x.pdf", PDF, "application/octet-stream")},
+        data={"systems": "no-such-system"},
+    )
+    assert response.status_code == 400
+
+
+def test_the_library_is_the_callers_own(client: TestClient) -> None:
+    assert _upload(client, url="/api/v1/library/documents").status_code == 202
+
+    mine = client.get("/api/v1/library/documents").json()
+    others = client.get("/api/v1/library/documents", headers=OTHER).json()
+
+    assert [d["filename"] for d in mine] == ["Core Rulebook.pdf"]
+    assert others == []
+    assert (
+        client.delete(
+            f"/api/v1/library/documents/{mine[0]['id']}", headers=OTHER
+        ).status_code
+        == 404
+    )

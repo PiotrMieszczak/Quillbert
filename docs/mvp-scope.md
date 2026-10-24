@@ -69,8 +69,8 @@ library (indexed and cited like any upload), or an addition to the GM's per-user
 guide. Conversations themselves are never indexed. Replies and notes follow the language
 of the GM's question.
 
-Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) in the admin vault
-([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). Traveller rules come from the GM's
+Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) in the shared vault, an
+external service Quillbert consumes ([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)). Traveller rules come from the GM's
 own upload.
 
 

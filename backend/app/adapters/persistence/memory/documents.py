@@ -1,7 +1,7 @@
 import dataclasses
 from collections.abc import Sequence
 
-from app.domain.documents import Chunk, Document, DocumentStatus
+from app.domain.documents import Chunk, Document, DocumentStatus, Shelf
 from app.domain.shared import NotFound
 
 
@@ -20,31 +20,39 @@ class InMemoryDocumentRepo:
         return ident
 
     def add(self, document: Document) -> None:
-        if self._campaigns is not None and document.campaign_id not in self._campaigns:
+        if (
+            self._campaigns is not None
+            and document.campaign_id is not None
+            and document.campaign_id not in self._campaigns
+        ):
             raise NotFound("campaign not found")
         self._documents[document.id] = document
 
-    def get(self, campaign_id: str, document_id: int) -> Document | None:
+    def get(self, shelf: Shelf, document_id: int) -> Document | None:
         document = self._documents.get(document_id)
-        if document is None or document.campaign_id != campaign_id:
+        if document is None or document.shelf != shelf:
             return None
         return document
 
-    def list_for_campaign(self, campaign_id: str) -> list[Document]:
+    def list_shelf(self, shelf: Shelf) -> list[Document]:
         return sorted(
-            (d for d in self._documents.values() if d.campaign_id == campaign_id),
+            (d for d in self._documents.values() if d.shelf == shelf),
             key=lambda document: document.id,
         )
 
-    def remove(self, campaign_id: str, document_id: int) -> Document | None:
-        document = self.get(campaign_id, document_id)
+    def all(self) -> list[Document]:
+        """Every shelf, for the in-memory search."""
+        return sorted(self._documents.values(), key=lambda document: document.id)
+
+    def remove(self, shelf: Shelf, document_id: int) -> Document | None:
+        document = self.get(shelf, document_id)
         if document is not None:
             del self._documents[document_id]
             self.chunks.pop(document_id, None)
         return document
 
-    def find_by_sha256(self, campaign_id: str, sha256: str) -> Document | None:
-        for document in self.list_for_campaign(campaign_id):
+    def find_by_sha256(self, shelf: Shelf, sha256: str) -> Document | None:
+        for document in self.list_shelf(shelf):
             if document.sha256 == sha256:
                 return document
         return None

@@ -21,6 +21,7 @@ from app.entrypoints.http.schemas.assistant import (
     MessageOut,
 )
 from app.entrypoints.http.streaming import ag_ui_frames
+from app.ports.auth import Identity
 
 router = APIRouter(
     prefix="/api/v1/campaigns/{campaign_id}", dependencies=[Depends(require_campaign)]
@@ -68,6 +69,7 @@ def _message_out(view: MessageView) -> MessageOut:
                 filename=c.filename,
                 page_from=c.page_from,
                 heading=c.heading,
+                attribution=c.attribution,
             )
             for c in view.citations
         ],
@@ -126,11 +128,17 @@ def send_message(
     conversation_id: int,
     body: RunAgentInput,
     request: Request,
+    identity: Identity = Depends(require_campaign),
 ) -> StreamingResponse:
+    campaign = request.app.state.get_campaign.execute(
+        owner_id=identity.user_id, campaign_id=campaign_id
+    )
     events = _run(request).execute(
         campaign_id=campaign_id,
         conversation_id=conversation_id,
         content=_question(body, conversation_id),
+        owner_id=identity.user_id,
+        system_id=campaign.system.id,
     )
     # Validation and not-found errors surface here as HTTP errors, before streaming.
     first = next(events)

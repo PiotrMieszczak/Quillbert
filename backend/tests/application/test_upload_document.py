@@ -12,7 +12,7 @@ from app.application.documents import (
     ListDocuments,
     UploadDocument,
 )
-from app.domain.documents import DocumentKind, DocumentStatus
+from app.domain.documents import DocumentKind, DocumentStatus, Shelf
 from app.domain.shared import (
     FileTooLarge,
     NotFound,
@@ -49,7 +49,9 @@ def upload(repo: InMemoryDocumentRepo, root: Path) -> UploadDocument:
 def _put(
     upload: UploadDocument, name: str = "Core.pdf", data: bytes = PDF, cid="ashfall"
 ):
-    return upload.execute(campaign_id=cid, filename=name, content=io.BytesIO(data))
+    return upload.execute(
+        shelf=Shelf.campaign(cid), filename=name, content=io.BytesIO(data)
+    )
 
 
 def test_a_new_upload_is_queued_with_no_progress(
@@ -70,7 +72,7 @@ def test_the_stored_file_sits_under_the_documents_storage_key(
 ) -> None:
     result = _put(upload)
 
-    document = repo.get("ashfall", result.document.id)
+    document = repo.get(Shelf.campaign("ashfall"), result.document.id)
 
     assert document is not None
     assert (root / document.storage_key[:2] / document.storage_key).read_bytes() == PDF
@@ -145,11 +147,14 @@ def test_campaigns_do_not_see_each_others_documents(
     listing = ListDocuments(repo)
     getting = GetDocument(repo)
 
-    assert [d.id for d in listing.execute(campaign_id="ashfall")] == [mine.id]
-    assert listing.execute(campaign_id="other") == []
-    assert getting.execute(campaign_id="ashfall", document_id=mine.id).id == mine.id
+    assert [d.id for d in listing.execute(shelf=Shelf.campaign("ashfall"))] == [mine.id]
+    assert listing.execute(shelf=Shelf.campaign("other")) == []
+    assert (
+        getting.execute(shelf=Shelf.campaign("ashfall"), document_id=mine.id).id
+        == mine.id
+    )
     with pytest.raises(NotFound):
-        getting.execute(campaign_id="other", document_id=mine.id)
+        getting.execute(shelf=Shelf.campaign("other"), document_id=mine.id)
 
 
 def test_delete_removes_the_document_and_its_file(
@@ -158,10 +163,10 @@ def test_delete_removes_the_document_and_its_file(
     added = _put(upload).document
 
     DeleteDocument(LocalDiskFileStore(root), repo).execute(
-        campaign_id="ashfall", document_id=added.id
+        shelf=Shelf.campaign("ashfall"), document_id=added.id
     )
 
-    assert repo.get("ashfall", added.id) is None
+    assert repo.get(Shelf.campaign("ashfall"), added.id) is None
     assert _stored(root) == []
     # The same bytes can be uploaded again afterwards.
     assert _put(upload).created is True
@@ -174,6 +179,6 @@ def test_delete_from_another_campaign_is_not_found_and_keeps_the_file(
 
     with pytest.raises(NotFound):
         DeleteDocument(LocalDiskFileStore(root), repo).execute(
-            campaign_id="other", document_id=added.id
+            shelf=Shelf.campaign("other"), document_id=added.id
         )
     assert len(_stored(root)) == 1

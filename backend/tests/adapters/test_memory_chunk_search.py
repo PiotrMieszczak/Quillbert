@@ -27,7 +27,7 @@ def _repo(campaign_id: str = "ashfall", status=DocumentStatus.INDEXED):
 
 def test_ranks_chunks_by_keyword_overlap() -> None:
     hits = InMemoryChunkSearch(_repo()).search(
-        "ashfall", None, "starships jump", None, 6
+        "ashfall", None, None, "starships jump", None, 6
     )
 
     assert [h.content for h in hits] == ["Starships jump"]
@@ -39,6 +39,47 @@ def test_ranks_chunks_by_keyword_overlap() -> None:
 
 
 def test_scopes_to_the_campaign_and_to_indexed_documents() -> None:
-    assert InMemoryChunkSearch(_repo()).search("other", None, "jump", None, 6) == []
+    assert (
+        InMemoryChunkSearch(_repo()).search("other", None, None, "jump", None, 6) == []
+    )
     queued = _repo(status=DocumentStatus.QUEUED)
-    assert InMemoryChunkSearch(queued).search("ashfall", None, "jump", None, 6) == []
+    assert (
+        InMemoryChunkSearch(queued).search("ashfall", None, None, "jump", None, 6) == []
+    )
+
+
+def test_layers_follow_the_sql_rules() -> None:
+    """ADR-0027: same reach as SqlChunkSearch, so unit tests see real behaviour:
+    the owner's library for the campaign's system, never another GM's."""
+    from datetime import UTC, datetime
+
+    from app.domain.documents import Chunk, Document, DocumentKind, DocumentStatus
+
+    repo = InMemoryDocumentRepo()
+    for owner, systems, name in [
+        ("gm-a", (), "Mine.md"),
+        ("gm-b", (), "Theirs.md"),
+        ("gm-a", ("traveller-2e",), "Traveller.md"),
+    ]:
+        document = Document(
+            id=repo.next_document_id(),
+            campaign_id=None,
+            owner_id=owner,
+            systems=systems,
+            filename=name,
+            kind=DocumentKind.DOC,
+            sha256=name,
+            storage_key=name,
+            uploaded_at=datetime(2026, 10, 23, tzinfo=UTC),
+        )
+        repo.add(document)
+        document.status = DocumentStatus.INDEXED
+        repo.index(document, [Chunk(0, "jump drive", 1, 1, None)])
+
+    hits = InMemoryChunkSearch(repo).search(
+        "ashfall", "gm-a", "dnd-2024", "jump", None, 6
+    )
+
+    assert {(h.filename, h.attribution) for h in hits} == {
+        ("Mine.md", "My library"),
+    }

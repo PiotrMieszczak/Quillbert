@@ -1,3 +1,4 @@
+from app.domain.documents import Shelf
 from app.domain.shared import NotFound
 from app.ports.files import FileStore
 from app.ports.repositories import DocumentRepo
@@ -11,8 +12,8 @@ class DeleteDocument:
         self._files = files
         self._repo = repo
 
-    def execute(self, *, campaign_id: str, document_id: int) -> None:
-        document = self._repo.remove(campaign_id, document_id)
+    def execute(self, *, shelf: Shelf, document_id: int) -> None:
+        document = self._repo.remove(shelf, document_id)
         if document is None:
             raise NotFound("document not found")
         # The row goes first: a file left behind by a failure here is unreachable, not

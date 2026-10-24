@@ -14,3 +14,5 @@ class DocumentOut(BaseModel):
     status: DocumentStatus
     progress: int
     error: str | None
+    # Library only (ADR-0027): the systems it applies to; empty means all.
+    systems: list[str] = []

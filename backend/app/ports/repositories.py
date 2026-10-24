@@ -3,7 +3,7 @@ from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
 from app.domain.campaigns import Campaign, System
-from app.domain.documents import Chunk, Document
+from app.domain.documents import Chunk, Document, Shelf
 
 
 class ConversationRepo(Protocol):
@@ -25,24 +25,24 @@ class ConversationRepo(Protocol):
 
 
 class DocumentRepo(Protocol):
-    """Every read takes the campaign id: a document shows only inside its campaign."""
+    """Every read takes a shelf: a document shows only on its own shelf (ADR-0027)."""
 
     def next_document_id(self) -> int: ...
 
     def add(self, document: Document) -> None:
-        """Raises NotFound when the campaign does not exist."""
+        """Raises NotFound when its campaign does not exist."""
         ...
 
-    def get(self, campaign_id: str, document_id: int) -> Document | None: ...
+    def get(self, shelf: Shelf, document_id: int) -> Document | None: ...
 
-    def list_for_campaign(self, campaign_id: str) -> list[Document]:
+    def list_shelf(self, shelf: Shelf) -> list[Document]:
         """Oldest first."""
         ...
 
-    def find_by_sha256(self, campaign_id: str, sha256: str) -> Document | None: ...
+    def find_by_sha256(self, shelf: Shelf, sha256: str) -> Document | None: ...
 
-    def remove(self, campaign_id: str, document_id: int) -> Document | None:
-        """Delete and return the document, or None when that campaign has no such id."""
+    def remove(self, shelf: Shelf, document_id: int) -> Document | None:
+        """Delete and return the document, or None when that shelf has no such id."""
         ...
 
     def claim_queued(self) -> Document | None:

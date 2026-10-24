@@ -32,14 +32,19 @@ def _chunk(ordinal: int, content: str, axis: int | None) -> Chunk:
 
 def _index(
     repo: SqlDocumentRepo,
-    campaign_id: str,
+    campaign_id: str | None,
     filename: str,
     chunks: list[Chunk],
     status: DocumentStatus = DocumentStatus.INDEXED,
+    *,
+    owner_id: str | None = None,
+    systems: tuple[str, ...] = (),
 ) -> Document:
     document = Document(
         id=repo.next_document_id(),
         campaign_id=campaign_id,
+        owner_id=owner_id,
+        systems=systems,
         filename=filename,
         kind=DocumentKind.PDF,
         sha256=f"{repo.next_document_id():064d}",
@@ -75,7 +80,7 @@ def test_a_keyword_hit_carries_its_citation_fields(
         ],
     )
 
-    hits = search.search("ashfall", None, "jump", None, 6)
+    hits = search.search("ashfall", None, None, "jump", None, 6)
 
     assert [(h.document_id, h.filename, h.page_from, h.heading) for h in hits] == [
         (document.id, "Core.pdf", 1, "H")
@@ -89,7 +94,7 @@ def test_a_vector_hit_needs_no_shared_words(
 ) -> None:
     _index(repo, "ashfall", "Core.pdf", [_chunk(0, "alpha", 0), _chunk(1, "beta", 1)])
 
-    hits = search.search("ashfall", None, "unrelated words", _vector(1), 6)
+    hits = search.search("ashfall", None, None, "unrelated words", _vector(1), 6)
 
     assert [h.content for h in hits] == ["beta"]
 
@@ -108,7 +113,7 @@ def test_fusion_ranks_a_chunk_both_legs_found_above_one_leg(
         ],
     )
 
-    hits = search.search("ashfall", None, "dragon", _vector(1), 6)
+    hits = search.search("ashfall", None, None, "dragon", _vector(1), 6)
 
     # lair and prose tie at 1/61, so the lower chunk id comes first.
     assert [h.content for h in hits] == [
@@ -127,7 +132,7 @@ def test_k_trims_the_fused_list(repo: SqlDocumentRepo, search: SqlChunkSearch) -
         [_chunk(i, f"dragon {i}", None) for i in range(4)],
     )
 
-    assert len(search.search("ashfall", None, "dragon", None, 2)) == 2
+    assert len(search.search("ashfall", None, None, "dragon", None, 2)) == 2
 
 
 def test_nothing_above_the_floor_is_no_result(
@@ -135,8 +140,8 @@ def test_nothing_above_the_floor_is_no_result(
 ) -> None:
     _index(repo, "ashfall", "Core.pdf", [_chunk(0, "alpha", 0)])
 
-    assert search.search("ashfall", None, "nothing matches", _vector(1), 6) == []
-    assert search.search("ashfall", None, "", None, 6) == []
+    assert search.search("ashfall", None, None, "nothing matches", _vector(1), 6) == []
+    assert search.search("ashfall", None, None, "", None, 6) == []
 
 
 def test_a_higher_floor_drops_a_weaker_vector_match(
@@ -149,8 +154,12 @@ def test_a_higher_floor_drops_a_weaker_vector_match(
     chunk.embedding_model = "google/gemini-embedding-2"
     _index(repo, "ashfall", "Core.pdf", [chunk])
 
-    assert SqlChunkSearch(sessions, 0.7).search("ashfall", None, "x", _vector(0), 6)
-    assert not SqlChunkSearch(sessions, 0.8).search("ashfall", None, "x", _vector(0), 6)
+    assert SqlChunkSearch(sessions, 0.7).search(
+        "ashfall", None, None, "x", _vector(0), 6
+    )
+    assert not SqlChunkSearch(sessions, 0.8).search(
+        "ashfall", None, None, "x", _vector(0), 6
+    )
 
 
 def test_another_campaigns_chunks_are_never_returned(
@@ -158,8 +167,8 @@ def test_another_campaigns_chunks_are_never_returned(
 ) -> None:
     _index(repo, "other", "Secret.pdf", [_chunk(0, "dragon secret", 0)])
 
-    assert search.search("ashfall", None, "dragon", _vector(0), 6) == []
-    assert len(search.search("other", None, "dragon", _vector(0), 6)) == 1
+    assert search.search("ashfall", None, None, "dragon", _vector(0), 6) == []
+    assert len(search.search("other", None, None, "dragon", _vector(0), 6)) == 1
 
 
 @pytest.mark.parametrize(
@@ -176,7 +185,7 @@ def test_documents_that_are_not_indexed_are_excluded(
 ) -> None:
     _index(repo, "ashfall", "Half.pdf", [_chunk(0, "dragon", 0)], status=status)
 
-    assert search.search("ashfall", None, "dragon", _vector(0), 6) == []
+    assert search.search("ashfall", None, None, "dragon", _vector(0), 6) == []
 
 
 def test_a_chunk_without_an_embedding_is_still_found_by_keyword(
@@ -184,4 +193,23 @@ def test_a_chunk_without_an_embedding_is_still_found_by_keyword(
 ) -> None:
     _index(repo, "ashfall", "Core.pdf", [_chunk(0, "dragon", None)])
 
-    assert len(search.search("ashfall", None, "dragon", _vector(0), 6)) == 1
+    assert len(search.search("ashfall", None, None, "dragon", _vector(0), 6)) == 1
+
+
+def test_a_campaign_hit_carries_no_layer(
+    repo: SqlDocumentRepo, search: SqlChunkSearch
+) -> None:
+    _index(repo, "ashfall", "Core.pdf", [_chunk(0, "dragon", None)])
+    (hit,) = search.search("ashfall", "gm-a", "dnd-2024", "dragon", None, 6)
+    assert hit.attribution is None
+
+
+def test_a_gms_library_reaches_their_campaigns_and_no_one_elses(
+    repo: SqlDocumentRepo, search: SqlChunkSearch
+) -> None:
+    """ADR-0027 NEG-001: one GM's library never reaches another GM's campaign."""
+    _index(repo, None, "Mine.md", [_chunk(0, "dragon", None)], owner_id="gm-a")
+
+    (hit,) = search.search("ashfall", "gm-a", "dnd-2024", "dragon", None, 6)
+    assert (hit.filename, hit.attribution) == ("Mine.md", "My library")
+    assert search.search("other", "gm-b", "dnd-2024", "dragon", None, 6) == []

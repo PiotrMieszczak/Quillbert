@@ -102,7 +102,11 @@
   animation: global(qb-pop) 0.45s var(--ease-spring) both;
 }
 
-.source:hover {
+.source[aria-disabled="true"] {
+  cursor: default;
+}
+
+.source:not([aria-disabled="true"]):hover {
   border-color: var(--accent);
   color: var(--text-primary);
 }

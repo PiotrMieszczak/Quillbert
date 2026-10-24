@@ -6,11 +6,13 @@ import styles from "./CampaignPicker.module.css";
 type CampaignPickerProps = {
   email: string | undefined;
   onOpen: (campaign: Campaign) => void;
+  /** The GM's own library, outside any campaign (ADR-0027). */
+  onOpenLibrary: () => void;
   onSignOut: () => void;
 };
 
 /** The landing screen after sign-in (docs/design/overview.md §2). */
-export function CampaignPicker({ email, onOpen, onSignOut }: CampaignPickerProps) {
+export function CampaignPicker({ email, onOpen, onOpenLibrary, onSignOut }: CampaignPickerProps) {
   const campaigns = useCampaigns();
   const [adding, setAdding] = useState(false);
   const empty = campaigns.data?.length === 0;
@@ -25,6 +27,9 @@ export function CampaignPicker({ email, onOpen, onSignOut }: CampaignPickerProps
           <span className={styles.brandName}>Quillbert</span>
         </div>
         <div className={styles.account}>
+          <button type="button" className={styles.signOut} onClick={onOpenLibrary}>
+            My library
+          </button>
           <ThemeToggle />
           <button type="button" className={styles.signOut} onClick={onSignOut}>
             Sign out

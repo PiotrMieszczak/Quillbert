@@ -3,7 +3,6 @@
 export type NavItem = {
   id: string;
   label: string;
-  glyph: string;
   /** Shorter label for the tab bar, where space is tight. */
   short?: string;
   /** The view exists. Unbuilt destinations stay hidden rather than lead to placeholders. */
@@ -11,14 +10,14 @@ export type NavItem = {
 };
 
 const ALL_ITEMS: NavItem[] = [
-  { id: "overview", label: "Overview", glyph: "◇", short: "Home" },
-  { id: "npcs", label: "NPCs", glyph: "☾" },
-  { id: "players", label: "Players", glyph: "✦", short: "Party" },
-  { id: "factions", label: "Factions", glyph: "⌘" },
-  { id: "quests", label: "Quest Log", glyph: "✧", short: "Quests" },
-  { id: "documents", label: "Documents", glyph: "▤", built: true },
-  { id: "graph", label: "Knowledge Graph", glyph: "⊛" },
-  { id: "sessions", label: "Sessions", glyph: "❍" },
+  { id: "overview", label: "Overview", short: "Home" },
+  { id: "npcs", label: "NPCs" },
+  { id: "players", label: "Players", short: "Party" },
+  { id: "factions", label: "Factions" },
+  { id: "quests", label: "Quest Log", short: "Quests" },
+  { id: "documents", label: "Documents", built: true },
+  { id: "graph", label: "Knowledge Graph" },
+  { id: "sessions", label: "Sessions" },
 ];
 
 export const NAV_ITEMS = ALL_ITEMS.filter((item) => item.built);

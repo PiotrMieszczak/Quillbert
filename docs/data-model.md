@@ -78,10 +78,11 @@ migration, and the campaign picker offers them.
 Many-to-one: each campaign has exactly one system, and a system is shared by any number of
 campaigns. A system that a campaign uses cannot be deleted.
 
-Vault and GM-library documents list the systems they apply to (`document.systems`), so
-SRD 5.1 reaches `dnd-2014` campaigns and SRD 5.2 `dnd-2024` ones
-([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). `traveller-2e` has no open
-rules; they arrive as the GM's own upload.
+GM-library documents list the systems they apply to (`document.systems`), so a 5e house
+rule reaches only that GM's 5e campaigns
+([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). Open rules such as the SRDs
+belong to the shared vault, an external service
+([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)).
 
 ### Character
 
@@ -348,12 +349,11 @@ The ingestion pipeline's output. See [architecture.md](architecture.md).
 | Field | Type | Notes |
 |-------|------|-------|
 | `id` | int PK | |
-| `campaign_id` | text? FK | set for a campaign document; null for the GM library and the vault |
-| `owner_id` | text? | the GM, for a GM-library document; null otherwise. Campaign → set; GM library → `owner_id` only; vault → neither (DEC-014) |
-| `systems` | text[] | the systems a GM-library or vault document applies to; empty = all. Unused for a campaign document |
+| `campaign_id` | text? FK | set for a campaign document; null for a GM-library one |
+| `owner_id` | text? | the GM, for a GM-library document; null for a campaign one. Exactly one of the two is set (DEC-014) |
+| `systems` | text[] | the systems a GM-library document applies to; empty = all. Unused for a campaign document |
 | `knowledge` | enum | `reference` (searched, cited) \| `craft` (loaded by task, never cited) — ADR-0027 |
 | `preferred` | bool | a GM's craft entry that comes first and wins a conflict with the vault's |
-| `attribution` | text? | licence line shown beside a vault citation, e.g. "SRD 5.2 · CC-BY-4.0" |
 | `filename` | text | "Core Rulebook v3.pdf" |
 | `kind` | enum | `PDF` \| `DOC` \| `IMG` |
 | `page_count` | int? | |
@@ -399,9 +399,11 @@ deterministic pipeline ([ADR-0026](adr/adr-0026-one-assistant-claim-provenance.m
 note table exists: the library lists, edits and deletes notes like any document, and
 retrieval cites them like any chunk. The text is the GM's — they saved it — so BND-001
 holds.
-Retrieval for a campaign searches three layers in the same query: the campaign's chunks,
-its owner's GM library, and the vault, the last two filtered to the campaign's system
-([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). Only `reference` chunks are
+Retrieval for a campaign searches two layers in the same query: the campaign's chunks and
+its owner's GM library, the latter filtered to the campaign's system
+([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). The shared vault is an
+external service queried separately
+([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)). Only `reference` chunks are
 searched; `craft` is loaded by task. No other shared scope exists.
 
 **`embedding_space`** — one row, the model that produced every stored embedding.
@@ -570,9 +572,9 @@ one and made the others awkward, and templates are prompts for a GM outlining, n
 to conform to.
 
 **DEC-014 — A document's layer is its owner columns, not a table per layer.**
-Campaign, GM library and vault documents share one pipeline, one chunk table and one
-search; only `campaign_id` and `owner_id` tell them apart, under a check constraint. A
-table per layer would triple the ingestion and search code for no difference in shape
+Campaign and GM-library documents share one pipeline, one chunk table and one search;
+only `campaign_id` and `owner_id` tell them apart, under a check constraint. A table per
+layer would double the ingestion and search code for no difference in shape
 ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)).
 
 **DEC-013 — The game system is a table, referenced by the campaign.**

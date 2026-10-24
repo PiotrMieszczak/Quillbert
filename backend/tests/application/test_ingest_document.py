@@ -10,7 +10,7 @@ from app.adapters.files import LocalDiskFileStore
 from app.adapters.llm.fake_embedder import FakeEmbedder
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.application.documents import IngestDocument, IngestOutcome, UploadDocument
-from app.domain.documents import Block, DocumentStatus, Page
+from app.domain.documents import Block, DocumentStatus, Page, Shelf
 from app.ports.embeddings import EmbeddingUnavailable, Purpose
 from app.ports.extraction import Extraction, ExtractionFailed, NeedsOcr
 
@@ -50,7 +50,7 @@ def files(tmp_path: Path) -> LocalDiskFileStore:
 def _upload(repo, files, name: str = "notes.md", data: bytes = NOTES) -> int:
     upload = UploadDocument(files, repo, FrozenClock(NOW), max_bytes=10**7)
     result = upload.execute(
-        campaign_id="ashfall", filename=name, content=io.BytesIO(data)
+        shelf=Shelf.campaign("ashfall"), filename=name, content=io.BytesIO(data)
     )
     return result.document.id
 
@@ -68,7 +68,7 @@ def test_a_queued_document_is_extracted_chunked_embedded_and_indexed(
 
     assert _ingest(repo, files).execute() is IngestOutcome.DONE
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert document.status is DocumentStatus.INDEXED
     assert document.progress == 100
@@ -91,7 +91,7 @@ def test_an_unreadable_file_fails_with_its_reason(repo, files) -> None:
 
     _ingest(repo, files, extractor).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert document.status is DocumentStatus.FAILED
     assert document.error == "the PDF is password-protected"
@@ -102,7 +102,7 @@ def test_a_scan_without_ocr_waits_for_ocr(repo, files) -> None:
 
     _ingest(repo, files, _Extractor(NeedsOcr("page 1"))).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None and document.status is DocumentStatus.AWAITING_OCR
 
 
@@ -111,7 +111,7 @@ def test_no_readable_text_fails(repo, files) -> None:
 
     _ingest(repo, files, _Extractor(pages=[Page(1, (), ocr=True)])).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert (document.status, document.error) == (
         DocumentStatus.FAILED,
@@ -124,7 +124,7 @@ def test_an_embedder_outage_requeues_instead_of_failing(repo, files) -> None:
 
     outcome = _ingest(repo, files, embedder=_DownEmbedder()).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert outcome is IngestOutcome.DEFERRED
     assert document is not None
     assert (document.status, document.progress) == (DocumentStatus.QUEUED, 0)
@@ -141,7 +141,7 @@ def test_scanned_and_unreadable_pages_are_reported(repo, files) -> None:
 
     _ingest(repo, files, _Extractor(pages=pages)).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert document.page_count == 3
     assert document.meta == "1 passages · 2 scanned pages · 1 unreadable"
@@ -154,7 +154,7 @@ def test_an_unexpected_error_fails_the_document_instead_of_sticking(
 
     _ingest(repo, files, _Extractor(RuntimeError("bug"))).execute()
 
-    document = repo.get("ashfall", document_id)
+    document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert (document.status, document.error) == (
         DocumentStatus.FAILED,

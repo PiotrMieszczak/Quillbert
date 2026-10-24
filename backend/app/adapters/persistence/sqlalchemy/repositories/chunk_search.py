@@ -12,8 +12,19 @@ _RRF_K = 60
 # filter it usually scans that campaign's chunks exactly, which is cheap at this
 # size and never misses a match to approximate recall. The floor trims after the
 # limit, which is safe because the rows are already in distance order.
+# The campaign's own chunks, plus its owner's library for the campaign's system
+# (ADR-0027). One GM's library never reaches another GM's campaign.
+_IN_REACH = """(
+    c.campaign_id = :campaign_id
+    OR (c.owner_id = :owner_id
+        AND (cardinality(c.systems) = 0 OR :system_id = ANY(c.systems)))
+)"""
+
+# The layer a hit comes from, shown beside its citation; none for the campaign's own.
+_LAYER = "CASE WHEN c.campaign_id IS NULL THEN 'My library' END"
+
 _SEARCH = text(
-    """
+    f"""
     WITH keyword AS (
         SELECT id, row_number() OVER (ORDER BY score DESC, id) AS pos
         FROM (
@@ -24,7 +35,7 @@ _SEARCH = text(
                 SELECT websearch_to_tsquery(CAST(d.language AS regconfig), :text)
                     AS query
             ) q
-            WHERE c.campaign_id = :campaign_id AND d.status = 'indexed'
+            WHERE {_IN_REACH} AND d.status = 'indexed'
               AND c.tsv @@ q.query
             ORDER BY score DESC, c.id
             LIMIT :pool
@@ -36,7 +47,7 @@ _SEARCH = text(
             SELECT c.id, c.embedding <=> CAST(:vec AS vector) AS dist
             FROM chunk c
             JOIN document d ON d.id = c.document_id
-            WHERE c.campaign_id = :campaign_id AND d.status = 'indexed'
+            WHERE {_IN_REACH} AND d.status = 'indexed'
               AND c.embedding IS NOT NULL
               AND CAST(:vec AS vector) IS NOT NULL
             ORDER BY c.embedding <=> CAST(:vec AS vector)
@@ -45,7 +56,7 @@ _SEARCH = text(
         WHERE dist <= 1 - :floor
     )
     SELECT c.id AS chunk_id, c.document_id, d.filename, c.page_from, c.heading,
-           c.content,
+           c.content, {_LAYER} AS attribution,
            CAST(COALESCE(1.0 / (:rrf_k + keyword.pos), 0)
                 + COALESCE(1.0 / (:rrf_k + semantic.pos), 0)
                 AS double precision) AS score
@@ -73,8 +84,8 @@ class SqlChunkSearch:
     def search(
         self,
         campaign_id: str,
-        system_id: str
-        | None,  # shortcut: ignored until chunk.system_id exists (ADR-0023)
+        owner_id: str | None,
+        system_id: str | None,
         text: str,
         vector: list[float] | None,
         k: int,
@@ -83,6 +94,8 @@ class SqlChunkSearch:
             return []
         params = {
             "campaign_id": campaign_id,
+            "owner_id": owner_id,
+            "system_id": system_id,
             "text": text,
             "vec": None if vector is None else str(vector),
             "floor": self._floor,

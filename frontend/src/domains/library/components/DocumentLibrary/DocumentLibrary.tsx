@@ -1,20 +1,36 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { deleteDocument, documentsKey, uploadDocument, useDocuments } from "../../api/documents";
+import { useSystems } from "../../../campaign";
+import {
+  deleteDocument,
+  documentsKey,
+  type DocumentSource,
+  type UploadTags,
+  uploadDocument,
+  useDocuments,
+} from "../../api/documents";
 import { pendingFromFile } from "../../model/queued";
 import type { LibraryDocument } from "../../model/types";
 import { DocumentRow } from "../DocumentRow";
+import { type StagedFile, UploadReview } from "../UploadReview";
 import { UploadZone } from "../UploadZone";
 import styles from "./DocumentLibrary.module.css";
 
 type DocumentLibraryProps = {
-  campaignId: string;
+  /** A campaign's documents, or the GM's library (ADR-0027). */
+  source: DocumentSource;
+  /** System id new library uploads start on, e.g. the campaign's; none means every system. */
+  defaultSystem?: string;
   /** Scroll to and flash this document; `at` changes on every request, so a repeat flashes again. */
   focus?: { documentId: string; at: number } | null;
 };
 
-export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
-  const documents = useDocuments(campaignId);
+export function DocumentLibrary({ source, defaultSystem = "", focus }: DocumentLibraryProps) {
+  const documents = useDocuments(source);
+  const systems = useSystems();
+  // Library files wait here for their system (ADR-0027); campaign files upload at once.
+  const [staged, setStaged] = useState<StagedFile[]>([]);
+  const shared = typeof source === "string";
   const queryClient = useQueryClient();
   // Files the API has not accepted yet: in flight, or refused with the server's reason.
   const [pending, setPending] = useState<LibraryDocument[]>([]);
@@ -23,15 +39,25 @@ export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
   const [failure, setFailure] = useState<string | null>(null);
 
   const dismiss = (id: string) => setPending((rows) => rows.filter((row) => row.id !== id));
-  const refresh = () => queryClient.invalidateQueries({ queryKey: documentsKey(campaignId) });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: documentsKey(source) });
 
-  async function upload(file: File) {
+  function stage(files: File[]) {
+    const fresh = files.map((file) => ({ id: crypto.randomUUID(), file, system: defaultSystem }));
+    setStaged((rows) => [...rows, ...fresh]);
+  }
+
+  function uploadStaged() {
+    staged.forEach(({ file, system }) => void upload(file, { systems: system ? [system] : [] }));
+    setStaged([]);
+  }
+
+  async function upload(file: File, tags: UploadTags = {}) {
     const id = crypto.randomUUID();
     const controller = new AbortController();
     uploads.current.set(id, controller);
     setPending((rows) => [...rows, pendingFromFile(file, id)]);
     try {
-      const { document, duplicate } = await uploadDocument(campaignId, file, controller.signal);
+      const { document, duplicate } = await uploadDocument(source, file, tags, controller.signal);
       if (duplicate) {
         const as = document.name === file.name ? "" : ` as “${document.name}”`;
         setNotice(`“${file.name}” is already in the library${as}.`);
@@ -56,7 +82,7 @@ export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
   async function remove(document: LibraryDocument) {
     setFailure(null);
     try {
-      await deleteDocument(campaignId, document.id);
+      await deleteDocument(source, document.id);
       await refresh();
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Something went wrong.";
@@ -71,9 +97,20 @@ export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
       <UploadZone
         onFiles={(files) => {
           setNotice(null);
-          files.forEach((file) => void upload(file));
+          if (shared) stage(files);
+          else files.forEach((file) => void upload(file));
         }}
       />
+      {staged.length > 0 && (
+        <UploadReview
+          files={staged}
+          systems={systems.data ?? []}
+          onChange={(id, patch) => setStaged((rows) => rows.map((row) => (row.id === id ? { ...row, ...patch } : row)))}
+          onRemove={(id) => setStaged((rows) => rows.filter((row) => row.id !== id))}
+          onCancel={() => setStaged([])}
+          onUpload={uploadStaged}
+        />
+      )}
 
       {notice && (
         <p className={styles.notice} role="status">
@@ -108,6 +145,7 @@ export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
             <DocumentRow
               key={document.id}
               document={document}
+              tags={document.systems.map((id) => systems.data?.find((system) => system.id === id)?.name ?? id)}
               flash={focus?.documentId === document.id ? focus.at : undefined}
               onRemove={() => remove(document)}
             />
@@ -125,3 +163,4 @@ export function DocumentLibrary({ campaignId, focus }: DocumentLibraryProps) {
     </div>
   );
 }
+

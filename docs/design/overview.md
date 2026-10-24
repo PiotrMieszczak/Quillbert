@@ -160,13 +160,19 @@ Spans all columns. `rgb(var(--scrim) / .72)` over the ambient background, bottom
 expands to 236px on hover **or** when pinned. `--surface-raised`,
 `1px --border-strong`, `--radius-rail`, shadow swaps with state.
 
-Items, in order: Overview, NPCs, Players, Factions, Quest Log, Documents,
-Knowledge Graph, Sessions. Active item uses `--accent`; labels fade in only when expanded.
+A brand block heads the rail: the quill mark in a 38px tile, then the **Quillbert** wordmark,
+divided from the items by a `--border-subtle` rule. Items, in order: Overview, NPCs, Players,
+Factions, Quest Log, Documents, Knowledge Graph, Sessions, each with an 18px stroke icon
+(`frontend/src/app/shell/NavIcon.tsx`). The active item sits on `--surface-elevated` with a
+`--text-primary` label, an amber icon and a 3px inset `--accent` edge; hover fills
+`--surface-subtle`. Labels and wordmark fade in only when expanded.
 On hover an item's icon turns amber and tilts (`scale(1.12) rotate(-4deg)`), its label
 nudges `3px` right, and a 3px amber bar grows at its left edge; all `.25s
 --ease-spring`. Pressing scales it to `.97`.
 Until a destination's view is built it is hidden from the rail and the tab bar, never shown
-leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The tab
+leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The one
+exception is NPCs, Players and Factions: they are listed while they render sample data, with
+a **Sample data** badge in the page header, until the cast API lands (#108). The tab
 bar fills its four tabs from Home, NPCs, Party, Quests first, then any other built view, and
 shows **More** only when something is left over.
 
@@ -263,6 +269,7 @@ anything is deleted; bytes the campaign already has show "already in the library
 | **Knowledge Graph** | Interactive node graph with relationship legend and search |
 | **Sessions** | Date-tile entries with title, duration, tags, and summary; a rich-text composer creates new entries |
 | **Settings** | Reached via avatar, not the rail |
+| **My library** | A top-level screen from the Campaign Picker header (*My library*), and the *My library* tab on Documents. The Documents list and upload. Dropped files don't upload at once: a review card lists them, each with a system select (*All systems* by default; from a campaign's tab, that campaign's system), a *Set all* select, and *Upload N files* / *Cancel*. Rows show a mono tag chip per system, none for every system. Every one of the GM's campaigns reads it ([ADR-0027](../adr/adr-0027-layered-knowledge-admin-vault.md)). A citation from the library shows *My library* in the chip's tooltip and doesn't open Documents. The shared vault is an external service ([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)) |
 
 ### Detail views
 

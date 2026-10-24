@@ -81,8 +81,9 @@ Retrieval becomes conversation.
   [assistant-prompts.md](assistant-prompts.md#model-choice)
 - **Quillbert, slice 3**: memory — `propose_memory`, the proposal card, notes saved as
   library documents, and the per-user style guide
-- **Layered knowledge**: admin vault (SRD 5.1 / 5.2, craft, templates), GM library, admin
-  UI ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md), epic #99)
+- **Layered knowledge**: GM library ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md),
+  epic #99), and the shared vault (SRD 5.1 / 5.2, craft, templates) as its own module,
+  `wizard-vault`, consumed over MCP (#112)
 - **Safety without surveillance**: limits, metadata overview, flag-only moderation, Terms
   and privacy policy before public sign-up
   ([ADR-0028](adr/adr-0028-safety-without-surveillance.md))

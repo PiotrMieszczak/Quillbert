@@ -229,3 +229,40 @@ def test_empty_content_is_rejected(
                 campaign_id="ashfall", conversation_id=conversation.id, content="  "
             )
         )
+
+
+def test_the_campaigns_owner_and_system_reach_search_and_the_layer_reaches_the_citation(
+    fake_llm: FakeLLM,
+) -> None:
+    from app.adapters.clock.frozen import FrozenClock
+    from app.ports.search import Hit
+
+    calls = []
+
+    class Search:
+        def search(self, campaign_id, owner_id, system_id, text, vector, k):
+            calls.append((campaign_id, owner_id, system_id))
+            return [Hit(7, 3, "Mine.md", 2, None, "Speed is 0.", 1.0, "My library")]
+
+    repo = InMemoryConversationRepo()
+    clock = FrozenClock(FROZEN)
+    conversation_id = (
+        StartConversation(repo, clock)
+        .execute(campaign_id="ashfall", mode=Mode.RESEARCH)
+        .id
+    )
+    turn = RunAssistantTurn(repo, fake_llm, clock, Search(), None)
+
+    events = list(
+        turn.execute(
+            campaign_id="ashfall",
+            conversation_id=conversation_id,
+            content=QUESTION,
+            owner_id="gm-a",
+            system_id="dnd-2024",
+        )
+    )
+
+    assert calls == [("ashfall", "gm-a", "dnd-2024")]
+    (cited,) = [event for event in events if isinstance(event, TurnCited)]
+    assert cited.citation.attribution == "My library"

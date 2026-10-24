@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from app.entrypoints.http.errors import register_error_handlers
 from app.entrypoints.http.routers.assistant import router as assistant_router
 from app.entrypoints.http.routers.campaigns import router as campaigns_router
+from app.entrypoints.http.routers.documents import library_router
 from app.entrypoints.http.routers.documents import router as documents_router
 
 
@@ -24,4 +25,5 @@ def create_http_app(
     app.include_router(campaigns_router)
     app.include_router(assistant_router)
     app.include_router(documents_router)
+    app.include_router(library_router)
     return app

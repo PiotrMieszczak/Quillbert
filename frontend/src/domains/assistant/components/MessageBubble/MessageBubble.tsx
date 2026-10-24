@@ -69,8 +69,13 @@ function Reply({ message, onOpenSource }: MessageBubbleProps) {
                 type="button"
                 className={styles.source}
                 style={live ? { animationDelay: `${index * 0.12}s` } : { animation: "none" }}
-                title={["Open in Documents", citation.heading, citation.attribution].filter(Boolean).join(" · ")}
-                onClick={() => onOpenSource(citation.documentId)}
+                title={[!citation.attribution && "Open in Documents", citation.heading, citation.attribution]
+                  .filter(Boolean)
+                  .join(" · ")}
+                // A library passage is not in this campaign's Documents (ADR-0027).
+                // Not `disabled`: the tooltip carries the layer and must still show.
+                aria-disabled={citation.attribution !== null}
+                onClick={() => citation.attribution === null && onOpenSource(citation.documentId)}
               >
                 <span className={styles.sourceN}>{citation.label.slice(1)}</span>
                 {citation.filename}

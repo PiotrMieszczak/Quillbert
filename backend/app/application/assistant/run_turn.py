@@ -57,8 +57,16 @@ class RunAssistantTurn:
         self._history_messages = history_messages
 
     def execute(
-        self, *, campaign_id: str, conversation_id: int, content: str
+        self,
+        *,
+        campaign_id: str,
+        conversation_id: int,
+        content: str,
+        owner_id: str | None = None,
+        system_id: str | None = None,
     ) -> Generator[TurnEvent, None, None]:
+        """`owner_id` and `system_id` are the campaign's: they reach the GM's library
+        documents for that system (ADR-0027)."""
         text = content.strip()
         if not text:
             raise ValidationFailed("content is required")
@@ -88,7 +96,11 @@ class RunAssistantTurn:
 
         try:
             yield from self._answer(
-                campaign_id, conversation.id, assistant_id, text, run_id
+                (campaign_id, owner_id, system_id),
+                conversation.id,
+                assistant_id,
+                text,
+                run_id,
             )
         except LLMError:
             logger.exception("assistant turn failed at the provider")
@@ -99,7 +111,7 @@ class RunAssistantTurn:
 
     def _answer(
         self,
-        campaign_id: str,
+        reach: tuple[str, str | None, str | None],
         conversation_id: int,
         assistant_id: int,
         text: str,
@@ -116,9 +128,7 @@ class RunAssistantTurn:
         while history and history[0].role is not Role.USER:
             history = history[1:]
 
-        hits = self._search.search(
-            campaign_id, None, text, self._query_vector(text), self._top_k
-        )
+        hits = self._search.search(*reach, text, self._query_vector(text), self._top_k)
         documents = len({hit.document_id for hit in hits})
         searched = (
             f"Searched {_plural(documents, 'document')} · "
@@ -203,6 +213,7 @@ class RunAssistantTurn:
                 hit.filename,
                 hit.page_from,
                 hit.heading,
+                hit.attribution,
             )
             for label, hit in seen.items()
         )

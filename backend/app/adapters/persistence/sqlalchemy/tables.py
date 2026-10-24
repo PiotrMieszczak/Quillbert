@@ -16,8 +16,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Stable constraint names, so migrations can refer to them.
@@ -114,9 +115,25 @@ class DocumentRow(Base):
 
     __tablename__ = "document"
     __table_args__ = (
-        # One copy of a file per campaign (ADR-0021 IMP-003).
-        UniqueConstraint(
-            "campaign_id", "sha256", name="uq_document_campaign_id_sha256"
+        # One copy of a file per shelf (ADR-0021 IMP-003, ADR-0027): per campaign
+        # and per GM library.
+        Index(
+            "uq_document_campaign_sha256",
+            "campaign_id",
+            "sha256",
+            unique=True,
+            postgresql_where=text("campaign_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_document_owner_sha256",
+            "owner_id",
+            "sha256",
+            unique=True,
+            postgresql_where=text("owner_id IS NOT NULL"),
+        ),
+        # Exactly one shelf: a campaign, or a GM's library.
+        CheckConstraint(
+            "(campaign_id IS NULL) <> (owner_id IS NULL)", name="one_shelf"
         ),
         CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
         CheckConstraint(
@@ -126,9 +143,13 @@ class DocumentRow(Base):
     )
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    campaign_id: Mapped[str] = mapped_column(
+    # Campaign → campaign_id; GM library → owner_id (ADR-0027).
+    campaign_id: Mapped[str | None] = mapped_column(
         ForeignKey("campaign.id", ondelete="CASCADE"), index=True
     )
+    owner_id: Mapped[str | None] = mapped_column(Text, index=True)
+    # Systems a library document applies to; empty means all.
+    systems: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     filename: Mapped[str] = mapped_column(Text)
     kind: Mapped[str] = mapped_column(Text)
     page_count: Mapped[int | None] = mapped_column(Integer)
@@ -185,10 +206,13 @@ class ChunkRow(Base):
     document_id: Mapped[int] = mapped_column(
         ForeignKey("document.id", ondelete="CASCADE"), index=True
     )
-    # Copied from the document. A document does not move between campaigns.
-    campaign_id: Mapped[str] = mapped_column(
+    # Copied from the document, so search filters chunks alone. A document does not
+    # move between shelves.
+    campaign_id: Mapped[str | None] = mapped_column(
         ForeignKey("campaign.id", ondelete="CASCADE"), index=True
     )
+    owner_id: Mapped[str | None] = mapped_column(Text, index=True)
+    systems: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     ordinal: Mapped[int] = mapped_column(Integer)
     page_from: Mapped[int | None] = mapped_column(Integer)
     page_to: Mapped[int | None] = mapped_column(Integer)

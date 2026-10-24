@@ -1,7 +1,12 @@
 from app.domain.documents.chunking import Block, Chunk, Page, chunk_pages
 from app.domain.documents.entities import Document
 from app.domain.documents.files import ALLOWED, SNIFF_BYTES, classify
-from app.domain.documents.values import DocumentKind, DocumentSource, DocumentStatus
+from app.domain.documents.values import (
+    DocumentKind,
+    DocumentSource,
+    DocumentStatus,
+    Shelf,
+)
 
 __all__ = [
     "ALLOWED",
@@ -13,6 +18,7 @@ __all__ = [
     "DocumentSource",
     "DocumentStatus",
     "Page",
+    "Shelf",
     "chunk_pages",
     "classify",
 ]
