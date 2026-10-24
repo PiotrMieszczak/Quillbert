@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.1.0...v1.2.0) (2026-10-24)
+
+
+### Features
+
+* **library:** GM library shelf, upload review, nav rail ([#111](https://github.com/PiotrMieszczak/Quillbert/issues/111)) ([6f37fa3](https://github.com/PiotrMieszczak/Quillbert/commit/6f37fa3812b40de642517e04c9bc96cef65893d5)), closes [#100](https://github.com/PiotrMieszczak/Quillbert/issues/100)
+
 ## [1.1.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.0.0...v1.1.0) (2026-10-23)
 
 
