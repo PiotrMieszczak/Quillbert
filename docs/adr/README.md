@@ -36,6 +36,7 @@ knowing why it was made, it belongs in an ADR.
 | [0026](adr-0026-one-assistant-claim-provenance.md) | One assistant; provenance per claim; memory is what the GM saves | Accepted |
 | [0027](adr-0027-layered-knowledge-admin-vault.md) | Layered knowledge: an admin vault, a GM library, and the campaign | Accepted |
 | [0028](adr-0028-safety-without-surveillance.md) | Safety without surveillance | Accepted |
+| [0029](adr-0029-wizard-vault-over-mcp.md) | The shared vault is upstream Arkon, consumed over MCP | Accepted |
 
 ## Format
 

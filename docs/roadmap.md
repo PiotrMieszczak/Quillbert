@@ -83,7 +83,8 @@ Retrieval becomes conversation.
   library documents, and the per-user style guide
 - **Layered knowledge**: GM library ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md),
   epic #99), and the shared vault (SRD 5.1 / 5.2, craft, templates) as its own module,
-  `wizard-vault`, consumed over MCP (#112)
+  `wizard-vault`: upstream Arkon over MCP
+  ([ADR-0029](adr/adr-0029-wizard-vault-over-mcp.md), #112)
 - **Safety without surveillance**: limits, metadata overview, flag-only moderation, Terms
   and privacy policy before public sign-up
   ([ADR-0028](adr/adr-0028-safety-without-surveillance.md))

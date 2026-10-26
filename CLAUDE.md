@@ -52,7 +52,8 @@ decision is a *new* ADR that supersedes the old one, never an edit to history.
 Index, titles and status: [docs/adr/README.md](docs/adr/README.md). Superseded — never cite
 as current, cite what replaced them: 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016,
 0022, 0023, 0025. Partly replaced by 0026: 0012 (in-character mode stands) and 0024 (the
-profile split).
+profile split). Partly replaced by 0029: 0027 (the vault layer; campaign and GM library
+stand).
 
 ### The four that break the product if broken
 

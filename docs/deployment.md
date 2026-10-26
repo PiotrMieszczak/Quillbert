@@ -111,11 +111,12 @@ tier**:
 - **Next:** build the DM app (backend + frontend) against this foundation, then deploy it to
   `ted106` via Openship and wire its env to Supabase Cloud + R2 + OpenRouter.
 
-## Arkon (removed)
+## wizard-vault
 
-Arkon was evaluated on `ted106` as an external library and removed on 2026-10-23, with its
-containers, volumes, images and `/opt/arkon`. Quillbert keeps its own layered library
-instead ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md), #95).
+The shared vault is upstream Arkon, pinned and consumed over MCP
+([ADR-0029](adr/adr-0029-wizard-vault-over-mcp.md)). Its configuration lives in
+`deploy/wizard-vault/`; deployment is tracked in
+[#120](https://github.com/PiotrMieszczak/Quillbert/issues/120).
 
 ## Notes / risks
 
@@ -131,4 +132,5 @@ instead ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md), #95).
 - [ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md) — embeddings / `pgvector`
 - [ADR-0019](adr/adr-0019-openrouter-privacy-routing.md) — OpenRouter provider and the API key
 - [ADR-0020](adr/adr-0020-supabase-auth.md) — Supabase Auth (supersedes ADR-0008)
+- [ADR-0029](adr/adr-0029-wizard-vault-over-mcp.md) — the shared vault, upstream Arkon over MCP
 - [hosting-survey.md](hosting-survey.md) — 2026-10-19 prices for a host that could also run a trace UI. Not a decision

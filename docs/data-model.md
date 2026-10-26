@@ -81,8 +81,8 @@ campaigns. A system that a campaign uses cannot be deleted.
 GM-library documents list the systems they apply to (`document.systems`), so a 5e house
 rule reaches only that GM's 5e campaigns
 ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). Open rules such as the SRDs
-belong to the shared vault, an external service
-([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)).
+belong to the shared vault, upstream Arkon reached over MCP, not to this schema
+([ADR-0029](adr/adr-0029-wizard-vault-over-mcp.md)).
 
 ### Character
 
