@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.1.0...v1.2.0) (2026-10-28)
+
+
+### Features
+
+* **deploy:** serve TLS to Cloudflare on 443 ([#129](https://github.com/PiotrMieszczak/Quillbert/issues/129)) ([468cc17](https://github.com/PiotrMieszczak/Quillbert/commit/468cc17a7eb2676993b239bf316c41ca5c0290e0))
+* **library:** GM library shelf, upload review, nav rail ([#111](https://github.com/PiotrMieszczak/Quillbert/issues/111)) ([6f37fa3](https://github.com/PiotrMieszczak/Quillbert/commit/6f37fa3812b40de642517e04c9bc96cef65893d5)), closes [#100](https://github.com/PiotrMieszczak/Quillbert/issues/100)
+
 ## [1.1.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.0.0...v1.1.0) (2026-10-23)
 
 
