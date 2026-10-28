@@ -18,7 +18,7 @@ service**; files are object storage. Openship is the deploy manager, run **self-
 | Layer | Choice | Notes |
 |-------|--------|-------|
 | Deploy manager | **Openship, self-hosted** — the desktop app on the maintainer's Mac | Free, open-source control plane. It connects to `ted106` over SSH and deploys the app there; the `openship` CLI drives the same local control plane. **Openship Cloud is not used** — its free tier only rents managed servers and gates domain routing behind a paid plan, so the self-hosted control plane is the free path. |
-| App host | **Mikrus `ted106`** (8 GB / 2 vCPU, Ubuntu 24.04, Docker) | Unprivileged LXC, connected to Openship over SSH (IPv4 `37.27.111.248:10106`, key auth). Runs **only the DM app** (FastAPI + ingestion worker + the built frontend). Public ingress is IPv6:80 (`ted106.mikrus.cloud`) + two TCP ports `20106`/`30106` (`ted106-20106.mikrus.cloud`); TLS is terminated by Mikrus — never bind 443. |
+| App host | **Mikrus `ted106`** (8 GB / 2 vCPU, Ubuntu 24.04, Docker) | Unprivileged LXC, connected to Openship over SSH (IPv4 `37.27.111.248:10106`, key auth). Runs **only the DM app** (FastAPI + ingestion worker + the built frontend). Public ingress is the server's IPv6 (any port, incl. 443) + two TCP ports `20106`/`30106` on the shared IPv4. Quillbert publishes only IPv6 `443`, serving TLS itself (see **Publishing**). |
 | Data + Auth + Storage | **Supabase Cloud** (free tier) — project `DM Assistant` (`zfhluuonhmexjfhjjghf`), region `eu-west-3`; Postgres 17 + **pgvector** + Auth (GoTrue) + Storage | Managed, so **zero load on `ted106`**. pgvector enabled ([ADR-0021](adr/adr-0021-gemini-embeddings-via-openrouter.md)). The box now hosts only the app, which fits 2 vCPU / 8 GB comfortably. |
 | Auth | **Supabase Auth** (GoTrue, hosted) | The backend validates Supabase-issued JWTs. Supersedes hand-built auth — [ADR-0020](adr/adr-0020-supabase-auth.md). |
 | Files | **Cloudflare R2** (S3-compatible, the `FileStore` object-store adapter) | Off-box, zero egress, presigned URLs. Supabase Storage (free 1 GB) is an alternative; R2 keeps files independent. **Today** uploads go through the local-disk `FileStore` onto the `files` Docker volume on `ted106` (`FILE_STORE_PATH`); the R2 adapter replaces it, and until then those files live only on the box. Cloudflare Free caps a proxied upload at 100 MB. |
@@ -34,14 +34,24 @@ service**; files are object storage. Openship is the deploy manager, run **self-
   pooler) for data, and the Supabase API (Auth, Storage) over HTTPS. Nothing
   database-related runs on `ted106`.
 - **Publishing (Mikrus model).** Only Quillbert needs a public endpoint, and it is reached
-  over the server's **IPv6**. The frontend is published on IPv6 port 80 and the backend on
-  `30106` (`:::80:80`, `:::30106:8000` as Openship service port overrides), so the raw IPv4
-  URLs (`http://37.27.111.248:20106`) no longer answer. Three names point at it:
-  `quillbert.app` (Cloudflare `AAAA` → the server's IPv6, proxied, SSL mode **Flexible**:
-  Cloudflare reaches the origin over plain HTTP on port 80), `quillbert.mikrus.dev` (Mikrus
-  free subdomain → port 80) and `quillbertapi.mikrus.dev` (→ `30106`). The API is also
-  reachable through the frontend's proxy, so `quillbert.app` alone is enough. Supabase is
-  reached as an external HTTPS service, not published from the box.
+  over the server's **IPv6**. The frontend publishes one port, IPv6 `443` (`:::443:443`, an
+  Openship service port override), and serves TLS there; the backend publishes nothing and
+  is reached only through the frontend's `/api/` proxy. No plain-HTTP port is public.
+  - `quillbert.app`: Cloudflare `AAAA` → the server's IPv6, proxied, SSL mode **Full
+    (strict)**. Cloudflare connects on 443 and checks the origin's **Cloudflare Origin CA**
+    certificate (`quillbert.app`, `*.quillbert.app`). Openship holds it on the
+    `frontend` service as secrets `TLS_CERT_B64` and `TLS_KEY_B64` (base64 PEM);
+    `frontend/tls.sh` writes them out and adds `listen 443 ssl` when nginx starts. Without
+    them, as in local compose, nginx serves plain HTTP on 80 only. The private key was made
+    locally; it lives in Openship and the gitignored `.tls/` on the Mac, never in the repo; renewing means a new key + CSR and the dashboard's
+    *Origin Server → Create Certificate → Use my private key and CSR*.
+  - `quillbert.mikrus.dev` and `quillbertapi.mikrus.dev`: Mikrus free subdomains. They sit
+    behind Mikrus's own Cloudflare, which dials the origin over plain HTTP unless the
+    subdomain is set to `https: true`. Both point at IPv6 `443` with `https: true`, so that
+    leg is encrypted too; `quillbertapi` is now just another name for the frontend. Our
+    certificate does not name them, so they work only while Mikrus's proxy skips that check;
+    if it stops, retire them. `quillbert.app` is the canonical URL.
+  Supabase is reached as an external HTTPS service, not published from the box.
 
 ## Environments
 
