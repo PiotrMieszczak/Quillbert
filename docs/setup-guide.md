@@ -138,14 +138,19 @@ openship deployment list --project proj_cGL8BrBLA8VtUdF5
     these as secrets in Openship (not committed). No JWT secret — tokens verify via JWKS.
   - frontend build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (public; passed as
     Docker build args — the login screen throws at startup without them).
-- Public endpoint: override the service ports in Openship to bind IPv6 only
-  (`openship service update frontend <file>` with `{"ports":[":::80:80"]}`, backend
-  `{"ports":[":::30106:8000"]}`; `[::]:…` is not parsed, use `:::`; one binding per container
-  port). Then, in Cloudflare, add an `AAAA` record `@` → the server's IPv6 (proxied) and set
-  SSL/TLS to **Flexible** (the origin serves plain HTTP; **Full** gives a 521). Optional
-  Mikrus subdomains via the `domains` tool: `quillbert` → port `80`, `quillbertapi` → port
-  `30106`, zone `mikrus.dev`. Keep nothing else public; Supabase is reached as an external
-  HTTPS service.
+- Public endpoint: override the frontend's ports in Openship to bind IPv6 443 only
+  (`openship service update frontend <file>` with `{"ports":[":::443:443"]}`; `[::]:…` is
+  not parsed, use `:::`; one binding per container port). The backend publishes no port.
+  TLS: make a key and CSR locally into the gitignored `.tls/`
+  (`openssl req -new -newkey rsa:2048 -nodes -keyout .tls/key.pem -out .tls/quillbert.csr
+  -subj /CN=quillbert.app -addext "subjectAltName=DNS:quillbert.app,DNS:*.quillbert.app"`),
+  sign it in Cloudflare (SSL/TLS → Origin Server → Create Certificate → *Use my private key
+  and CSR*), then set `TLS_CERT_B64` and `TLS_KEY_B64` (`base64 -i <pem>`) as secrets on the
+  `frontend` service. In Cloudflare, add an `AAAA` record `@` → the server's IPv6
+  (proxied) and set SSL/TLS to **Full (strict)** right after the deploy (443 has no listener
+  before it, so Full gives a 521). Optional Mikrus subdomains via the `domains` tool:
+  `quillbert` and `quillbertapi`, zone `mikrus.dev`, port `443`, `https: true`. Keep nothing
+  else public; Supabase is reached as an external HTTPS service.
 - Deploy and check health (see **Check it's live** below).
 - **Deploy on release:** `.github/workflows/deploy.yml` runs `openship deploy` when a
   release is cut (see **Releases**). Openship lives on the Mac, so the job needs a **self-hosted runner on
@@ -162,11 +167,9 @@ openship deployment list --project proj_cGL8BrBLA8VtUdF5
 
 **Check it's live**
 - Frontend: `https://quillbert.app/` → 200 (the SPA).
-- Backend: `https://quillbertapi.mikrus.dev/openapi.json` → 200. Swagger UI and ReDoc are
+- Backend: `https://quillbert.app/api/v1/campaigns` without a token → 401. Swagger UI and ReDoc are
   off in production (`/docs` and `/redoc` → 404 there): the `ENABLE_API_DOCS` variable is
-  unset, and the frontend nginx does not proxy `/docs`, `/redoc` or `/openapi.json`. The API
-  itself is reachable through the proxy at `https://quillbert.app/api/…`; without a token it
-  answers 401.
+  unset, and the frontend nginx does not proxy `/docs`, `/redoc` or `/openapi.json`.
 
 **5. Local development**
 - A gitignored `.env` with the **public** `VITE_*` values and a local/dev `DATABASE_URL`.

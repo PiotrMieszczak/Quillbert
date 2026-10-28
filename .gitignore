@@ -5,3 +5,6 @@
 .env
 .env.local
 !.env.example
+
+# Origin certificate and key, never committed (#128)
+.tls/
