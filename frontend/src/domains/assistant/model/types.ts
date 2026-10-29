@@ -15,8 +15,10 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   citations: Citation[];
-  /** The retrieval step's label, e.g. "Searched 2 documents · 6 passages". Live replies only. */
+  /** The retrieval step's label, e.g. "Searched 2 documents · 6 passages". */
   searched?: string;
+  /** The reply is the refusal: nothing in the material answered it, so the bubble offers next steps. */
+  refused?: boolean;
   /** Set only on the live reply: `waiting` (nothing arrived yet), `streaming`, then `done` until the
    *  stored history replaces it. Unset for history, which renders without animation. */
   phase?: "waiting" | "streaming" | "done";

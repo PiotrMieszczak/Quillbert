@@ -14,6 +14,7 @@ type WorkspaceShellProps = {
   onSwitchCampaign: () => void;
   onSignOut: () => void;
   onOpenSource: (documentId: string) => void;
+  onAddDocuments: () => void;
   children: ReactNode;
 };
 
@@ -24,6 +25,7 @@ export function WorkspaceShell({
   onSwitchCampaign,
   onSignOut,
   onOpenSource,
+  onAddDocuments,
   children,
 }: WorkspaceShellProps) {
   useLayoutMode();
@@ -79,6 +81,10 @@ export function WorkspaceShell({
             onOpenSource={(documentId) => {
               if (mob) closePanel();
               onOpenSource(documentId);
+            }}
+            onAddDocuments={() => {
+              if (mob) closePanel();
+              onAddDocuments();
             }}
           />
         </div>

@@ -28,6 +28,10 @@ class Profile:
     version: str
     refusal: str
 
+    def refused(self, reply: str) -> bool:
+        """The reply is the refusal sentence. English only: translations are v2."""
+        return reply.strip().rstrip(".") == self.refusal.rstrip(".")
+
 
 def source_labels(hits: Sequence[Hit]) -> dict[str, Hit]:
     """The ids the model is shown, S1.. in rank order. The map stays on the server."""

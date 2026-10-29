@@ -9,6 +9,8 @@ export type RunHandlers = {
   /** The reply so far. */
   onText: (text: string) => void;
   onCitation: (citation: Citation) => void;
+  /** The reply is the refusal (`dm.refused`). */
+  onRefused: () => void;
   onError: (message: string) => void;
 };
 
@@ -44,7 +46,9 @@ export function sendMessage(campaignId: string, conversationId: number, content:
             if (!aborted && typeof event.content === "string") handlers.onSearched(event.content);
           },
           onCustomEvent: ({ event }) => {
-            if (!aborted && event.name === "dm.citation") handlers.onCitation(toCitation(event.value as CitationDto));
+            if (aborted) return;
+            if (event.name === "dm.citation") handlers.onCitation(toCitation(event.value as CitationDto));
+            if (event.name === "dm.refused") handlers.onRefused();
           },
           onRunFinishedEvent: () => {
             finished = true;

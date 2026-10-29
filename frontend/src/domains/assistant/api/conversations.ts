@@ -26,6 +26,8 @@ type MessageDto = {
   role: Message["role"];
   content: string;
   createdAt: string;
+  toolLabel: string | null;
+  refused: boolean;
   citations: CitationDto[];
 };
 
@@ -44,6 +46,8 @@ const toMessage = (dto: MessageDto): Message => ({
   role: dto.role,
   content: dto.content,
   citations: dto.citations.map(toCitation),
+  searched: dto.toolLabel ?? undefined,
+  refused: dto.refused,
 });
 
 const conversationsPath = (campaignId: string) => `/campaigns/${encodeURIComponent(campaignId)}/conversations`;

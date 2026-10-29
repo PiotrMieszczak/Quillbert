@@ -23,6 +23,8 @@ class MessageView:
     mode: Mode
     tool_label: str | None
     citations: tuple[Citation, ...] = ()
+    # The reply is the refusal: nothing in the material answered it.
+    refused: bool = False
 
 
 @dataclass(frozen=True)
@@ -97,6 +99,11 @@ class TurnCited:
 
 
 @dataclass(frozen=True)
+class TurnRefused:
+    """The stored reply is the refusal; the panel shows what to do next."""
+
+
+@dataclass(frozen=True)
 class TurnFailed:
     """The turn ended with no assistant message stored."""
 
@@ -105,5 +112,11 @@ class TurnFailed:
 
 
 TurnEvent = (
-    TurnStarted | TurnSearched | TurnDelta | TurnCited | TurnFinished | TurnFailed
+    TurnStarted
+    | TurnSearched
+    | TurnDelta
+    | TurnCited
+    | TurnRefused
+    | TurnFinished
+    | TurnFailed
 )

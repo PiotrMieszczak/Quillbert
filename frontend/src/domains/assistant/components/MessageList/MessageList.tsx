@@ -11,6 +11,7 @@ type MessageListProps = {
   onRetry: () => void;
   onEditQuestion: () => void;
   onOpenSource: (documentId: string) => void;
+  onAddDocuments: () => void;
 };
 
 /** A constant, not stored: it makes no model call (docs/design/overview.md → AI panel). */
@@ -22,7 +23,7 @@ const INTRO: Message = {
   citations: [],
 };
 
-export function MessageList({ messages, intro, error, onRetry, onEditQuestion, onOpenSource }: MessageListProps) {
+export function MessageList({ messages, intro, error, onRetry, onEditQuestion, onOpenSource, onAddDocuments }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,9 +32,9 @@ export function MessageList({ messages, intro, error, onRetry, onEditQuestion, o
 
   return (
     <div className={styles.list}>
-      {intro && <MessageBubble message={INTRO} onOpenSource={onOpenSource} />}
+      {intro && <MessageBubble message={INTRO} onOpenSource={onOpenSource} onAddDocuments={onAddDocuments} />}
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} onOpenSource={onOpenSource} />
+        <MessageBubble key={message.id} message={message} onOpenSource={onOpenSource} onAddDocuments={onAddDocuments} />
       ))}
       {error && (
         <div className={styles.error} role="alert">

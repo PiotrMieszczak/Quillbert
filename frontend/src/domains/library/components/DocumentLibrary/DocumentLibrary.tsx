@@ -21,8 +21,9 @@ type DocumentLibraryProps = {
   source: DocumentSource;
   /** System id new library uploads start on, e.g. the campaign's; none means every system. */
   defaultSystem?: string;
-  /** Scroll to and flash this document; `at` changes on every request, so a repeat flashes again. */
-  focus?: { documentId: string; at: number } | null;
+  /** Scroll to and flash this document, or with no document focus the upload zone; `at` changes on
+   *  every request, so a repeat flashes again. */
+  focus?: { documentId?: string; at: number } | null;
 };
 
 export function DocumentLibrary({ source, defaultSystem = "", focus }: DocumentLibraryProps) {
@@ -95,6 +96,7 @@ export function DocumentLibrary({ source, defaultSystem = "", focus }: DocumentL
   return (
     <div className={styles.library}>
       <UploadZone
+        focusAt={focus && !focus.documentId ? focus.at : undefined}
         onFiles={(files) => {
           setNotice(null);
           if (shared) stage(files);

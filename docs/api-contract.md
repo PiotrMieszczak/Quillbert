@@ -271,12 +271,14 @@ it reads **only the content of the last user message** and ignores client-sent h
 
 // GET .../messages → MessageOut[]
 { "id": 57, "role": "assistant", "content": "A grapple is … [S1]",
-  "createdAt": "…",
+  "createdAt": "…", "toolLabel": "Searched 2 documents · 6 passages", "refused": false,
   "citations": [{ "label": "S1", "chunkId": 812, "documentId": 1,
                   "filename": "SRD 5.2.pdf", "pageFrom": 177, "heading": "Grappled",
                   "attribution": "SRD 5.2 · CC-BY-4.0" }] }
   // attribution: "My library" for a GM-library passage (ADR-0027); null for the
   // campaign's own documents.
+  // refused: the reply is the refusal sentence ("Not in your material."), so the panel
+  // offers next steps. English only; translated refusals are not flagged (v2).
 ```
 
 `GET /campaigns/{cid}/conversations` lists newest first. The panel opens the newest one, or
@@ -311,6 +313,10 @@ data: {"type":"CUSTOM","name":"dm.citation","value":{"label":"S1","chunkId":812,
 
 data: {"type":"RUN_FINISHED","threadId":"12","runId":"run-88"}
 ```
+
+**A refusal is flagged.** When the stored reply is the refusal sentence, a
+`{"type":"CUSTOM","name":"dm.refused","value":{}}` frame comes before `RUN_FINISHED`, and the
+message's history entry carries `"refused": true`.
 
 On failure after `RUN_STARTED` (provider error, timeout, database error) the stream ends
 with `{"type":"RUN_ERROR","message":"…","code":"provider_error"}` and no assistant message

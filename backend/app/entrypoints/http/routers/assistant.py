@@ -61,6 +61,7 @@ def _message_out(view: MessageView) -> MessageOut:
         created_at=view.created_at,
         mode=view.mode,
         tool_label=view.tool_label,
+        refused=view.refused,
         citations=[
             CitationOut(
                 label=c.label,

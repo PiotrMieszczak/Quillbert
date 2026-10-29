@@ -16,9 +16,11 @@ type AssistantPanelProps = {
   onClose: () => void;
   /** A citation chip was clicked: show that document in the library. */
   onOpenSource: (documentId: string) => void;
+  /** A refused reply's "Add documents" was clicked: show the upload zone. */
+  onAddDocuments: () => void;
 };
 
-export function AssistantPanel({ campaign, open, onOpen, onClose, onOpenSource }: AssistantPanelProps) {
+export function AssistantPanel({ campaign, open, onOpen, onClose, onOpenSource, onAddDocuments }: AssistantPanelProps) {
   const chat = useChat(campaign.id);
   const { abort } = chat;
   const [draft, setDraft] = useState("");
@@ -28,6 +30,13 @@ export function AssistantPanel({ campaign, open, onOpen, onClose, onOpenSource }
   useEffect(() => {
     if (!open) abort();
   }, [open, abort]);
+
+  // Opening it (FAB, rail, ⌘K) puts the cursor in the composer; the first render's open state doesn't.
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpen.current) setTimeout(() => inputRef.current?.focus(), 60);
+    wasOpen.current = open;
+  }, [open]);
 
   // ⌘K / Ctrl+K opens the panel and puts the cursor in the composer.
   useEffect(() => {
@@ -88,6 +97,7 @@ export function AssistantPanel({ campaign, open, onOpen, onClose, onOpenSource }
         onRetry={chat.retry}
         onEditQuestion={editQuestion}
         onOpenSource={onOpenSource}
+        onAddDocuments={onAddDocuments}
       />
       {/* Not while loading: a send before the list arrives would start a second conversation. */}
       <Composer

@@ -42,3 +42,4 @@ class MessageOut(BaseModel):
     mode: Mode
     tool_label: str | None = Field(default=None, alias="toolLabel")
     citations: list[CitationOut] = []
+    refused: bool = False

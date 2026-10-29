@@ -9,6 +9,7 @@ from app.application.dto import (
     TurnDelta,
     TurnFailed,
     TurnFinished,
+    TurnRefused,
     TurnSearched,
     TurnStarted,
 )
@@ -119,6 +120,7 @@ def test_no_hits_writes_the_refusal_and_never_calls_the_model(
     )
     assert [e.text for e in events if isinstance(e, TurnDelta)] == [research.REFUSAL]
     assert not any(isinstance(e, TurnCited) for e in events)
+    assert isinstance(events[-2], TurnRefused)
     assistant = repo.get(conversation_id).messages[-1]
     assert assistant.content == research.REFUSAL
     assert assistant.citations == ()
@@ -266,3 +268,39 @@ def test_the_campaigns_owner_and_system_reach_search_and_the_layer_reaches_the_c
     assert calls == [("ashfall", "gm-a", "dnd-2024")]
     (cited,) = [event for event in events if isinstance(event, TurnCited)]
     assert cited.citation.attribution == "My library"
+
+
+def test_history_flags_the_refusal_and_only_the_refusal(
+    start: StartConversation,
+    run_turn: RunAssistantTurn,
+    list_messages: ListMessages,
+    document_repo: InMemoryDocumentRepo,
+) -> None:
+    conversation_id = _conversation(start)
+    _ask(run_turn, conversation_id, "Tell me about starships")
+    index_document(document_repo, "ashfall", "SRD.pdf", "Grappling rules")
+    events = _ask(run_turn, conversation_id)
+
+    assert not any(isinstance(e, TurnRefused) for e in events)
+    messages = list_messages.execute(
+        campaign_id="ashfall", conversation_id=conversation_id
+    )
+    assert [m.refused for m in messages] == [False, True, False, False]
+
+
+def test_the_model_saying_the_refusal_counts_as_one(
+    start: StartConversation,
+    run_turn: RunAssistantTurn,
+    document_repo: InMemoryDocumentRepo,
+    fake_llm: FakeLLM,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    index_document(document_repo, "ashfall", "SRD.pdf", "Grappling rules")
+
+    def refuse(self, **_):
+        yield " Not in your material "
+
+    monkeypatch.setattr(fake_llm.__class__, "stream", refuse)
+    events = _ask(run_turn, _conversation(start))
+
+    assert isinstance(events[-2], TurnRefused)

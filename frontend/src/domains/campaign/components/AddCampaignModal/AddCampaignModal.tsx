@@ -19,6 +19,7 @@ const message = (error: unknown) => (error instanceof ApiError ? error.message :
  *  both a name and a system are set. */
 export function AddCampaignModal({ onClose, onCreated }: AddCampaignModalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const fileId = useId();
   const queryClient = useQueryClient();
@@ -34,6 +35,8 @@ export function AddCampaignModal({ onClose, onCreated }: AddCampaignModalProps) 
 
   useEffect(() => {
     dialog.current?.showModal();
+    // showModal() focuses the first focusable element (the × button) and overrides autoFocus.
+    nameRef.current?.focus();
   }, []);
 
   const chooseBanner = (file: File | null) => {
@@ -171,7 +174,7 @@ export function AddCampaignModal({ onClose, onCreated }: AddCampaignModalProps) 
             onChange={(event) => setName(event.target.value)}
             placeholder="e.g. Ashfall Reach"
             maxLength={120}
-            autoFocus
+            ref={nameRef}
             disabled={busy || created !== null}
           />
         </label>
@@ -181,7 +184,7 @@ export function AddCampaignModal({ onClose, onCreated }: AddCampaignModalProps) 
             Game system <span className={styles.required}>*</span>
           </legend>
           {systems.isError && <p className={styles.error}>Could not load the game systems. {message(systems.error)}</p>}
-          <div className={styles.systemGrid} role="radiogroup">
+          <div className={styles.systemGrid} role="radiogroup" aria-label="Game system">
             {systems.data?.map((option) => (
               <button
                 key={option.id}

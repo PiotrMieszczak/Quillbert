@@ -62,8 +62,63 @@
   margin-left: 1px;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Under a refused reply: what was searched and a way forward, quieter than the answer itself. */
+.refusal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.searched {
+  margin: 0;
+  color: var(--text-muted);
+  font: 500 11.5px var(--font-mono);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.addDocuments {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-thumb);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.addDocuments svg {
+  color: var(--accent);
+}
+
+.addDocuments:hover {
+  border-color: var(--accent);
 }
 
 .cursor {

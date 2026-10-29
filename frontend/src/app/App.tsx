@@ -62,6 +62,10 @@ function Screen() {
         setView("documents");
         setFocus({ documentId, at: Date.now() });
       }}
+      onAddDocuments={() => {
+        setView("documents");
+        setFocus({ at: Date.now() });
+      }}
     >
       <View campaign={campaign} focus={focus} />
     </WorkspaceShell>
