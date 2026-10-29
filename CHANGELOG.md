@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.2.0...v1.3.0) (2026-10-29)
+
+
+### Features
+
+* **assistant:** actionable no-answer reply ([#133](https://github.com/PiotrMieszczak/Quillbert/issues/133)) ([3f573d1](https://github.com/PiotrMieszczak/Quillbert/commit/3f573d1f1fa75b282a46bd5b637562abd7cecc62))
+
 ## [1.2.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.1.0...v1.2.0) (2026-10-28)
 
 
