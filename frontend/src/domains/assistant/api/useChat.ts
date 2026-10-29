@@ -10,6 +10,7 @@ type Run = {
   status: "waiting" | "streaming" | "done" | "error";
   text: string;
   searched?: string;
+  refused?: boolean;
   citations: Citation[];
   error?: string;
 };
@@ -70,6 +71,7 @@ export function useChat(campaignId: string) {
         onSearched: (searched) => patch({ status: "streaming", searched }),
         onText: (text) => patch({ status: "streaming", text }),
         onCitation: (citation) => live() && setRun((current) => current && { ...current, citations: [...current.citations, citation] }),
+        onRefused: () => patch({ refused: true }),
         onError: fail,
       });
       abortRun.current = sending.abort;
@@ -106,6 +108,7 @@ export function useChat(campaignId: string) {
         content: run.text,
         citations: run.citations,
         searched: run.searched,
+        refused: run.refused,
         phase: run.status,
       });
     }

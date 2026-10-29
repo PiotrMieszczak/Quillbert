@@ -137,13 +137,17 @@ class IngestDocument:
         self._repo.update(document)
 
 
+def _count(n: int, noun: str) -> str:
+    return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
+
+
 def _meta(pages: list[Page], chunks: list[Chunk]) -> str:
     """The Documents row's detail line: "412 passages · 12 scanned pages"."""
-    parts = [f"{len(chunks)} passages"]
+    parts = [_count(len(chunks), "passage")]
     scanned = sum(page.ocr for page in pages)
     unreadable = sum(page.ocr and not page.blocks for page in pages)
     if scanned:
-        parts.append(f"{scanned} scanned pages")
+        parts.append(_count(scanned, "scanned page"))
     if unreadable:
         parts.append(f"{unreadable} unreadable")
     return " · ".join(parts)

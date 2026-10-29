@@ -207,7 +207,7 @@ def build_use_cases(
             top_k=settings.retrieval_top_k,
             history_messages=settings.history_messages,
         ),
-        list_messages=ListMessages(conversations),
+        list_messages=ListMessages(conversations, provider),
         upload_document=UploadDocument(
             store,
             document_repo,

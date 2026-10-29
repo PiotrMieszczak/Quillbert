@@ -11,6 +11,7 @@ from app.application.dto import (
     TurnEvent,
     TurnFailed,
     TurnFinished,
+    TurnRefused,
     TurnSearched,
     TurnStarted,
 )
@@ -183,6 +184,8 @@ class RunAssistantTurn:
         )
         for citation in citations:
             yield TurnCited(citation)
+        if profile.refused(reply):
+            yield TurnRefused()
         yield TurnFinished(
             conversation_id=conversation_id, run_id=run_id, message_id=assistant_id
         )

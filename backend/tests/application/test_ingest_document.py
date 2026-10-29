@@ -144,7 +144,7 @@ def test_scanned_and_unreadable_pages_are_reported(repo, files) -> None:
     document = repo.get(Shelf.campaign("ashfall"), document_id)
     assert document is not None
     assert document.page_count == 3
-    assert document.meta == "1 passages · 2 scanned pages · 1 unreadable"
+    assert document.meta == "1 passage · 2 scanned pages · 1 unreadable"
 
 
 def test_an_unexpected_error_fails_the_document_instead_of_sticking(

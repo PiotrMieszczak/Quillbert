@@ -24,6 +24,7 @@ from app.application.dto import (
     TurnEvent,
     TurnFailed,
     TurnFinished,
+    TurnRefused,
     TurnSearched,
     TurnStarted,
 )
@@ -76,6 +77,8 @@ def _events(turn: Iterable[TurnEvent]) -> Iterator[BaseEvent]:
                         "attribution": c.attribution,
                     },
                 )
+            case TurnRefused():
+                yield CustomEvent(name="dm.refused", value={})
             case TurnFinished():
                 yield RunFinishedEvent(thread_id=thread_id, run_id=run_id)
             case TurnFailed():

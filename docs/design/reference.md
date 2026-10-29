@@ -108,9 +108,11 @@ citation chips.
 | Assistant reply | 14px / 1.65 |
 | Secondary / meta | 11–13px |
 | Citation chip | 11.5px / 500 JetBrains Mono |
-| Tab bar label | 10.5px / 600 |
+| Tab bar label | 11px / 600 |
 | Stat value | 18px / 600 Newsreader |
-| Stat label | 10px / 500 JetBrains Mono |
+| Stat label | 11px / 500 JetBrains Mono |
+
+No UI text goes below **11px**: badges, type labels and citation markers included.
 
 ## Radii
 

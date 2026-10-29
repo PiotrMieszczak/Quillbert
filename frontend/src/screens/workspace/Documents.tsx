@@ -4,13 +4,13 @@ import { DocumentLibrary } from "../../domains/library";
 import { PageTitle } from "../../ui/components";
 import styles from "./Documents.module.css";
 
-/** A document to scroll to and highlight, e.g. from a citation chip. */
-export type DocumentFocus = { documentId: string; at: number };
+/** A document to scroll to and highlight, e.g. from a citation chip; without one, the upload zone. */
+export type DocumentFocus = { documentId?: string; at: number };
 
 export function Documents({ campaign, focus }: { campaign: Campaign; focus: DocumentFocus | null }) {
   // The GM's library is read by every campaign of theirs (ADR-0027); add to it from here too.
   const [chosen, setChosen] = useState<{ shelf: "campaign" | "library"; at: number }>({ shelf: "campaign", at: 0 });
-  // A citation chip opens a campaign document, so a citation newer than the tab choice wins.
+  // A citation chip or "Add documents" opens This campaign, so a request newer than the tab choice wins.
   const shelf = focus && focus.at > chosen.at ? "campaign" : chosen.shelf;
   const setShelf = (next: "campaign" | "library") => setChosen({ shelf: next, at: focus?.at ?? 0 });
   // Files added from a campaign start on its system; the campaign carries the name, not the id.

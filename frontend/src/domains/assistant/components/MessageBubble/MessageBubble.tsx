@@ -8,6 +8,8 @@ type MessageBubbleProps = {
   message: Message;
   /** Opens a cited document in the library. */
   onOpenSource: (documentId: string) => void;
+  /** A refused reply's "Add documents": shows the upload zone. */
+  onAddDocuments: () => void;
 };
 
 const CITATION = /\[S(\d+)\]/g;
@@ -17,11 +19,18 @@ const COPIED_MS = 1600;
 /** `[S2]` in the reply becomes a superscript 2, matching the "2" on its source chip. */
 function withCitations(content: string) {
   return content.split(CITATION).map((part, index) =>
-    index % 2 === 1 ? <sup key={index} className={styles.cite}>{part}</sup> : <Fragment key={index}>{part}</Fragment>,
+    index % 2 === 1 ? (
+      <sup key={index} className={styles.cite}>
+        <span className={styles.srOnly}>source </span>
+        {part}
+      </sup>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    ),
   );
 }
 
-export function MessageBubble({ message, onOpenSource }: MessageBubbleProps) {
+export function MessageBubble({ message, onOpenSource, onAddDocuments }: MessageBubbleProps) {
   if (message.role === "user") {
     return (
       <article className={[styles.userRow, message.phase && styles.arrive].filter(Boolean).join(" ")}>
@@ -29,10 +38,10 @@ export function MessageBubble({ message, onOpenSource }: MessageBubbleProps) {
       </article>
     );
   }
-  return <Reply message={message} onOpenSource={onOpenSource} />;
+  return <Reply message={message} onOpenSource={onOpenSource} onAddDocuments={onAddDocuments} />;
 }
 
-function Reply({ message, onOpenSource }: MessageBubbleProps) {
+function Reply({ message, onOpenSource, onAddDocuments }: MessageBubbleProps) {
   const live = message.phase !== undefined;
   const streaming = message.phase === "waiting" || message.phase === "streaming";
   const words = message.content.match(WORDS) ?? [];
@@ -84,6 +93,18 @@ function Reply({ message, onOpenSource }: MessageBubbleProps) {
             </li>
           ))}
         </ul>
+      )}
+      {!writing && message.refused && (
+        <div className={styles.refusal}>
+          {message.searched && <p className={styles.searched}>{message.searched}</p>}
+          <p className={styles.hint}>Try the name your notes use for it, or add the book or notes that cover it.</p>
+          <button type="button" className={styles.addDocuments} onClick={onAddDocuments}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+              <path d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Add documents
+          </button>
+        </div>
       )}
       {!writing && message.id !== "intro" && <CopyButton text={message.content} />}
     </article>

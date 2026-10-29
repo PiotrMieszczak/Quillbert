@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./UploadZone.module.css";
 
 // By extension: browsers report MIME types for .md and .docx inconsistently, often as "".
@@ -9,12 +9,22 @@ const isAccepted = (file: File) =>
 
 type UploadZoneProps = {
   onFiles: (files: File[]) => void;
+  /** Set (to a new value each time) to scroll the zone into view and focus it. */
+  focusAt?: number;
 };
 
 /** The whole zone is a label for the hidden input, so a click anywhere opens the picker.
  *  Dropped files skip the input's `accept`, so they are filtered here. */
-export function UploadZone({ onFiles }: UploadZoneProps) {
+export function UploadZone({ onFiles, focusAt }: UploadZoneProps) {
   const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!focusAt) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    inputRef.current?.focus({ preventScroll: true });
+    inputRef.current?.parentElement?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }, [focusAt]);
 
   return (
     <label
@@ -34,6 +44,7 @@ export function UploadZone({ onFiles }: UploadZoneProps) {
       }}
     >
       <input
+        ref={inputRef}
         type="file"
         multiple
         accept={ACCEPTED.join(",")}

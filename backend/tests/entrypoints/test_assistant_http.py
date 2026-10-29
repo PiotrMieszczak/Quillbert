@@ -120,6 +120,7 @@ def test_history_returns_the_message_with_its_citations(
     assert messages[0]["citations"] == []
     assert messages[1]["content"] == text
     assert messages[1]["toolLabel"] == "Searched 1 document · 1 passage"
+    assert messages[1]["refused"] is False
     (citation,) = messages[1]["citations"]
     assert citation["label"] == "S1"
     assert citation["filename"] == "SRD.pdf"
@@ -132,14 +133,17 @@ def test_no_hits_streams_the_refusal_as_the_usual_frames(client: TestClient) -> 
     conversation_id = _start(client)
     events = _frames(_send(client, conversation_id, content="starships").text)
 
-    assert [e.type for e in events][-3:] == [
+    assert [e.type for e in events][-4:] == [
         T.TEXT_MESSAGE_CONTENT,
         T.TEXT_MESSAGE_END,
+        T.CUSTOM,
         T.RUN_FINISHED,
     ]
-    assert events[-3].delta == "Not in your material."
+    assert events[-4].delta == "Not in your material."
+    assert events[-2].name == "dm.refused"
     assert events[4].content == "Searched 0 documents · 0 passages"
-    assert not any(e.type is T.CUSTOM for e in events)
+    messages = client.get(f"{BASE}/{conversation_id}/messages").json()
+    assert [m["refused"] for m in messages] == [False, True]
 
 
 def test_a_provider_failure_ends_with_run_error_and_stores_no_reply(

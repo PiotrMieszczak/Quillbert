@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AddCampaignModal, CampaignCard, useCampaigns, type Campaign } from "../../domains/campaign";
 import { ThemeToggle } from "../../ui/components";
 import styles from "./CampaignPicker.module.css";
@@ -15,6 +15,7 @@ type CampaignPickerProps = {
 export function CampaignPicker({ email, onOpen, onOpenLibrary, onSignOut }: CampaignPickerProps) {
   const campaigns = useCampaigns();
   const [adding, setAdding] = useState(false);
+  const addRef = useRef<HTMLButtonElement>(null);
   const empty = campaigns.data?.length === 0;
 
   return (
@@ -60,7 +61,7 @@ export function CampaignPicker({ email, onOpen, onOpenLibrary, onSignOut }: Camp
               <CampaignCard key={campaign.id} campaign={campaign} onOpen={() => onOpen(campaign)} />
             ))}
             {!campaigns.isPending && (
-              <button type="button" className={styles.add} onClick={() => setAdding(true)}>
+              <button type="button" className={styles.add} ref={addRef} onClick={() => setAdding(true)}>
                 <span className={styles.plus} aria-hidden>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                     <path d="M12 5v14M5 12h14" strokeLinecap="round" />
@@ -74,7 +75,17 @@ export function CampaignPicker({ email, onOpen, onOpenLibrary, onSignOut }: Camp
         )}
       </main>
 
-      {adding && <AddCampaignModal onClose={() => setAdding(false)} onCreated={onOpen} />}
+      {adding && (
+        <AddCampaignModal
+          onClose={() => {
+            setAdding(false);
+            // The dialog unmounts rather than closing, so hand focus back ourselves, once the
+            // modal is gone: while it is open the page behind it is inert and refuses focus.
+            setTimeout(() => addRef.current?.focus());
+          }}
+          onCreated={onOpen}
+        />
+      )}
     </div>
   );
 }
