@@ -101,8 +101,7 @@ renders them through different views but shares stats, connections, and portrait
 | `location` | text? | "The Party", "Market Row" |
 | `disposition` | text? | "Steadfast", "Active" |
 | `last_seen` | text? | "Session 13" |
-| `armor_class`, `hit_points`, `speed` | text? | free-form; systems differ |
-| `stats` | json | `{characteristics:{STR:7,…}, skills:{skills:[…]}}` — keyed by the system's sheet, validated against it when one exists (DEC-002) |
+| `stats` | json | `{characteristics:{STR:7,…}, skills:{skills:[…]}}` — keyed by the system's sheet, validated against it when one exists (DEC-002). Combat values (AC, HP, Speed) live here too, since systems differ: Traveller has none of them |
 | `quote` | text? | |
 | `notes` | text? | GM-private notes |
 | `portrait_path` | text? | |

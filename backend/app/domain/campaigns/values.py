@@ -11,12 +11,12 @@ class UnknownSystem(DomainError):
     """The campaign names a system that is not in the system table (422)."""
 
 
-def clean_name(name: str) -> str:
+def clean_name(name: str, what: str = "campaign name") -> str:
     cleaned = " ".join(name.split())
     if not cleaned:
-        raise ValidationFailed("a campaign name is required")
+        raise ValidationFailed(f"a {what} is required")
     if len(cleaned) > MAX_NAME:
-        raise ValidationFailed(f"campaign name is longer than {MAX_NAME} characters")
+        raise ValidationFailed(f"{what} is longer than {MAX_NAME} characters")
     return cleaned
 
 
