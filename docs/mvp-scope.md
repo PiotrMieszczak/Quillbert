@@ -69,9 +69,10 @@ library (indexed and cited like any upload), or an addition to the GM's per-user
 guide. Conversations themselves are never indexed. Replies and notes follow the language
 of the GM's question.
 
-Built-in rules: the D&D SRD 5.1 (2014) and SRD 5.2 (2024) in the shared vault, an
-external service Quillbert consumes ([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)). Traveller rules come from the GM's
-own upload.
+Built-in rules: the D&D SRD 5.2 (2024) and an original summary of the Traveller 2e core
+mechanics, in the shared vault, wizard-vault, which Quillbert reads over MCP
+([ADR-0029](adr/adr-0029-wizard-vault-service.md)). Each system's character sheet is
+drafted from those rules and saved by the admin ([ADR-0030](adr/adr-0030-sheet-schemas.md)).
 
 
 - Chat panel streaming [AG-UI](https://docs.ag-ui.com/) events over SSE ([ADR-0009](adr/adr-0009-ag-ui-protocol.md))

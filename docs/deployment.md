@@ -121,11 +121,19 @@ tier**:
 - **Next:** build the DM app (backend + frontend) against this foundation, then deploy it to
   `ted106` via Openship and wire its env to Supabase Cloud + R2 + OpenRouter.
 
-## Arkon (removed)
+## wizard-vault (shared vault)
 
-Arkon was evaluated on `ted106` as an external library and removed on 2026-10-23, with its
-containers, volumes, images and `/opt/arkon`. Quillbert keeps its own layered library
-instead ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md), #95).
+The shared vault is a separate service, deployed from its own repository through
+Openship, and served at `https://wizard-vault.app/mcp` ([ADR-0029](adr/adr-0029-wizard-vault-service.md)).
+Quillbert reads it with its own client token:
+
+| Env var | Where | Notes |
+|---------|-------|-------|
+| `WIZARD_VAULT_URL` | Openship secret | `https://wizard-vault.app/mcp` |
+| `WIZARD_VAULT_TOKEN` | Openship secret | a client token made for Quillbert in the vault UI; empty disables the vault |
+
+If the vault is unreachable, Research answers from the campaign and the GM library, with a
+note. Arkon, evaluated before it (#95), was removed from `ted106` on 2026-10-23.
 
 ## Notes / risks
 

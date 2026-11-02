@@ -323,8 +323,8 @@ flag, never text ([ADR-0028](adr/adr-0028-safety-without-surveillance.md) NEG-00
 `campaign_id`. The frontend never sees another campaign's data. One shared read scope
 exists, reached only through retrieval: the campaign owner's GM library, filtered to the
 campaign's system ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). One GM's
-library never reaches another GM's campaign. The shared vault is an external service
-([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)). The admin sees GMs' content only through a flagged item
+library never reaches another GM's campaign. The shared vault is wizard-vault, a separate
+read-only service queried during retrieval ([ADR-0029](adr/adr-0029-wizard-vault-service.md)). The admin sees GMs' content only through a flagged item
 ([ADR-0028](adr/adr-0028-safety-without-surveillance.md)).
 
 **BND-006 — No agent framework owns the loop.** The tool loop is plain code in
