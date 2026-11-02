@@ -82,8 +82,11 @@ Retrieval becomes conversation.
 - **Quillbert, slice 3**: memory — `propose_memory`, the proposal card, notes saved as
   library documents, and the per-user style guide
 - **Layered knowledge**: GM library ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md),
-  epic #99), and the shared vault (SRD 5.1 / 5.2, craft, templates) as its own module,
-  `wizard-vault`, consumed over MCP (#112)
+  epic #99), and the shared vault (rules, craft, templates) as its own service,
+  `wizard-vault`, read over MCP ([ADR-0029](adr/adr-0029-wizard-vault-service.md), #125)
+- **Character sheets**: per-system sheets drafted from the vault's rules and saved by the
+  admin; NPC and Player pages render and validate stats from them
+  ([ADR-0030](adr/adr-0030-sheet-schemas.md), #126, #107, #110)
 - **Safety without surveillance**: limits, metadata overview, flag-only moderation, Terms
   and privacy policy before public sign-up
   ([ADR-0028](adr/adr-0028-safety-without-surveillance.md))

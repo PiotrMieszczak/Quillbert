@@ -124,8 +124,8 @@ the same bytes in two campaigns are two documents.
 
 The same document shape on one more shelf, outside any campaign. Research in a campaign
 also searches its owner's library documents for the campaign's system. The shared vault is
-an external service ([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)), not
-a shelf here.
+wizard-vault, read over MCP during retrieval ([ADR-0029](adr/adr-0029-wizard-vault-service.md)),
+not a shelf here.
 
 | Method | Path | Who | Purpose |
 |--------|------|-----|---------|
@@ -182,7 +182,7 @@ Covers NPCs and player characters; `isPlayer` selects the list.
   "isPlayer": true, "relationship": "ally", "location": "The Party",
   "disposition": "Steadfast", "lastSeen": "Session 13",
   "armorClass": "18", "hitPoints": "47", "speed": "30 ft",
-  "stats": [{ "k": "STR", "v": 14 }, { "k": "WIS", "v": 17 }],
+  "stats": { "abilities": { "STR": 14, "WIS": 17 } },
   "tags": ["Healer", "Faith"],
   "quote": "The Light does not ask who deserves it.",
   "notes": "Ties the party to Mother Ansel's temple faction.",
@@ -195,6 +195,33 @@ Covers NPCs and player characters; `isPlayer` selects the list.
 ```
 
 `notes` is GM-private and excluded from assistant context by default (DEC-004).
+
+`stats` is keyed by section and field of the campaign system's sheet, and a write that
+does not fit the sheet answers `422`. Without a sheet it is a free object (DEC-002).
+
+### Sheets ([ADR-0030](adr/adr-0030-sheet-schemas.md))
+
+| Method | Path | Who | Purpose |
+|--------|------|-----|---------|
+| `GET` | `/systems/{systemId}/sheet` | any GM | The system's sheet; `404` when none is saved |
+| `POST` | `/admin/sheets/{systemId}/draft` | admin | A draft from the vault's rules, with sources; nothing saved |
+| `PUT` | `/admin/sheets/{systemId}` | admin | Save the reviewed sheet; `422` if it does not validate |
+
+A GM token gets `403` on both admin routes.
+
+```jsonc
+// GET /systems/traveller-2e/sheet
+{ "systemId": "traveller-2e",
+  "sections": [
+    { "key": "characteristics", "label": "Characteristics", "fields": [
+      { "key": "STR", "label": "Strength", "type": "int", "min": 0, "max": 15 } ] },
+    { "key": "skills", "label": "Skills", "fields": [
+      { "key": "skills", "label": "Skills", "type": "list", "itemFields": [
+        { "key": "name", "label": "Skill", "type": "text" },
+        { "key": "speciality", "label": "Speciality", "type": "text" },
+        { "key": "level", "label": "Level", "type": "int", "min": 0, "max": 4 } ] } ] } ],
+  "sources": [{ "documentId": "5dfa7907-…", "headingPath": ["…", "10. Character creation"] }] }
+```
 
 ## Factions
 

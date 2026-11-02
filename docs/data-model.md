@@ -81,8 +81,8 @@ campaigns. A system that a campaign uses cannot be deleted.
 GM-library documents list the systems they apply to (`document.systems`), so a 5e house
 rule reaches only that GM's 5e campaigns
 ([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). Open rules such as the SRDs
-belong to the shared vault, an external service
-([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)).
+belong to the shared vault, wizard-vault
+([ADR-0029](adr/adr-0029-wizard-vault-service.md)).
 
 ### Character
 
@@ -102,7 +102,7 @@ renders them through different views but shares stats, connections, and portrait
 | `disposition` | text? | "Steadfast", "Active" |
 | `last_seen` | text? | "Session 13" |
 | `armor_class`, `hit_points`, `speed` | text? | free-form; systems differ |
-| `stats` | json | `[{k:"STR",v:14}, …]` — system-agnostic key/value |
+| `stats` | json | `{characteristics:{STR:7,…}, skills:{skills:[…]}}` — keyed by the system's sheet, validated against it when one exists (DEC-002) |
 | `quote` | text? | |
 | `notes` | text? | GM-private notes |
 | `portrait_path` | text? | |
@@ -113,6 +113,19 @@ JSON column rather than a separate table — it is always fetched with the chara
 never queried independently:
 
 `player_name`, `class`, `race`, `background`, `xp`, `pronouns`, `bonds`
+
+### Sheet template
+
+One character sheet per system: the shape of `character.stats`
+([ADR-0030](adr/adr-0030-sheet-schemas.md)). Drafted by the assistant from the vault's
+rules, saved by the admin.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `system_id` | text PK FK | `system.id` |
+| `sheet` | jsonb | `{sections:[{key,label,fields:[{key,label,type,min?,max?,item_fields?}]}], sources:[{document_id,heading_path}]}` |
+| `saved_by` | text | the admin's user id |
+| `saved_at` | timestamptz | |
 
 ### Faction
 
@@ -401,9 +414,9 @@ retrieval cites them like any chunk. The text is the GM's — they saved it — 
 holds.
 Retrieval for a campaign searches two layers in the same query: the campaign's chunks and
 its owner's GM library, the latter filtered to the campaign's system
-([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). The shared vault is an
-external service queried separately
-([#112](https://github.com/PiotrMieszczak/Quillbert/issues/112)). Only `reference` chunks are
+([ADR-0027](adr/adr-0027-layered-knowledge-admin-vault.md)). The shared vault,
+wizard-vault, is queried separately over MCP and merged by rank
+([ADR-0029](adr/adr-0029-wizard-vault-service.md)). Only `reference` chunks are
 searched; `craft` is loaded by task. No other shared scope exists.
 
 **`embedding_space`** — one row, the model that produced every stored embedding.
@@ -512,7 +525,9 @@ the graph, which does not care which kind a node is.
 
 **DEC-002 — `stats` is JSON, not columns.**
 D&D 2024 and Traveller 2e have different attributes. A fixed six-column stat block would
-be wrong for one of the two systems the picker requires on day one.
+be wrong for one of the two systems the picker requires on day one. Its shape comes from
+the system's sheet template, which validates every write when one is saved; without one,
+`stats` is a free object ([ADR-0030](adr/adr-0030-sheet-schemas.md)).
 
 **DEC-003 — Relationships are first-class rows, not embedded lists.**
 The prototype embeds `connections` in each entity. Real storage needs edges queryable
