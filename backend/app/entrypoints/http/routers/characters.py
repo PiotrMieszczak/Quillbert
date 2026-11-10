@@ -1,8 +1,14 @@
 import dataclasses
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 
-from app.application.cast import CreateCharacter, ListCharacters
+from app.application.cast import (
+    CreateCharacter,
+    DeleteCharacter,
+    GetCharacter,
+    ListCharacters,
+    UpdateCharacter,
+)
 from app.application.dto import CharacterView
 from app.domain.cast import PlayerProfile, Relationship
 from app.entrypoints.http.auth import require_campaign
@@ -12,6 +18,7 @@ from app.entrypoints.http.schemas.characters import (
     CharacterPageOut,
     CreateCharacterBody,
     PlayerProfileIO,
+    UpdateCharacterBody,
 )
 
 PREFIX = "/api/v1/campaigns/{campaign_id}"
@@ -101,3 +108,33 @@ def list_characters(
         items=[_item(view) for view in page.items],
         nextCursor=page.next_cursor,
     )
+
+
+@router.get("/characters/{character_id}", response_model=CharacterOut)
+def get_character(
+    campaign_id: str, character_id: int, request: Request
+) -> CharacterOut:
+    get: GetCharacter = request.app.state.get_character
+    return _out(get.execute(campaign_id=campaign_id, character_id=character_id))
+
+
+@router.patch("/characters/{character_id}", response_model=CharacterOut)
+def update_character(
+    campaign_id: str, character_id: int, body: UpdateCharacterBody, request: Request
+) -> CharacterOut:
+    update: UpdateCharacter = request.app.state.update_character
+    # Only what the client sent: an omitted field is kept, null clears it.
+    changes = body.model_dump(exclude_unset=True)
+    if changes.get("player_profile") is not None:
+        changes["player_profile"] = PlayerProfile(**changes["player_profile"])
+    view = update.execute(
+        campaign_id=campaign_id, character_id=character_id, changes=changes
+    )
+    return _out(view)
+
+
+@router.delete("/characters/{character_id}", status_code=204)
+def delete_character(campaign_id: str, character_id: int, request: Request) -> Response:
+    delete: DeleteCharacter = request.app.state.delete_character
+    delete.execute(campaign_id=campaign_id, character_id=character_id)
+    return Response(status_code=204)

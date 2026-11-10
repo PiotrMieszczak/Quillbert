@@ -1,7 +1,16 @@
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.domain.cast.values import Relationship
+from app.domain.campaigns import clean_name
+from app.domain.cast.values import (
+    Relationship,
+    check_level,
+    check_stats,
+    clean_tags,
+    clean_text,
+)
+from app.domain.shared import ValidationFailed
 
 
 @dataclass(frozen=True)
@@ -46,3 +55,38 @@ class Character:
     def sort_key(self) -> tuple[str, int]:
         """List order and paging key; the SQL repo orders by lower(name), id."""
         return (self.name.lower(), self.id)
+
+
+def clean_character(character: Character) -> Character:
+    """The character with its text cleaned, or ValidationFailed. Create and update both
+    pass through here, so the rules cannot drift apart."""
+    if character.player_profile is not None and not character.is_player:
+        raise ValidationFailed("only a player character has a player profile")
+    return dataclasses.replace(
+        character,
+        name=clean_name(character.name, "character name"),
+        role=clean_text(character.role),
+        level=check_level(character.level),
+        location=clean_text(character.location),
+        disposition=clean_text(character.disposition),
+        last_seen=clean_text(character.last_seen),
+        stats=check_stats(character.stats),
+        tags=clean_tags(list(character.tags)),
+        quote=clean_text(character.quote),
+        notes=clean_text(character.notes),
+        player_profile=_clean_profile(character.player_profile)
+        if character.is_player
+        else None,
+    )
+
+
+def _clean_profile(profile: PlayerProfile | None) -> PlayerProfile:
+    # A player always has a profile, even an empty one; the Players page relies on it.
+    if profile is None:
+        return PlayerProfile()
+    return PlayerProfile(
+        **{
+            f.name: clean_text(getattr(profile, f.name))
+            for f in dataclasses.fields(profile)
+        }
+    )

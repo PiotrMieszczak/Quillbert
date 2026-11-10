@@ -1,7 +1,10 @@
 """Row <-> entity translation. The domain never sees a row."""
 
+import dataclasses
+
 from app.adapters.persistence.sqlalchemy.tables import (
     CampaignRow,
+    CharacterRow,
     CitationRow,
     ConversationRow,
     DocumentRow,
@@ -9,6 +12,7 @@ from app.adapters.persistence.sqlalchemy.tables import (
 )
 from app.domain.assistant import Citation, Conversation, Message, Mode, Role, Trace
 from app.domain.campaigns import Campaign, System
+from app.domain.cast import Character, PlayerProfile, Relationship
 from app.domain.documents import Document, DocumentKind, DocumentSource, DocumentStatus
 
 
@@ -154,4 +158,48 @@ def campaign_from_row(row: CampaignRow) -> Campaign:
         created_at=row.created_at,
         image_key=row.image_path,
         last_played_at=row.last_played_at,
+    )
+
+
+def character_to_row(character: Character) -> CharacterRow:
+    profile = character.player_profile
+    return CharacterRow(
+        id=character.id,
+        campaign_id=character.campaign_id,
+        name=character.name,
+        is_player=character.is_player,
+        relationship=character.relationship.value,
+        role=character.role,
+        level=character.level,
+        location=character.location,
+        disposition=character.disposition,
+        last_seen=character.last_seen,
+        stats=character.stats,
+        tags=list(character.tags),
+        quote=character.quote,
+        notes=character.notes,
+        portrait_path=character.portrait_key,
+        player_profile=None if profile is None else dataclasses.asdict(profile),
+    )
+
+
+def character_from_row(row: CharacterRow) -> Character:
+    profile = row.player_profile
+    return Character(
+        id=row.id,
+        campaign_id=row.campaign_id,
+        name=row.name,
+        is_player=row.is_player,
+        relationship=Relationship(row.relationship),
+        role=row.role,
+        level=row.level,
+        location=row.location,
+        disposition=row.disposition,
+        last_seen=row.last_seen,
+        stats=row.stats,
+        tags=tuple(row.tags),
+        quote=row.quote,
+        notes=row.notes,
+        portrait_key=row.portrait_path,
+        player_profile=None if profile is None else PlayerProfile(**profile),
     )

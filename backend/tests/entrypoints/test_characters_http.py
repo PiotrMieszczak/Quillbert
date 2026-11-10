@@ -218,3 +218,112 @@ def test_characters_stay_in_their_campaign(gm: TestClient, url: str) -> None:
     other_url = f"/api/v1/campaigns/{other.json()['id']}/characters"
 
     assert gm.get(other_url).json()["items"] == []
+
+
+# --- one character: get, update, delete (#140, #141) ----------------------------
+
+
+def test_get_returns_what_create_returned(gm: TestClient, url: str) -> None:
+    created = _create(gm, url, notes="Secretly the Pale Court", stats={"STR": 7})
+
+    response = gm.get(f"{url}/{created['id']}")
+
+    assert response.status_code == 200
+    assert response.json() == created
+
+
+def test_delete_removes_it(gm: TestClient, url: str) -> None:
+    created = _create(gm, url)
+    one = f"{url}/{created['id']}"
+
+    assert gm.delete(one).status_code == 204
+    assert gm.get(one).status_code == 404
+    assert gm.get(url).json()["items"] == []
+    assert gm.delete(one).status_code == 404
+
+
+def test_an_id_from_another_campaign_is_404(gm: TestClient, url: str) -> None:
+    created = _create(gm, url)
+    other = gm.post(
+        "/api/v1/campaigns", json={"name": "Drinax", "systemId": "dnd-2024"}
+    )
+    wrong = f"/api/v1/campaigns/{other.json()['id']}/characters/{created['id']}"
+
+    assert gm.get(wrong).status_code == 404
+    assert gm.patch(wrong, json={"role": "Spy"}).status_code == 404
+    assert gm.delete(wrong).status_code == 404
+    assert gm.get(f"{url}/{created['id']}").json() == created
+
+
+def test_another_gm_cannot_reach_one_character(
+    gm: TestClient, rival: TestClient, url: str
+) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+
+    assert rival.get(one).status_code == 404
+    assert rival.patch(one, json={"name": "Spy"}).status_code == 404
+    assert rival.delete(one).status_code == 404
+    assert gm.get(one).status_code == 200
+
+
+def test_a_non_numeric_id_is_422(gm: TestClient, url: str) -> None:
+    assert gm.get(f"{url}/ansel").status_code == 422
+
+
+def test_patch_changes_only_what_was_sent(gm: TestClient, url: str) -> None:
+    created = _create(gm, url, role="Priestess", location="Temple", tags=["Faith"])
+
+    response = gm.patch(f"{url}/{created['id']}", json={"location": " Market Row "})
+
+    assert response.status_code == 200, response.text
+    assert response.json() == created | {"location": "Market Row"}
+    assert gm.get(f"{url}/{created['id']}").json() == response.json()
+
+
+def test_patch_null_clears_a_field(gm: TestClient, url: str) -> None:
+    created = _create(gm, url, role="Priestess", level=3)
+
+    updated = gm.patch(f"{url}/{created['id']}", json={"role": None, "level": None})
+
+    assert updated.json()["role"] is None
+    assert updated.json()["level"] is None
+
+
+@pytest.mark.parametrize("field", ["name", "isPlayer", "relationship", "stats", "tags"])
+def test_patch_cannot_clear_a_required_field(
+    gm: TestClient, url: str, field: str
+) -> None:
+    created = _create(gm, url)
+
+    response = gm.patch(f"{url}/{created['id']}", json={field: None})
+
+    assert response.status_code == 400, response.text
+    assert gm.get(f"{url}/{created['id']}").json() == created
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"name": "  "},
+        {"level": 100},
+        {"tags": ["x" * 41]},
+        {"stats": {"blob": "x" * 20_001}},
+        {"playerProfile": {"playerName": "Jordan"}},
+    ],
+)
+def test_patch_validates_like_create(gm: TestClient, url: str, body: dict) -> None:
+    created = _create(gm, url)
+
+    assert gm.patch(f"{url}/{created['id']}", json=body).status_code == 400
+    assert gm.get(f"{url}/{created['id']}").json() == created
+
+
+def test_promoting_and_demoting_a_player(gm: TestClient, url: str) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+
+    promoted = gm.patch(one, json={"isPlayer": True, "playerProfile": {"xp": "300"}})
+    assert promoted.json()["playerProfile"]["xp"] == "300"
+
+    demoted = gm.patch(one, json={"isPlayer": False})
+    assert demoted.status_code == 200, demoted.text
+    assert demoted.json()["playerProfile"] is None

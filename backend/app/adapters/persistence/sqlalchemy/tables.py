@@ -1,6 +1,7 @@
 """PostgreSQL schema. Mapped to the domain by mappers.py, not equal to it."""
 
 from datetime import date, datetime
+from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -18,7 +19,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Stable constraint names, so migrations can refer to them.
@@ -66,6 +67,49 @@ class CampaignRow(Base):
     )
 
     system: Mapped[SystemRow] = relationship()
+
+
+class CharacterRow(Base):
+    """An NPC or player character. See docs/data-model.md `character`."""
+
+    __tablename__ = "character"
+    __table_args__ = (
+        # The list: a campaign's NPCs or players, by name, keyset-paged.
+        Index(
+            "ix_character_list", "campaign_id", "is_player", text("lower(name)"), "id"
+        ),
+        # Part-of-a-name search (q=) over many NPCs.
+        Index(
+            "ix_character_name_trgm",
+            text("lower(name) extensions.gin_trgm_ops"),
+            postgresql_using="gin",
+        ),
+        CheckConstraint(
+            "relationship IN ('ally', 'enemy', 'family', 'professional', 'neutral')",
+            name="relationship",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    campaign_id: Mapped[str] = mapped_column(
+        ForeignKey("campaign.id", ondelete="CASCADE")
+    )
+    # "C" sorts by code point, as Character.sort_key does in Python; lower(name)
+    # inherits it, so list order and paging agree with the in-memory repo.
+    name: Mapped[str] = mapped_column(Text(collation="C"))
+    is_player: Mapped[bool] = mapped_column()
+    relationship: Mapped[str] = mapped_column(Text)
+    role: Mapped[str | None] = mapped_column(Text)
+    level: Mapped[int | None] = mapped_column(Integer)
+    location: Mapped[str | None] = mapped_column(Text)
+    disposition: Mapped[str | None] = mapped_column(Text)
+    last_seen: Mapped[str | None] = mapped_column(Text)
+    stats: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
+    quote: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    portrait_path: Mapped[str | None] = mapped_column(Text)
+    player_profile: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
 
 class ConversationRow(Base):

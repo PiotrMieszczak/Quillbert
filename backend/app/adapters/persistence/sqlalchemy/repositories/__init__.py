@@ -1,4 +1,7 @@
 from app.adapters.persistence.sqlalchemy.repositories.campaigns import SqlCampaignRepo
+from app.adapters.persistence.sqlalchemy.repositories.characters import (
+    SqlCharacterRepo,
+)
 from app.adapters.persistence.sqlalchemy.repositories.chunk_search import (
     SqlChunkSearch,
 )
@@ -9,6 +12,7 @@ from app.adapters.persistence.sqlalchemy.repositories.documents import SqlDocume
 
 __all__ = [
     "SqlCampaignRepo",
+    "SqlCharacterRepo",
     "SqlChunkSearch",
     "SqlConversationRepo",
     "SqlDocumentRepo",

@@ -40,6 +40,26 @@ class CreateCharacterBody(BaseModel):
     player_profile: PlayerProfileIO | None = Field(None, alias="playerProfile")
 
 
+class UpdateCharacterBody(BaseModel):
+    """Every field optional: an omitted field is kept, one sent as null is cleared."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str | None = None
+    is_player: bool | None = Field(None, alias="isPlayer")
+    relationship: Relationship | None = None
+    role: str | None = Field(None, max_length=SHORT)
+    level: int | None = None
+    location: str | None = Field(None, max_length=SHORT)
+    disposition: str | None = Field(None, max_length=SHORT)
+    last_seen: str | None = Field(None, alias="lastSeen", max_length=SHORT)
+    stats: dict[str, Any] | None = None
+    tags: list[str] | None = None
+    quote: str | None = Field(None, max_length=LONG)
+    notes: str | None = Field(None, max_length=20_000)
+    player_profile: PlayerProfileIO | None = Field(None, alias="playerProfile")
+
+
 class CharacterListItemOut(BaseModel):
     """What a card shows. Stats, notes and connections come only with the detail."""
 

@@ -1,6 +1,7 @@
 import dataclasses
 
 from app.domain.cast import Character, Relationship
+from app.domain.shared import NotFound
 
 
 class InMemoryCharacterRepo:
@@ -21,6 +22,17 @@ class InMemoryCharacterRepo:
         if character is None or character.campaign_id != campaign_id:
             return None
         return dataclasses.replace(character)
+
+    def update(self, character: Character) -> None:
+        if self.get(character.campaign_id, character.id) is None:
+            raise NotFound("character not found")
+        self._characters[character.id] = dataclasses.replace(character)
+
+    def remove(self, campaign_id: str, character_id: int) -> Character | None:
+        character = self.get(campaign_id, character_id)
+        if character is not None:
+            del self._characters[character_id]
+        return character
 
     def page(
         self,

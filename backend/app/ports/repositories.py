@@ -104,6 +104,14 @@ class CharacterRepo(Protocol):
 
     def get(self, campaign_id: str, character_id: int) -> Character | None: ...
 
+    def update(self, character: Character) -> None:
+        """Persist every field. Raises NotFound when its campaign has no such id."""
+        ...
+
+    def remove(self, campaign_id: str, character_id: int) -> Character | None:
+        """Delete and return the character, or None when the campaign has none such."""
+        ...
+
     def page(
         self,
         campaign_id: str,

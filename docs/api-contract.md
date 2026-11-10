@@ -205,6 +205,12 @@ Each item is the card's slim row: `id`, `name`, `isPlayer`, `relationship`, `rol
 are trimmed and de-duplicated, at most 20 of 40 characters each. `level` is 0–99, and a
 `playerProfile` on an NPC is a `400`; a player without one gets an empty profile.
 
+`PATCH` changes only the fields sent: an omitted field keeps its value, and one sent as
+`null` is cleared. `name`, `isPlayer`, `relationship`, `stats` and `tags` cannot be
+cleared (`400`). The same rules as create apply. Setting `isPlayer: false` demotes a
+player and drops its `playerProfile`; setting it to `true` promotes an NPC, which gets an
+empty profile unless one is sent. `DELETE` answers `204`.
+
 `notes` is GM-private and excluded from assistant context by default (DEC-004).
 
 `stats` is keyed by section and field of the campaign system's sheet, and a write that
