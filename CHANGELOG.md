@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.3.0...v1.4.0) (2026-11-13)
+
+
+### Features
+
+* **cast:** characters API on Postgres ([#146](https://github.com/PiotrMieszczak/Quillbert/issues/146)) ([1a2c76a](https://github.com/PiotrMieszczak/Quillbert/commit/1a2c76aef2b71849c581da0ba3f5a89661aebbac))
+
 ## [1.3.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.2.0...v1.3.0) (2026-10-29)
 
 
