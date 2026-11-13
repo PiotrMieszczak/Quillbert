@@ -3,6 +3,7 @@ from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
 from app.domain.campaigns import Campaign, System
+from app.domain.cast import Character, Relationship
 from app.domain.documents import Chunk, Document, Shelf
 
 
@@ -90,4 +91,37 @@ class CampaignRepo(Protocol):
         self, owner_id: str, campaign_id: str, image_key: str | None
     ) -> str | None:
         """Replace the banner key and return the previous one. Raises NotFound."""
+        ...
+
+
+class CharacterRepo(Protocol):
+    """Every read takes the campaign id. Routes under a campaign have already checked
+    that the caller owns it (DEC-005), so a wrong campaign reads as missing."""
+
+    def next_character_id(self) -> int: ...
+
+    def add(self, character: Character) -> None: ...
+
+    def get(self, campaign_id: str, character_id: int) -> Character | None: ...
+
+    def update(self, character: Character) -> None:
+        """Persist every field. Raises NotFound when its campaign has no such id."""
+        ...
+
+    def remove(self, campaign_id: str, character_id: int) -> Character | None:
+        """Delete and return the character, or None when the campaign has none such."""
+        ...
+
+    def page(
+        self,
+        campaign_id: str,
+        *,
+        is_player: bool | None,
+        relationship: Relationship | None,
+        name_contains: str | None,
+        after: tuple[str, int] | None,
+        limit: int,
+    ) -> list[Character]:
+        """At most `limit` characters ordered by `Character.sort_key`, starting after
+        the key `after`. `name_contains` matches case-insensitively."""
         ...

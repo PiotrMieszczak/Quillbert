@@ -19,6 +19,7 @@ from app.adapters.llm.fake_embedder import FakeEmbedder
 from app.adapters.llm.openrouter import OpenRouterChat
 from app.adapters.llm.openrouter_embedder import OpenRouterEmbedder
 from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
+from app.adapters.persistence.memory.characters import InMemoryCharacterRepo
 from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
@@ -26,6 +27,7 @@ from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
     SqlCampaignRepo,
+    SqlCharacterRepo,
     SqlChunkSearch,
     SqlConversationRepo,
     SqlDocumentRepo,
@@ -44,6 +46,13 @@ from app.application.campaigns import (
     ListSystems,
     SetCampaignImage,
 )
+from app.application.cast import (
+    CreateCharacter,
+    DeleteCharacter,
+    GetCharacter,
+    ListCharacters,
+    UpdateCharacter,
+)
 from app.application.documents import (
     DeleteDocument,
     GetDocument,
@@ -60,7 +69,12 @@ from app.ports.embeddings import Embedder
 from app.ports.extraction import TextExtractor
 from app.ports.files import FileStore
 from app.ports.llm import LLMProvider
-from app.ports.repositories import CampaignRepo, ConversationRepo, DocumentRepo
+from app.ports.repositories import (
+    CampaignRepo,
+    CharacterRepo,
+    ConversationRepo,
+    DocumentRepo,
+)
 from app.ports.search import ChunkSearch
 
 logger = logging.getLogger(__name__)
@@ -77,6 +91,11 @@ class UseCases:
     get_campaign: GetCampaign
     set_campaign_image: SetCampaignImage
     get_campaign_image: GetCampaignImage
+    create_character: CreateCharacter
+    list_characters: ListCharacters
+    get_character: GetCharacter
+    update_character: UpdateCharacter
+    delete_character: DeleteCharacter
     start_conversation: StartConversation
     run_turn: RunAssistantTurn
     list_conversations: ListConversations
@@ -161,6 +180,7 @@ def build_use_cases(
     embedder: Embedder | None = None,
     extractor: TextExtractor | None = None,
     campaigns: CampaignRepo | None = None,
+    characters: CharacterRepo | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
@@ -175,6 +195,9 @@ def build_use_cases(
     )
     document_repo: DocumentRepo = documents or (
         InMemoryDocumentRepo() if sessions is None else SqlDocumentRepo(sessions)
+    )
+    character_repo: CharacterRepo = characters or (
+        InMemoryCharacterRepo() if sessions is None else SqlCharacterRepo(sessions)
     )
     store: FileStore = files or LocalDiskFileStore(Path(settings.file_store_path))
     provider = llm or _llm(settings)
@@ -196,6 +219,11 @@ def build_use_cases(
             store, campaign_repo, max_bytes=MAX_IMAGE_BYTES
         ),
         get_campaign_image=GetCampaignImage(store, campaign_repo),
+        create_character=CreateCharacter(character_repo),
+        list_characters=ListCharacters(character_repo),
+        get_character=GetCharacter(character_repo),
+        update_character=UpdateCharacter(character_repo),
+        delete_character=DeleteCharacter(character_repo),
         start_conversation=StartConversation(conversations, time),
         list_conversations=ListConversations(conversations),
         run_turn=RunAssistantTurn(
@@ -252,6 +280,11 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.get_campaign = cases.get_campaign
     app.state.set_campaign_image = cases.set_campaign_image
     app.state.get_campaign_image = cases.get_campaign_image
+    app.state.create_character = cases.create_character
+    app.state.list_characters = cases.list_characters
+    app.state.get_character = cases.get_character
+    app.state.update_character = cases.update_character
+    app.state.delete_character = cases.delete_character
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
     app.state.list_conversations = cases.list_conversations

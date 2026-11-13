@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from datetime import date, datetime
+from typing import Any
 
 from app.domain.assistant import Citation, Mode, Role
 from app.domain.campaigns import System
+from app.domain.cast import PlayerProfile, Relationship
 from app.domain.documents import DocumentKind, DocumentStatus
 
 
@@ -37,6 +39,31 @@ class CampaignView:
     image_version: str | None
     session_count: int
     last_played_at: date | None
+
+
+@dataclass(frozen=True)
+class CharacterView:
+    id: int
+    name: str
+    is_player: bool
+    relationship: Relationship
+    role: str | None
+    level: int | None
+    location: str | None
+    disposition: str | None
+    last_seen: str | None
+    stats: dict[str, Any]
+    tags: tuple[str, ...]
+    quote: str | None
+    notes: str | None
+    player_profile: PlayerProfile | None
+
+
+@dataclass(frozen=True)
+class CharacterPage:
+    items: tuple[CharacterView, ...]
+    # Opaque; None on the last page.
+    next_cursor: str | None
 
 
 @dataclass(frozen=True)

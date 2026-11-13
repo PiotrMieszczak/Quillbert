@@ -170,7 +170,7 @@ Covers NPCs and player characters; `isPlayer` selects the list.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/campaigns/{cid}/characters?isPlayer=&relationship=` | Filtered list |
+| `GET` | `/campaigns/{cid}/characters?isPlayer=&relationship=&q=&cursor=&limit=` | Filtered page |
 | `POST` | `/campaigns/{cid}/characters` | Create |
 | `GET` | `/campaigns/{cid}/characters/{id}` | Detail with connections |
 | `PATCH` | `/campaigns/{cid}/characters/{id}` | Update |
@@ -181,8 +181,7 @@ Covers NPCs and player characters; `isPlayer` selects the list.
 { "id": 4, "name": "Brother Cael", "role": "Human Cleric", "level": 5,
   "isPlayer": true, "relationship": "ally", "location": "The Party",
   "disposition": "Steadfast", "lastSeen": "Session 13",
-  "armorClass": "18", "hitPoints": "47", "speed": "30 ft",
-  "stats": { "abilities": { "STR": 14, "WIS": 17 } },
+  "stats": { "abilities": { "STR": 14, "WIS": 17 }, "combat": { "AC": 18, "HP": 47 } },
   "tags": ["Healer", "Faith"],
   "quote": "The Light does not ask who deserves it.",
   "notes": "Ties the party to Mother Ansel's temple faction.",
@@ -193,6 +192,24 @@ Covers NPCs and player characters; `isPlayer` selects the list.
   "connections": [{ "targetType": "character", "targetId": 7,
                     "name": "Mother Ansel", "kind": "ally" }] }
 ```
+
+The list is paged, because a campaign holds many NPCs. It answers
+`{ "items": [...], "nextCursor": "…" | null }`, ordered by name (case-insensitive) and
+then id. Pass `nextCursor` back as `cursor` for the next page; a malformed cursor is a
+`400`. `limit` is 1–200 (default 50), and `q` matches part of the name, ignoring case.
+Each item is the card's slim row: `id`, `name`, `isPlayer`, `relationship`, `role`,
+`level`, `location`, `tags`, `portraitUrl` and `playerProfile`. `stats`, `notes`,
+`quote` and `connections` come only with the detail.
+
+`name` is cleaned like a campaign name (`400` when empty or over 120 characters). Tags
+are trimmed and de-duplicated, at most 20 of 40 characters each. `level` is 0–99, and a
+`playerProfile` on an NPC is a `400`; a player without one gets an empty profile.
+
+`PATCH` changes only the fields sent: an omitted field keeps its value, and one sent as
+`null` is cleared. `name`, `isPlayer`, `relationship`, `stats` and `tags` cannot be
+cleared (`400`). The same rules as create apply. Setting `isPlayer: false` demotes a
+player and drops its `playerProfile`; setting it to `true` promotes an NPC, which gets an
+empty profile unless one is sent. `DELETE` answers `204`.
 
 `notes` is GM-private and excluded from assistant context by default (DEC-004).
 

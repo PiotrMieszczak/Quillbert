@@ -6,16 +6,23 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
+from app.adapters.persistence.memory.characters import InMemoryCharacterRepo
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
     SqlCampaignRepo,
+    SqlCharacterRepo,
     SqlConversationRepo,
     SqlDocumentRepo,
 )
 from app.adapters.persistence.sqlalchemy.tables import CampaignRow
-from app.ports.repositories import CampaignRepo, ConversationRepo, DocumentRepo
+from app.ports.repositories import (
+    CampaignRepo,
+    CharacterRepo,
+    ConversationRepo,
+    DocumentRepo,
+)
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -65,7 +72,8 @@ def sessions(migrated: str) -> Iterator[sessionmaker[Session]]:
     with factory.begin() as session:
         session.execute(
             text(
-                "TRUNCATE citation, chunk, document, message, conversation, campaign "
+                "TRUNCATE citation, chunk, document, message, conversation, character, "
+                "campaign "
                 "RESTART IDENTITY CASCADE"
             )
         )
@@ -100,3 +108,10 @@ def campaign_repo(request: pytest.FixtureRequest) -> CampaignRepo:
     with sessions.begin() as session:
         session.execute(text("TRUNCATE campaign CASCADE"))
     return SqlCampaignRepo(sessions)
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def character_repo(request: pytest.FixtureRequest) -> CharacterRepo:
+    if request.param == "memory":
+        return InMemoryCharacterRepo()
+    return SqlCharacterRepo(request.getfixturevalue("sessions"))
