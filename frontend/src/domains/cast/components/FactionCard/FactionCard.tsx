@@ -3,26 +3,40 @@ import { Badge } from "../../../../ui/components";
 import { RELATIONSHIP_TONE, type Faction } from "../../model/types";
 import styles from "./FactionCard.module.css";
 
-export function FactionCard({ faction }: { faction: Faction }) {
+/** With `onOpen` the card is one button into the faction's detail view. */
+export function FactionCard({ faction, onOpen }: { faction: Faction; onOpen?: () => void }) {
   const tone = RELATIONSHIP_TONE[faction.relationship];
+  const facts = [
+    ["Influence", faction.influence],
+    ["Reach", faction.reach],
+  ].filter(([, value]) => value);
   return (
     <article className={styles.card} style={{ "--tone": tone } as CSSProperties}>
       <header className={styles.head}>
-        <h3 className={styles.name}>{faction.name}</h3>
+        <h3 className={styles.name}>
+          {onOpen ? (
+            // Its ::after covers the card, so the whole card opens the detail view.
+            <button type="button" className={styles.open} onClick={onOpen}>
+              {faction.name}
+            </button>
+          ) : (
+            faction.name
+          )}
+        </h3>
         <Badge tone={tone}>{faction.relationship}</Badge>
       </header>
-      <p className={styles.type}>{faction.type}</p>
+      {faction.type && <p className={styles.type}>{faction.type}</p>}
       {faction.motto && <blockquote className={styles.motto}>“{faction.motto}”</blockquote>}
-      <dl className={styles.facts}>
-        <div>
-          <dt>Influence</dt>
-          <dd>{faction.influence}</dd>
-        </div>
-        <div>
-          <dt>Members</dt>
-          <dd>{faction.memberCount}</dd>
-        </div>
-      </dl>
+      {facts.length > 0 && (
+        <dl className={styles.facts}>
+          {facts.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </article>
   );
 }

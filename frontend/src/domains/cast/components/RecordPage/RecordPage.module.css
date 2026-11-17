@@ -1,0 +1,188 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1080px;
+  animation: global(rise) 0.3s var(--ease);
+}
+
+.back {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-left: 14px;
+  /* Relationship accent, as on the cards. */
+  border-left: 3px solid var(--tone);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ghost,
+.primary,
+.danger {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-button);
+  font: inherit;
+  font-size: 13px;
+}
+
+.ghost {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.primary {
+  background: var(--accent);
+  border: 0;
+  color: var(--surface-app);
+  font-weight: 600;
+}
+
+.danger {
+  background: none;
+  border: 1px solid var(--rel-enemy);
+  color: var(--rel-enemy);
+  font-weight: 600;
+}
+
+.primary:disabled,
+.ghost:disabled,
+.danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+
+.title {
+  margin: 0;
+  font: 600 20px/1.2 var(--font-display);
+  color: var(--text-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.required {
+  color: var(--accent);
+}
+
+.value,
+.prose {
+  color: var(--text-primary);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.prose {
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  font: inherit;
+  /* The accent border is the focus ring, as in the add-campaign modal. */
+  outline: none;
+}
+
+.input {
+  height: 40px;
+}
+
+.textarea {
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--accent);
+}
+
+.message {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.error {
+  margin: 0;
+  color: var(--rel-enemy);
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+}

@@ -1,0 +1,31 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.message {
+  margin: 0;
+  padding: 28px 16px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-tile);
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+}
+
+.retry:hover {
+  color: var(--accent-hover);
+}

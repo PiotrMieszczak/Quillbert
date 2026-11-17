@@ -14,7 +14,6 @@ import { WorkspaceShell } from "./shell";
 
 // shortcut: view and campaign live in state, not the URL; React Router replaces this in #7.
 // Overview is unlisted while it shows fixture data; see navItems `built`.
-// NPCs, Players and Factions show sample data, badged as such, until the cast API lands.
 const VIEWS: Record<string, ComponentType<{ campaign: Campaign; focus: DocumentFocus | null }>> = {
   npcs: Npcs,
   players: Players,

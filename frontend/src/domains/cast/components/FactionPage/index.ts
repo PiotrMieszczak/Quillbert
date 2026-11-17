@@ -1,0 +1,1 @@
+export { FactionPage } from "./FactionPage";

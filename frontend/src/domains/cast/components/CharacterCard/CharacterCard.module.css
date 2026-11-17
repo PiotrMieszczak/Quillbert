@@ -63,3 +63,31 @@
   gap: 6px;
   margin-top: 6px;
 }
+
+.open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card:has(.open:hover) {
+  border-color: var(--border-hover);
+}
+
+.card:has(.open:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.open:focus-visible {
+  outline: none;
+}
