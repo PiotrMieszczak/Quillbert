@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { Badge } from "../../../../ui/components";
+import { usePortrait } from "../../api/characters";
 import { RELATIONSHIP_TONE, type Character } from "../../model/types";
 import styles from "./CharacterCard.module.css";
 
@@ -7,6 +8,7 @@ import styles from "./CharacterCard.module.css";
  *  With `onOpen` the card is one button into the character's detail view. */
 export function CharacterCard({ character, onOpen }: { character: Character; onOpen?: () => void }) {
   const { player } = character;
+  const portrait = usePortrait(character.portraitUrl).data;
   const level = character.level != null ? `Level ${character.level}` : null;
   const meta = player
     ? [player.playerName && `Played by ${player.playerName}`, level].filter(Boolean)
@@ -16,7 +18,7 @@ export function CharacterCard({ character, onOpen }: { character: Character; onO
   return (
     <article className={styles.card} style={{ "--tone": RELATIONSHIP_TONE[character.relationship] } as CSSProperties}>
       <div className={styles.portrait} aria-hidden>
-        {character.name.charAt(0)}
+        {portrait ? <img src={portrait} alt="" /> : character.name.charAt(0)}
       </div>
       <div className={styles.body}>
         <h3 className={styles.name}>

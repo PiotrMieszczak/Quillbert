@@ -1,13 +1,17 @@
+/* The frame shared by the character and faction pages. */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  max-width: 1080px;
+  gap: 20px;
+  max-width: 1200px;
   animation: global(rise) 0.3s var(--ease);
 }
 
 .back {
+  display: inline-flex;
+  align-items: center;
   align-self: flex-start;
+  gap: 4px;
   padding: 0;
   border: 0;
   background: none;
@@ -20,35 +24,174 @@
   color: var(--accent);
 }
 
-.header {
+/* Identity: who this is, before anything about them. */
+.hero {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-left: 14px;
-  /* Relationship accent, as on the cards. */
-  border-left: 3px solid var(--tone);
+  gap: 16px;
 }
 
-.heading {
+.portrait,
+.portraitPicker {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: repeating-linear-gradient(135deg, var(--surface-elevated) 0 6px, var(--surface-hover) 6px 12px);
+  color: var(--tone);
+  font: 600 36px/1 var(--font-display);
+  text-transform: uppercase;
+}
+
+.portraitPicker {
+  cursor: pointer;
+}
+
+.portraitPicker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Always in the corner, so an empty tile reads as a place to put a picture. */
+.portraitHint {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-app);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.portraitPicker:hover .portraitHint,
+.portraitPicker:focus-within .portraitHint {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.portraitPicker:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Kept in the tab order and readable by screen readers, but not drawn. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.identity {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 
-.actions {
+/* A value typed over in place: it reads as text until the pointer or the caret reaches it. */
+.name,
+.subtitle,
+.quiet {
+  width: 100%;
+  min-width: 0;
+  margin: 0 -7px;
+  padding: 3px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+  outline: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.name:hover,
+.subtitle:hover,
+.quiet:hover {
+  border-color: var(--border-default);
+}
+
+.name:focus,
+.subtitle:focus,
+.quiet:focus {
+  background: var(--surface-sunken);
+  /* The accent border is the focus ring, as in the add-campaign modal. */
+  border-color: var(--accent);
+}
+
+.name::placeholder,
+.subtitle::placeholder,
+.quiet::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.name {
+  font: 600 30px/1.15 var(--font-display);
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 15px;
+  text-overflow: ellipsis;
+}
+
+.heroActions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+}
+
+.relationship {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dot {
+  position: absolute;
+  left: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tone);
+  pointer-events: none;
+}
+
+.relationship select {
+  height: 38px;
+  padding: 0 14px 0 29px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-button);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+
+.relationship select:hover {
+  border-color: var(--border-hover);
 }
 
 .ghost,
 .primary,
 .danger {
-  height: 40px;
+  height: 38px;
   padding: 0 16px;
   border-radius: var(--radius-button);
   font: inherit;
@@ -56,9 +199,14 @@
 }
 
 .ghost {
-  background: var(--surface-sunken);
+  background: var(--surface-raised);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 .primary {
@@ -66,6 +214,10 @@
   border: 0;
   color: var(--surface-app);
   font-weight: 600;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
 }
 
 .danger {
@@ -82,83 +234,125 @@
   cursor: not-allowed;
 }
 
-.card {
+/* The sheet beside the facts; one column once the side would squeeze the sheet. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+  gap: 20px;
+}
+
+.main,
+.side {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
+  gap: 20px;
+  min-width: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px 20px;
   background: var(--surface-raised);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
 }
 
 .title {
-  margin: 0;
-  font: 600 20px/1.2 var(--font-display);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+  font: 600 18px/1.2 var(--font-display);
   color: var(--text-primary);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px 18px;
+.note {
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  font: 500 11px/1.4 var(--font-body);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+.row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
 }
 
 .label {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
-.required {
-  color: var(--accent);
-}
-
-.value,
 .prose {
-  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   font-size: 14px;
-  overflow-wrap: anywhere;
 }
 
-.prose {
+.row textarea {
+  display: block;
+  field-sizing: content;
+  line-height: 1.4;
+  resize: none;
+  overflow: hidden;
+}
+
+.prose textarea {
+  /* Grows with the writing where the browser can; elsewhere it scrolls. */
+  field-sizing: content;
+  min-height: 2.6em;
+  max-width: 72ch;
   line-height: 1.55;
-  white-space: pre-wrap;
+  resize: none;
 }
 
+/* Whole numbers are typed, not stepped. */
+.quiet[type="number"] {
+  appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
 
-.input,
-.textarea {
-  width: 100%;
-  padding: 0 12px;
-  background: var(--surface-sunken);
+.quiet[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+}
+
+/* Appears with the first change and stays in reach on a long sheet. */
+.saveBar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 18px;
+  background: var(--surface-elevated);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-input);
-  color: var(--text-primary);
-  font: inherit;
-  /* The accent border is the focus ring, as in the add-campaign modal. */
-  outline: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  animation: global(rise) 0.2s var(--ease);
 }
 
-.input {
-  height: 40px;
+.status,
+.error {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
 }
 
-.textarea {
-  padding: 10px 12px;
-  line-height: 1.5;
-  resize: vertical;
+.status {
+  color: var(--text-secondary);
 }
 
-.input:focus,
-.textarea:focus {
-  border-color: var(--accent);
+.error {
+  color: var(--rel-enemy);
 }
 
 .message {
@@ -167,22 +361,39 @@
   font-size: 13px;
 }
 
-.error {
-  margin: 0;
-  color: var(--rel-enemy);
-  font-size: 13px;
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Facts first on a narrow screen: they are short, the sheet is long. */
+  .side {
+    order: -1;
+  }
 }
 
 @media (max-width: 560px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .actions {
+  .heroActions {
     width: 100%;
   }
 
-  .actions > * {
+  .saveBar {
+    flex-wrap: wrap;
+  }
+
+  .status,
+  .error {
+    flex-basis: 100%;
+  }
+
+  .saveBar button {
     flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .saveBar {
+    animation: none;
   }
 }

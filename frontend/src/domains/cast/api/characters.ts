@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "../../../lib/api";
+import { apiBlob, apiFetch } from "../../../lib/api";
 import {
   PROFILE_FIELDS,
   type Character,
@@ -22,6 +22,7 @@ export type CharacterDto = {
   level: number | null;
   location: string | null;
   tags: string[];
+  portraitUrl: string | null;
   playerProfile: Partial<ProfileDto> | null;
 };
 
@@ -35,6 +36,7 @@ export const toCharacter = (dto: CharacterDto): Character => ({
   relationship: dto.relationship,
   location: dto.location,
   tags: dto.tags,
+  portraitUrl: dto.portraitUrl,
   player: dto.isPlayer
     ? {
         playerName: dto.playerProfile?.playerName ?? "",
@@ -90,6 +92,7 @@ export const toDetail = (dto: CharacterDetailDto): CharacterDetail => ({
   notes: dto.notes ?? "",
   bio: dto.bio ?? "",
   stats: dto.stats,
+  portraitUrl: dto.portraitUrl,
   profile: profileOf(dto.playerProfile),
 });
 
@@ -143,4 +146,27 @@ export async function saveCharacter(campaignId: string, id: string | null, draft
 
 export async function deleteCharacter(campaignId: string, id: string) {
   await apiFetch(characterPath(campaignId, id), { method: "DELETE" });
+}
+
+/** Sets the character's portrait, replacing any earlier one. */
+export async function uploadPortrait(campaignId: string, id: string, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await apiFetch<CharacterDetailDto>(`${characterPath(campaignId, id)}/portrait`, {
+    method: "POST",
+    body: form,
+  });
+  return toDetail(data);
+}
+
+/** A blob URL for a portrait: an <img> cannot send the bearer token. `portraitUrl` carries a
+ *  version, so a cached blob is never stale.
+ *  shortcut: blob URLs are not revoked; there is one per portrait version seen in a session. */
+export function usePortrait(portraitUrl: string | null) {
+  return useQuery({
+    queryKey: ["cast", "portrait", portraitUrl],
+    queryFn: async () => URL.createObjectURL(await apiBlob(portraitUrl!)),
+    enabled: portraitUrl !== null,
+    staleTime: Infinity,
+  });
 }

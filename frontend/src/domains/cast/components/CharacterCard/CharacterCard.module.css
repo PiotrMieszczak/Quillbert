@@ -91,3 +91,13 @@
 .open:focus-visible {
   outline: none;
 }
+
+.portrait {
+  overflow: hidden;
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

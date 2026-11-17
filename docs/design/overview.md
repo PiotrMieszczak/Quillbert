@@ -279,18 +279,34 @@ value); connections list with relationship dots; quote; GM notes. Player charact
 block with player name, class, race, background, XP, pronouns, and bonds.
 
 Built: a card on NPCs or Party opens the character in place of the list, and **Add NPC** /
-**Add Player** open the same layout empty, in edit mode. One page reads, edits and creates;
-**Edit** swaps values for inputs, and **Delete** turns into **Remove** / **Keep** first. The
-stat block is drawn from the campaign system's sheet
-([ADR-0030](../adr/adr-0030-sheet-schemas.md)): one tile per `int` or `text` field, one
-table per `list` field with add and remove row. A system with no saved sheet shows a note
-in place of the block. Bio, quote and GM notes are free text in every system. Not built yet: portrait upload and connections.
+**Add Player** open the same page empty. The page is laid out like a sheet at the table:
+
+- **Identity** at the top: portrait, name, role, relationship, **Delete** (which turns into
+  **Remove** / **Keep** first). The portrait tile is a file picker with an upload mark in
+  its corner: click it or drop a PNG, JPG or WebP on it. Without a picture it shows the
+  name's initial. A picked image previews at once and uploads on **Save changes**.
+- **Wide column:** the system's sheet, then Story (bio, quote).
+- **Narrow column, 320px:** Details, the Player block for a player character, and GM notes
+  marked *Private*. Below 1000px it moves above the sheet.
+
+There is no separate edit mode. Every value is typed over in place: it reads as text until
+hovered or focused. The first change brings up a bar pinned to the bottom of the view with
+**Discard** and **Save changes**; nothing is saved before that, and leaving with unsaved
+changes asks first.
+
+The stat block is drawn from the campaign system's sheet
+([ADR-0030](../adr/adr-0030-sheet-schemas.md)): `int` fields as a row of tiles
+(`--surface-elevated`, mono label over a Newsreader value), `text` fields as labelled lines,
+`list` fields as tables with add and remove row. Sections sit two abreast; one with more
+than four numbers, more than four columns or three columns of text spans the full width. A
+system with no saved sheet shows a note in place of the block. Cards show the portrait too.
+Not built yet: connections.
 
 **Faction detail** — name, type, influence, reach, motto, goal, members, connections,
 GM notes.
 
-Built: a faction card and **Add faction** open the same read / edit / create page as a
-character, without a stat block. Only the name is required. Not built yet: members and
+Built: a faction card and **Add faction** open the same edit-in-place page as a character:
+motto and goal in the wide column, influence, reach and GM notes beside them, no stat block. Only the name is required. Not built yet: members and
 connections, so cards show no member count.
 
 ### Settings

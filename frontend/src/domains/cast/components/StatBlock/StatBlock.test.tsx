@@ -32,20 +32,20 @@ const SHEET: Sheet = {
 };
 
 describe("StatBlock", () => {
-  it("reads values by section and field, with a dash for what is unset", () => {
-    render(<StatBlock sheet={SHEET} stats={{ skills: { skills: [{ name: "Pilot", level: 2 }] } }} />);
+  it("shows values by section and field, leaving the unset ones empty", () => {
+    render(<StatBlock sheet={SHEET} stats={{ skills: { skills: [{ name: "Pilot", level: 2 }] } }} onChange={() => {}} />);
 
-    expect(screen.getByText("Strength").nextElementSibling?.textContent).toBe("—");
-    expect(screen.getByText("Pilot")).toBeTruthy();
-    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect((screen.getByLabelText("Strength") as HTMLInputElement).value).toBe("");
+    expect(screen.getByDisplayValue("Pilot")).toBeTruthy();
+    expect((screen.getByLabelText("Level") as HTMLInputElement).value).toBe("2");
   });
 
   it("shows stats saved before the sheet as empty instead of breaking", () => {
     const legacy = { characteristics: 7, skills: { skills: "Pilot 1" } } as unknown as Stats;
-    render(<StatBlock sheet={SHEET} stats={legacy} />);
+    render(<StatBlock sheet={SHEET} stats={legacy} onChange={() => {}} />);
 
-    expect(screen.getByText("Strength").nextElementSibling?.textContent).toBe("—");
-    expect(screen.getByText("None yet.")).toBeTruthy();
+    expect((screen.getByLabelText("Strength") as HTMLInputElement).value).toBe("");
+    expect(screen.queryByRole("table")).toBeNull();
   });
 
   it("writes a number under its section and drops a cleared field", () => {

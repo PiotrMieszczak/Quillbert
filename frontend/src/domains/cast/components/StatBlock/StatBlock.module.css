@@ -1,67 +1,130 @@
-.section {
+/* Two columns of sections; a wide one spans both, and narrow ones fill the gaps beside it. */
+.block {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: 22px 28px;
+  container-type: inline-size;
+}
+
+.section,
+.wide {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wide {
+  grid-column: 1 / -1;
 }
 
 .heading {
   margin: 0;
-  font: 600 18px/1.2 var(--font-display);
-  color: var(--text-primary);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font: 600 13px/1.3 var(--font-body);
 }
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
 }
 
 .tile {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  justify-content: space-between;
+  gap: 2px;
+  /* A lone tile stays a tile, not a banner. */
+  max-width: 168px;
+  padding: 8px 10px 6px;
   background: var(--surface-elevated);
   border-radius: var(--radius-tile);
 }
 
+/* Measurement labels: the one place the mono face belongs. */
 .key,
 .table th {
   color: var(--text-muted);
-  font: 500 11px/1.2 var(--font-mono);
+  font: 500 10.5px/1.25 var(--font-mono);
   letter-spacing: 0.04em;
   text-align: left;
   text-transform: uppercase;
 }
 
-.value {
-  color: var(--text-primary);
-  font: 500 20px/1.2 var(--font-display);
-  overflow-wrap: anywhere;
-}
-
+/* A value typed over in place: it reads as text until the pointer or the caret reaches it. */
 .input {
   width: 100%;
   min-width: 0;
-  height: 34px;
-  padding: 0 8px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-input);
+  margin: 0 -5px;
+  padding: 2px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
   font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
   outline: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+/* Text grows with what is typed where the browser can; elsewhere it stays one line. */
+textarea.input {
+  display: block;
+  field-sizing: content;
+  resize: none;
+  overflow: hidden;
+}
+
+.input:hover {
+  border-color: var(--border-default);
 }
 
 .input:focus {
+  background: var(--surface-sunken);
   border-color: var(--accent);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.input[type="number"] {
+  appearance: textfield;
+  font-variant-numeric: tabular-nums;
+}
+
+.input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+}
+
+.tile .input {
+  font: 500 22px/1.2 var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: minmax(96px, 140px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.factLabel {
+  color: var(--text-muted);
+  font-size: 12.5px;
 }
 
 .list {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 4px;
   overflow-x: auto;
 }
 
@@ -70,44 +133,90 @@
   border-collapse: collapse;
 }
 
-.table th,
+.table th {
+  padding: 2px 8px 4px 0;
+  font-weight: 500;
+}
+
 .table td {
-  padding: 6px 8px 6px 0;
+  padding: 1px 8px 1px 0;
+  vertical-align: top;
 }
 
-.table .value {
-  font: inherit;
-  font-size: 14px;
+.table tbody tr + tr td {
+  border-top: 1px solid var(--border-subtle);
 }
 
-.none {
+/* Numbers get a narrow column of their own, flush right. */
+.table .num {
+  width: 64px;
+  text-align: right;
+}
+
+.table .num .input {
   margin: 0;
-  color: var(--text-muted);
-  font-size: 13px;
+  text-align: right;
 }
 
-.remove,
-.addRow {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-input);
-  background: var(--surface-sunken);
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 13px;
+.table .tool {
+  width: 26px;
+  padding-right: 0;
 }
 
+/* Quiet until its row is hovered or it is focused, so a table reads as data, not controls. */
 .remove {
-  width: 34px;
-  height: 34px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.table tr:hover .remove,
+.remove:focus-visible {
+  opacity: 1;
+}
+
+.remove:hover {
+  background: var(--surface-hover);
+  color: var(--rel-enemy);
 }
 
 .addRow {
-  height: 34px;
-  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -6px;
+  padding: 5px 8px 5px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12.5px;
 }
 
-.remove:hover,
 .addRow:hover {
-  border-color: var(--border-hover);
-  color: var(--text-primary);
+  background: var(--surface-hover);
+  color: var(--accent);
+}
+
+/* Touch has no hover: keep the row tools visible. */
+@media (hover: none) {
+  .remove {
+    opacity: 1;
+  }
+}
+
+/* One column once half the sheet is too narrow for a table. */
+@container (max-width: 620px) {
+  .section {
+    grid-column: 1 / -1;
+  }
 }

@@ -1,10 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Badge } from "../../../../ui/components";
-import { charactersKey, deleteCharacter, saveCharacter, useCharacter } from "../../api/characters";
+import { useEffect, useState } from "react";
+import {
+  charactersKey,
+  deleteCharacter,
+  saveCharacter,
+  uploadPortrait,
+  useCharacter,
+  usePortrait,
+} from "../../api/characters";
 import { useSheet } from "../../api/sheets";
-import { emptyDraft, type CharacterDraft } from "../../model/types";
-import { errorMessage, Field, NumberField, RecordMessage, RecordPage, RelationshipField, Section } from "../RecordPage";
+import { emptyDraft, PORTRAIT_MAX_BYTES, PORTRAIT_TYPES, type CharacterDraft } from "../../model/types";
+import { errorMessage, NumberRow, Panel, Prose, RecordMessage, RecordPage, Row } from "../RecordPage";
 import { StatBlock } from "../StatBlock";
 import styles from "./CharacterPage.module.css";
 
@@ -21,8 +27,7 @@ type CharacterPageProps = {
   onClose: () => void;
 };
 
-const TEXT: ["role" | "location" | "disposition" | "lastSeen", string][] = [
-  ["role", "Role"],
+const DETAILS: ["location" | "disposition" | "lastSeen", string][] = [
   ["location", "Location"],
   ["disposition", "Disposition"],
   ["lastSeen", "Last seen"],
@@ -37,38 +42,84 @@ const PROFILE: [keyof CharacterDraft["profile"], string][] = [
   ["pronouns", "Pronouns"],
 ];
 
-/** One character: read, edited or created in the same layout (docs/design/overview.md §4 →
- *  Detail views). The stat block follows the campaign system's sheet (ADR-0030). */
+/** One character, laid out like a sheet at the table: the stat block and story in the wide
+ *  column, the facts beside it (docs/design/overview.md §4 → Detail views). The stat block
+ *  follows the campaign system's sheet (ADR-0030). */
 export function CharacterPage(props: CharacterPageProps) {
   const { campaignId, systemId, systemName, characterId, isPlayer, listLabel, onClose } = props;
+  // Set once a new character exists, so a failed portrait upload can be retried without creating it twice.
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const id = characterId ?? createdId;
+  const isNew = id === null;
   const queryClient = useQueryClient();
-  const character = useCharacter(campaignId, characterId);
+  const character = useCharacter(campaignId, id);
   const sheet = useSheet(systemId);
-  // The draft exists only while editing; a new character starts in it.
-  const [draft, setDraft] = useState<CharacterDraft | null>(characterId === null ? emptyDraft(isPlayer) : null);
-  const [tags, setTags] = useState("");
+  // What was typed since the last save; null means the page shows what is saved.
+  const [draft, setDraft] = useState<CharacterDraft | null>(isNew ? emptyDraft(isPlayer) : null);
+  // Tags are typed as one comma-separated line and split on save.
+  const [tags, setTags] = useState<string | null>(null);
+  // A picked portrait waits for Save like every other change; `preview` is its blob URL.
+  const [picked, setPicked] = useState<{ file: File; preview: string } | null>(null);
+  const portrait = usePortrait(character.data?.portraitUrl ?? null).data ?? null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const shown = draft ?? character.data;
-  if (!shown) return <RecordMessage listLabel={listLabel} onClose={onClose} error={character.error} />;
+  useEffect(() => () => void (picked && URL.revokeObjectURL(picked.preview)), [picked]);
 
-  const editing = draft !== null;
-  const set = <K extends keyof CharacterDraft>(key: K, value: CharacterDraft[K]) =>
-    setDraft((current) => current && { ...current, [key]: value });
+  const shown = draft ?? character.data;
+  if (!shown)
+    return <RecordMessage listLabel={listLabel} onClose={onClose} error={character.error && errorMessage(character.error)} />;
+
+  const set = <K extends keyof CharacterDraft>(key: K, value: CharacterDraft[K]) => setDraft({ ...shown, [key]: value });
+  const text = (key: "role" | "quote" | "notes" | "bio" | (typeof DETAILS)[number][0]) => ({
+    value: shown[key],
+    onChange: (value: string) => set(key, value),
+  });
+  const profile = (key: keyof CharacterDraft["profile"]) => ({
+    value: shown.profile[key],
+    onChange: (value: string) => set("profile", { ...shown.profile, [key]: value }),
+  });
   const kind = shown.isPlayer ? "player character" : "NPC";
 
+  const pickPortrait = (file: File) => {
+    if (!PORTRAIT_TYPES.includes(file.type)) return setError("The portrait must be a PNG, JPG or WebP image.");
+    if (file.size > PORTRAIT_MAX_BYTES) return setError("The portrait must be 10 MB or smaller.");
+    setError(null);
+    setPicked({ file, preview: URL.createObjectURL(file) });
+  };
+
+  const discard = () => {
+    setDraft(null);
+    setTags(null);
+    setPicked(null);
+    setError(null);
+  };
+
   const save = async () => {
-    if (!draft) return;
     setBusy(true);
     setError(null);
     try {
-      const body = { ...draft, tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean) };
-      const saved = await saveCharacter(campaignId, characterId, body, draft.stats === character.data?.stats);
+      const body = { ...shown, tags: tags === null ? shown.tags : tags.split(",").map((tag) => tag.trim()).filter(Boolean) };
+      // A change of portrait alone needs no write of the fields.
+      let saved = isNew || draft || tags !== null ? await saveCharacter(campaignId, id, body, shown.stats === character.data?.stats) : character.data!;
+      if (picked) {
+        try {
+          saved = await uploadPortrait(campaignId, saved.id, picked.file);
+        } catch (failure) {
+          // The fields are saved; say so, and let Save retry just the portrait on a saved character.
+          await queryClient.invalidateQueries({ queryKey: charactersKey(campaignId) });
+          queryClient.setQueryData([...charactersKey(campaignId), "one", saved.id], saved);
+          setCreatedId(saved.id);
+          setDraft(null);
+          setTags(null);
+          setError(`${isNew ? "The character was created" : "Your changes were saved"}, but the portrait did not upload. ${errorMessage(failure)}`);
+          return;
+        }
+      }
       await queryClient.invalidateQueries({ queryKey: charactersKey(campaignId) });
-      if (characterId === null) return onClose();
-      queryClient.setQueryData([...charactersKey(campaignId), "one", characterId], saved);
-      setDraft(null);
+      if (isNew) return onClose();
+      queryClient.setQueryData([...charactersKey(campaignId), "one", id], saved);
+      discard();
     } catch (failure) {
       setError(errorMessage(failure));
     } finally {
@@ -79,7 +130,7 @@ export function CharacterPage(props: CharacterPageProps) {
   const remove = async () => {
     setBusy(true);
     try {
-      await deleteCharacter(campaignId, characterId!);
+      await deleteCharacter(campaignId, id!);
       await queryClient.invalidateQueries({ queryKey: charactersKey(campaignId) });
       onClose();
     } catch (failure) {
@@ -88,66 +139,54 @@ export function CharacterPage(props: CharacterPageProps) {
     }
   };
 
-  const text = (key: "quote" | "notes" | "bio" | (typeof TEXT)[number][0]) =>
-    ({ value: shown[key], onChange: editing ? (value: string) => set(key, value) : undefined });
-  const profile = (key: keyof CharacterDraft["profile"]) => ({
-    value: shown.profile[key],
-    onChange: editing ? (value: string) => set("profile", { ...shown.profile, [key]: value }) : undefined,
-  });
-
   return (
     <RecordPage
       listLabel={listLabel}
-      title={shown.name || `New ${kind}`}
+      name={shown.name}
+      onName={(value) => set("name", value)}
+      namePlaceholder={`Name this ${kind}`}
+      subtitle={shown.role}
+      onSubtitle={(value) => set("role", value)}
+      subtitlePlaceholder="Role, e.g. Human Cleric"
       relationship={shown.relationship}
-      editing={editing}
+      onRelationship={(value) => set("relationship", value)}
+      portrait={{ src: picked?.preview ?? portrait, accept: PORTRAIT_TYPES, onPick: pickPortrait }}
+      isNew={isNew}
+      dirty={draft !== null || tags !== null || picked !== null}
       busy={busy}
       canSave={shown.name.trim() !== ""}
-      saveLabel={characterId === null ? `Create ${kind}` : "Save changes"}
+      saveLabel={isNew ? `Create ${kind}` : "Save changes"}
       error={error}
       onClose={onClose}
       onSave={() => void save()}
-      onCancel={() => (characterId === null ? onClose() : (setDraft(null), setError(null)))}
-      onEdit={() => {
-        setTags(shown.tags.join(", "));
-        setError(null);
-        setDraft(shown);
-      }}
+      onDiscard={discard}
       onRemove={() => void remove()}
+      side={
+        <>
+          <Panel title="Details">
+            <NumberRow label="Level" value={shown.level} onChange={(value) => set("level", value)} min={0} max={99} />
+            {DETAILS.map(([key, label]) => (
+              <Row key={key} label={label} {...text(key)} />
+            ))}
+            <Row label="Tags" value={tags ?? shown.tags.join(", ")} onChange={setTags} maxLength={800} placeholder="Comma-separated" />
+          </Panel>
+          {shown.isPlayer && (
+            <Panel title="Player">
+              {PROFILE.map(([key, label]) => (
+                <Row key={key} label={label} {...profile(key)} />
+              ))}
+              <Prose label="Bonds" {...profile("bonds")} />
+            </Panel>
+          )}
+          <Panel title="GM notes" note="Private">
+            <Prose label="Only you see these" {...text("notes")} maxLength={20000} placeholder="Secrets, plans, what not to reveal yet" />
+          </Panel>
+        </>
+      }
     >
-      <Section label="Details" grid>
-        {editing && <Field label="Name" value={shown.name} onChange={(value) => set("name", value)} required />}
-        {editing && <RelationshipField value={shown.relationship} onChange={(value) => set("relationship", value)} />}
-        {TEXT.map(([key, label]) => (
-          <Field key={key} label={label} {...text(key)} />
-        ))}
-        {editing ? (
-          <NumberField label="Level" value={shown.level} onChange={(value) => set("level", value)} min={0} max={99} />
-        ) : (
-          <Field label="Level" value={shown.level?.toString()} />
-        )}
-        {editing ? (
-          <Field label="Tags, separated by commas" value={tags} onChange={setTags} maxLength={800} />
-        ) : (
-          <Field label="Tags">
-            <span className={styles.tags}>
-              {shown.tags.length > 0 ? shown.tags.map((tag) => <Badge key={tag}>{tag}</Badge>) : "—"}
-            </span>
-          </Field>
-        )}
-      </Section>
-
-      {shown.isPlayer && (
-        <Section label="Player" title grid footer={<Field label="Bonds" {...profile("bonds")} maxLength={2000} long />}>
-          {PROFILE.map(([key, label]) => (
-            <Field key={key} label={label} {...profile(key)} />
-          ))}
-        </Section>
-      )}
-
-      <Section label="Stats" title>
+      <Panel title={sheet.data ? `${systemName} sheet` : "Stats"}>
         {sheet.data ? (
-          <StatBlock sheet={sheet.data} stats={shown.stats} onChange={editing ? (stats) => set("stats", stats) : undefined} />
+          <StatBlock sheet={sheet.data} stats={shown.stats} onChange={(stats) => set("stats", stats)} />
         ) : (
           <p className={styles.note}>
             {sheet.isError
@@ -157,13 +196,11 @@ export function CharacterPage(props: CharacterPageProps) {
                 : "Loading the sheet…"}
           </p>
         )}
-      </Section>
-
-      <Section label="Story and notes">
-        <Field label="Bio" {...text("bio")} maxLength={20000} long />
-        <Field label="Quote" {...text("quote")} maxLength={2000} long />
-        <Field label="GM notes (private)" {...text("notes")} maxLength={20000} long />
-      </Section>
+      </Panel>
+      <Panel title="Story">
+        <Prose label="Bio" {...text("bio")} maxLength={20000} placeholder="Where they come from and what they want" />
+        <Prose label="Quote" {...text("quote")} placeholder="A line that sounds like them" />
+      </Panel>
     </RecordPage>
   );
 }

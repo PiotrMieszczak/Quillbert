@@ -11,6 +11,7 @@ const dto: CharacterDto = {
   level: null,
   location: null,
   tags: [],
+  portraitUrl: null,
   playerProfile: null,
 };
 

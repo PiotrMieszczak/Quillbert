@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { deleteFaction, factionsKey, saveFaction, useFactions } from "../../api/factions";
 import { emptyFaction, type FactionDraft } from "../../model/types";
-import { errorMessage, Field, RecordMessage, RecordPage, RelationshipField, Section } from "../RecordPage";
+import { errorMessage, Panel, Prose, RecordMessage, RecordPage, Row } from "../RecordPage";
 
 type FactionPageProps = {
   campaignId: string;
@@ -11,38 +11,28 @@ type FactionPageProps = {
   onClose: () => void;
 };
 
-const SHORT: ["type" | "influence" | "reach", string][] = [
-  ["type", "Type"],
-  ["influence", "Influence"],
-  ["reach", "Reach"],
-];
-
-/** One faction: read, edited or created in the same layout as a character
- *  (docs/design/overview.md §4 → Detail views). */
+/** One faction, in the same frame as a character (docs/design/overview.md §4 → Detail views). */
 export function FactionPage({ campaignId, factionId, onClose }: FactionPageProps) {
+  const isNew = factionId === null;
   const queryClient = useQueryClient();
   const factions = useFactions(campaignId);
-  // The draft exists only while editing; a new faction starts in it.
-  const [draft, setDraft] = useState<FactionDraft | null>(factionId === null ? emptyFaction() : null);
+  // What was typed since the last save; null means the page shows what is saved.
+  const [draft, setDraft] = useState<FactionDraft | null>(isNew ? emptyFaction() : null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const saved = factions.data?.find((faction) => faction.id === factionId);
   const shown = draft ?? saved;
-  if (!shown)
-    return (
-      <RecordMessage
-        listLabel="Factions"
-        onClose={onClose}
-        // Loaded but absent: it was deleted elsewhere.
-        error={factions.error ?? (factions.data ? new Error("gone") : null)}
-      />
-    );
+  if (!shown) {
+    // Loaded but absent: it was deleted elsewhere.
+    const problem = factions.error ? errorMessage(factions.error) : factions.data ? "This faction no longer exists." : null;
+    return <RecordMessage listLabel="Factions" onClose={onClose} error={problem} />;
+  }
 
-  const editing = draft !== null;
-  const text = (key: keyof FactionDraft & string) => ({
+  const set = <K extends keyof FactionDraft>(key: K, value: FactionDraft[K]) => setDraft({ ...shown, [key]: value });
+  const text = (key: Exclude<keyof FactionDraft, "relationship">) => ({
     value: shown[key],
-    onChange: editing ? (value: string) => setDraft((current) => current && { ...current, [key]: value }) : undefined,
+    onChange: (value: string) => set(key, value),
   });
 
   const run = async (action: () => Promise<unknown>, done: () => void) => {
@@ -62,40 +52,43 @@ export function FactionPage({ campaignId, factionId, onClose }: FactionPageProps
   return (
     <RecordPage
       listLabel="Factions"
-      title={shown.name || "New faction"}
+      name={shown.name}
+      onName={(value) => set("name", value)}
+      namePlaceholder="Name this faction"
+      subtitle={shown.type}
+      onSubtitle={(value) => set("type", value)}
+      subtitlePlaceholder="Type, e.g. Merchant guild"
       relationship={shown.relationship}
-      editing={editing}
+      onRelationship={(value) => set("relationship", value)}
+      isNew={isNew}
+      dirty={draft !== null}
       busy={busy}
       canSave={shown.name.trim() !== ""}
-      saveLabel={factionId === null ? "Create faction" : "Save changes"}
+      saveLabel={isNew ? "Create faction" : "Save changes"}
       error={error}
       onClose={onClose}
-      onSave={() =>
-        draft && void run(() => saveFaction(campaignId, factionId, draft), () => (factionId === null ? onClose() : setDraft(null)))
-      }
-      onCancel={() => (factionId === null ? onClose() : (setDraft(null), setError(null)))}
-      onEdit={() => setDraft(shown)}
+      onSave={() => void run(() => saveFaction(campaignId, factionId, shown), () => (isNew ? onClose() : setDraft(null)))}
+      onDiscard={() => {
+        setDraft(null);
+        setError(null);
+      }}
       onRemove={() => void run(() => deleteFaction(campaignId, factionId!), onClose)}
+      side={
+        <>
+          <Panel title="Details">
+            <Row label="Influence" {...text("influence")} placeholder="High, Unknown…" />
+            <Row label="Reach" {...text("reach")} placeholder="Old Quarter, Everywhere…" />
+          </Panel>
+          <Panel title="GM notes" note="Private">
+            <Prose label="Only you see these" {...text("notes")} maxLength={20000} placeholder="Secrets, plans, what not to reveal yet" />
+          </Panel>
+        </>
+      }
     >
-      <Section label="Details" grid>
-        {editing && <Field label="Name" {...text("name")} required />}
-        {editing && (
-          <RelationshipField
-            value={shown.relationship}
-            onChange={(relationship) => setDraft((current) => current && { ...current, relationship })}
-          />
-        )}
-        {SHORT.map(([key, label]) => (
-          <Field key={key} label={label} {...text(key)} />
-        ))}
-      </Section>
-      <Section label="Purpose">
-        <Field label="Motto" {...text("motto")} maxLength={2000} long />
-        <Field label="Goal" {...text("goal")} maxLength={2000} long />
-      </Section>
-      <Section label="Notes">
-        <Field label="GM notes (private)" {...text("notes")} maxLength={20000} long />
-      </Section>
+      <Panel title="Purpose">
+        <Prose label="Motto" {...text("motto")} placeholder="What they say about themselves" />
+        <Prose label="Goal" {...text("goal")} placeholder="What they are working toward" />
+      </Panel>
     </RecordPage>
   );
 }

@@ -28,6 +28,8 @@ export type Character = {
   relationship: Relationship;
   location: string | null;
   tags: string[];
+  /** Full API path of the portrait, or null for the initial. */
+  portraitUrl: string | null;
   /** Present only for player characters. */
   player: PlayerProfile | null;
 };
@@ -98,7 +100,11 @@ export type CharacterDraft = {
   profile: Record<(typeof PROFILE_FIELDS)[number], string>;
 };
 
-export type CharacterDetail = CharacterDraft & { id: string };
+export type CharacterDetail = CharacterDraft & { id: string; portraitUrl: string | null };
+
+/** What the API accepts as a portrait (the server checks the bytes too). */
+export const PORTRAIT_TYPES = ["image/png", "image/jpeg", "image/webp"];
+export const PORTRAIT_MAX_BYTES = 10 * 1024 * 1024;
 
 export const emptyDraft = (isPlayer: boolean): CharacterDraft => ({
   name: "",
