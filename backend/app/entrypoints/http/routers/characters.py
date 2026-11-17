@@ -41,9 +41,7 @@ def _fields(campaign_id: str, view: CharacterView) -> dict:
         "location": view.location,
         "tags": list(view.tags),
         # The version changes with the portrait, so a cached copy is never stale.
-        "portrait_url": None
-        if version is None
-        else f"{portrait}?v={version}",
+        "portrait_url": None if version is None else f"{portrait}?v={version}",
         "player_profile": None
         if profile is None
         else PlayerProfileIO(**dataclasses.asdict(profile)),
