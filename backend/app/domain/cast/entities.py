@@ -47,6 +47,8 @@ class Character:
     quote: str | None = None
     # GM-private: never in assistant context unless asked for (DEC-004).
     notes: str | None = None
+    # The character's story; unlike notes, not GM-private.
+    bio: str | None = None
     portrait_key: str | None = None
     # Present only when is_player.
     player_profile: PlayerProfile | None = None
@@ -74,6 +76,7 @@ def clean_character(character: Character) -> Character:
         tags=clean_tags(list(character.tags)),
         quote=clean_text(character.quote),
         notes=clean_text(character.notes),
+        bio=clean_text(character.bio),
         player_profile=_clean_profile(character.player_profile)
         if character.is_player
         else None,
@@ -89,4 +92,42 @@ def _clean_profile(profile: PlayerProfile | None) -> PlayerProfile:
             f.name: clean_text(getattr(profile, f.name))
             for f in dataclasses.fields(profile)
         }
+    )
+
+
+@dataclass
+class Faction:
+    """Mirrors docs/data-model.md `faction`. Belongs to one campaign. Only the name
+    is required: a GM noting a new power often knows nothing else yet."""
+
+    id: int
+    campaign_id: str
+    name: str
+    relationship: Relationship
+    type: str | None = None
+    influence: str | None = None
+    reach: str | None = None
+    motto: str | None = None
+    goal: str | None = None
+    # GM-private, as on a character (DEC-004).
+    notes: str | None = None
+
+    @property
+    def sort_key(self) -> tuple[str, int]:
+        """List order; the SQL repo orders by lower(name), id."""
+        return (self.name.lower(), self.id)
+
+
+def clean_faction(faction: Faction) -> Faction:
+    """The faction with its text cleaned, or ValidationFailed; create and update both
+    pass through here."""
+    return dataclasses.replace(
+        faction,
+        name=clean_name(faction.name, "faction name"),
+        type=clean_text(faction.type),
+        influence=clean_text(faction.influence),
+        reach=clean_text(faction.reach),
+        motto=clean_text(faction.motto),
+        goal=clean_text(faction.goal),
+        notes=clean_text(faction.notes),
     )

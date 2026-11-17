@@ -70,6 +70,7 @@ def test_create_returns_the_detail_with_text_cleaned(gm: TestClient, url: str) -
         stats={"abilities": {"STR": 14}},
         tags=["Healer", " Healer ", "Faith"],
         notes="",
+        bio=" Raised in the temple. ",
         playerProfile={"playerName": "Jordan Kim", "class": "Cleric (Light)"},
     )
 
@@ -97,6 +98,7 @@ def test_create_returns_the_detail_with_text_cleaned(gm: TestClient, url: str) -
         "stats": {"abilities": {"STR": 14}},
         "quote": None,
         "notes": None,
+        "bio": "Raised in the temple.",
     }
 
 
@@ -327,3 +329,68 @@ def test_promoting_and_demoting_a_player(gm: TestClient, url: str) -> None:
     demoted = gm.patch(one, json={"isPlayer": False})
     assert demoted.status_code == 200, demoted.text
     assert demoted.json()["playerProfile"] is None
+
+
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
+
+
+def _files(tmp_path: Path) -> list[Path]:
+    return [p for p in (tmp_path / "files").rglob("*") if p.is_file()]
+
+
+def test_a_portrait_is_stored_served_and_replaced(
+    gm: TestClient, url: str, tmp_path: Path
+) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+    assert gm.get(one).json()["portraitUrl"] is None
+    assert gm.get(f"{one}/portrait").status_code == 404
+
+    first = gm.post(f"{one}/portrait", files={"file": ("a.png", PNG, "image/png")})
+    assert first.status_code == 200, first.text
+    portrait_url = first.json()["portraitUrl"]
+    assert portrait_url.startswith(f"{one}/portrait?v=")
+    served = gm.get(portrait_url)
+    assert served.content == PNG
+    assert served.headers["content-type"] == "image/png"
+    assert served.headers["x-content-type-options"] == "nosniff"
+    # The card row carries it too, and an edit of other fields keeps it.
+    assert gm.get(url).json()["items"][0]["portraitUrl"] == portrait_url
+    assert gm.patch(one, json={"role": "Abbess"}).json()["portraitUrl"] == portrait_url
+
+    second = gm.post(
+        f"{one}/portrait", files={"file": ("b.png", PNG + b"2", "image/png")}
+    )
+    assert second.json()["portraitUrl"] != portrait_url
+    assert len(_files(tmp_path)) == 1
+
+
+def test_a_portrait_that_is_not_an_image_is_415(gm: TestClient, url: str) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+    refused = gm.post(
+        f"{one}/portrait", files={"file": ("a.png", b"%PDF-1.7", "image/png")}
+    )
+    assert refused.status_code == 415
+    assert "portrait" in refused.json()["detail"]
+    assert gm.get(one).json()["portraitUrl"] is None
+
+
+def test_deleting_a_character_deletes_its_portrait_file(
+    gm: TestClient, url: str, tmp_path: Path
+) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+    gm.post(f"{one}/portrait", files={"file": ("a.png", PNG, "image/png")})
+    assert len(_files(tmp_path)) == 1
+    assert gm.delete(one).status_code == 204
+    assert _files(tmp_path) == []
+
+
+def test_another_gm_cannot_set_or_see_a_portrait(
+    gm: TestClient, rival: TestClient, url: str, tmp_path: Path
+) -> None:
+    one = f"{url}/{_create(gm, url)['id']}"
+    gm.post(f"{one}/portrait", files={"file": ("a.png", PNG, "image/png")})
+    files = {"file": ("b.png", PNG + b"2", "image/png")}
+    assert rival.post(f"{one}/portrait", files=files).status_code == 404
+    assert rival.get(f"{one}/portrait").status_code == 404
+    assert gm.post(f"{url}/999/portrait", files=files).status_code == 404
+    assert len(_files(tmp_path)) == 1

@@ -56,6 +56,9 @@ class CharacterView:
     tags: tuple[str, ...]
     quote: str | None
     notes: str | None
+    bio: str | None
+    # Changes whenever the portrait does; None when there is none.
+    portrait_version: str | None
     player_profile: PlayerProfile | None
 
 

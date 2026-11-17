@@ -185,6 +185,7 @@ Covers NPCs and player characters; `isPlayer` selects the list.
   "tags": ["Healer", "Faith"],
   "quote": "The Light does not ask who deserves it.",
   "notes": "Ties the party to Mother Ansel's temple faction.",
+  "bio": "Raised in the temple orphanage at Ashfall…",
   "portraitUrl": null,
   "playerProfile": { "playerName": "Jordan Kim", "class": "Cleric (Light)",
                      "race": "Human", "background": "Acolyte", "xp": "6,500",
@@ -198,7 +199,7 @@ The list is paged, because a campaign holds many NPCs. It answers
 then id. Pass `nextCursor` back as `cursor` for the next page; a malformed cursor is a
 `400`. `limit` is 1–200 (default 50), and `q` matches part of the name, ignoring case.
 Each item is the card's slim row: `id`, `name`, `isPlayer`, `relationship`, `role`,
-`level`, `location`, `tags`, `portraitUrl` and `playerProfile`. `stats`, `notes`,
+`level`, `location`, `tags`, `portraitUrl` and `playerProfile`. `stats`, `notes`, `bio`,
 `quote` and `connections` come only with the detail.
 
 `name` is cleaned like a campaign name (`400` when empty or over 120 characters). Tags
@@ -210,6 +211,11 @@ are trimmed and de-duplicated, at most 20 of 40 characters each. `level` is 0–
 cleared (`400`). The same rules as create apply. Setting `isPlayer: false` demotes a
 player and drops its `playerProfile`; setting it to `true` promotes an NPC, which gets an
 empty profile unless one is sent. `DELETE` answers `204`.
+
+The portrait is a PNG, JPEG or WebP of at most 10 MB, checked by its bytes (`415`
+otherwise). `POST …/portrait` replaces any earlier one and answers the character; its
+`portraitUrl` carries a version, so a cached image is never stale. `GET …/portrait` serves
+the bytes to the campaign's owner only. Deleting the character deletes the file.
 
 `notes` is GM-private and excluded from assistant context by default (DEC-004).
 
@@ -225,6 +231,13 @@ does not fit the sheet answers `422`. Without a sheet it is a free object (DEC-0
 | `PUT` | `/admin/sheets/{systemId}` | admin | Save the reviewed sheet; `422` if it does not validate |
 
 A GM token gets `403` on both admin routes.
+
+Built so far: `GET` and `PUT`. The draft route waits for the vault source (#125), so until
+then an admin writes the sheet by hand. `PUT` replaces the system's one sheet and answers
+`404` for an unknown system. In `stats`, a field may be left out or `null`; an unknown
+section or field, a wrong type or an out-of-range number is the `422`. `PATCH` checks
+`stats` only when it sends them, so a character saved under an older sheet stays editable
+(ADR-0030 NEG-002).
 
 ```jsonc
 // GET /systems/traveller-2e/sheet
@@ -250,6 +263,18 @@ A GM token gets `403` on both admin routes.
 | `PATCH` | `/campaigns/{cid}/factions/{id}` | Update |
 | `DELETE` | `/campaigns/{cid}/factions/{id}` | Delete |
 | `PUT` | `/campaigns/{cid}/factions/{id}/members` | Replace membership (character ids) |
+
+```jsonc
+{ "id": 2, "name": "The Pale Court", "relationship": "enemy", "type": "Hidden cabal",
+  "influence": "High", "reach": "Old Quarter", "motto": "We keep the light.",
+  "goal": "Unseat the council", "notes": "Do not reveal before Session 15" }
+```
+
+Built: list, create, detail, update and delete; members and connections are not yet. The
+list is unpaged, ordered by name (case-insensitive) then id, and carries every field. Only
+`name` is required; `relationship` defaults to `neutral`. `PATCH` changes only the fields
+sent, `null` clears one, and `name` and `relationship` cannot be cleared (`400`). `notes`
+is GM-private, as on a character (DEC-004).
 
 ## Relationships
 

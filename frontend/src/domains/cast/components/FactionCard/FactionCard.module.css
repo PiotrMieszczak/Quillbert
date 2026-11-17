@@ -1,0 +1,89 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 18px 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--tone);
+  border-radius: var(--radius-card);
+  animation: global(qb-pop) 0.5s var(--ease-spring) backwards;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.head > span {
+  text-transform: capitalize;
+}
+
+.name {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font: 600 19px/1.15 var(--font-display);
+  color: var(--text-primary);
+}
+
+.type {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.motto {
+  margin: 2px 0;
+  color: var(--text-muted);
+  font: italic 14px/1.4 var(--font-display);
+}
+
+.facts {
+  display: flex;
+  gap: 22px;
+  margin: 6px 0 0;
+}
+
+.facts dt {
+  color: var(--text-muted);
+  font: 500 10.5px/1.4 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--text-primary);
+  font: 600 16px/1.3 var(--font-display);
+}
+
+.open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card:has(.open:hover) {
+  border-color: var(--border-hover);
+}
+
+.card:has(.open:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.open:focus-visible {
+  outline: none;
+}

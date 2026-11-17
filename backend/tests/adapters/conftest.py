@@ -9,12 +9,16 @@ from app.adapters.persistence.memory.campaigns import InMemoryCampaignRepo
 from app.adapters.persistence.memory.characters import InMemoryCharacterRepo
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
+from app.adapters.persistence.memory.factions import InMemoryFactionRepo
+from app.adapters.persistence.memory.sheets import InMemorySheetRepo
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
     SqlCampaignRepo,
     SqlCharacterRepo,
     SqlConversationRepo,
     SqlDocumentRepo,
+    SqlFactionRepo,
+    SqlSheetRepo,
 )
 from app.adapters.persistence.sqlalchemy.tables import CampaignRow
 from app.ports.repositories import (
@@ -22,6 +26,8 @@ from app.ports.repositories import (
     CharacterRepo,
     ConversationRepo,
     DocumentRepo,
+    FactionRepo,
+    SheetRepo,
 )
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
@@ -73,7 +79,7 @@ def sessions(migrated: str) -> Iterator[sessionmaker[Session]]:
         session.execute(
             text(
                 "TRUNCATE citation, chunk, document, message, conversation, character, "
-                "campaign "
+                "faction, campaign, sheet_template "
                 "RESTART IDENTITY CASCADE"
             )
         )
@@ -115,3 +121,17 @@ def character_repo(request: pytest.FixtureRequest) -> CharacterRepo:
     if request.param == "memory":
         return InMemoryCharacterRepo()
     return SqlCharacterRepo(request.getfixturevalue("sessions"))
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def sheet_repo(request: pytest.FixtureRequest) -> SheetRepo:
+    if request.param == "memory":
+        return InMemorySheetRepo()
+    return SqlSheetRepo(request.getfixturevalue("sessions"))
+
+
+@pytest.fixture(params=["memory", "postgres"])
+def faction_repo(request: pytest.FixtureRequest) -> FactionRepo:
+    if request.param == "memory":
+        return InMemoryFactionRepo()
+    return SqlFactionRepo(request.getfixturevalue("sessions"))

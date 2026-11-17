@@ -170,9 +170,9 @@ On hover an item's icon turns amber and tilts (`scale(1.12) rotate(-4deg)`), its
 nudges `3px` right, and a 3px amber bar grows at its left edge; all `.25s
 --ease-spring`. Pressing scales it to `.97`.
 Until a destination's view is built it is hidden from the rail and the tab bar, never shown
-leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). The one
-exception is NPCs, Players and Factions: they are listed while they render sample data, with
-a **Sample data** badge in the page header, until the cast API lands (#108). The tab
+leading to placeholder content (`built` in `frontend/src/app/shell/navItems.ts`). NPCs,
+Players and Factions read the cast API; the NPC relationship filter is applied by the
+server. The tab
 bar fills its four tabs from Home, NPCs, Party, Quests first, then any other built view, and
 shows **More** only when something is left over.
 
@@ -260,7 +260,7 @@ opens it from anywhere and focuses the composer.
 | **Overview** | Hero block plus a 4-up stat grid and a recent-activity list |
 | **NPCs** | Relationship filter chips (All / Allies / Enemies / Family / Pro / Neutral) over a card grid. Cards show portrait, name, role, level, location, tags, and a relationship-coloured accent |
 | **Players** | Party cards showing character and player name, class, level; "Add Player" opens a form view |
-| **Factions** | Cards with name, type, influence, motto, member count, relationship colour |
+| **Factions** | Cards with name, type, influence, reach, motto, relationship colour; member count once membership exists (#150) |
 | **Quests** | Status tabs (Available / In progress / Completed / Failed / Inactive) over rows with gradient glyph tile, title, subquest line, progress bar, and actions. Failed and inactive quests offer Reactivate |
 | **Documents** | List with type badge, page count, meta line, status pill (`Indexed` green / `Processing` accent / `Queued` muted / `Failed` red) and a progress bar. Files upload as soon as they are dropped or picked: each shows an `Uploading` row until the API accepts it, then the real `Queued` row; an `Uploading` row has **Cancel**, which aborts the request and drops the row;
 a refused file stays as a red `Failed` row with the server's reason and a dismiss button;
@@ -278,8 +278,36 @@ AC / HP / Speed; a stat grid (`--surface-elevated` tiles, mono label over Newsre
 value); connections list with relationship dots; quote; GM notes. Player characters add a
 block with player name, class, race, background, XP, pronouns, and bonds.
 
+Built: a card on NPCs or Party opens the character in place of the list, and **Add NPC** /
+**Add Player** open the same page empty. The page is laid out like a sheet at the table:
+
+- **Identity** at the top: portrait, name, role, relationship, **Delete** (which turns into
+  **Remove** / **Keep** first). The portrait tile is a file picker with an upload mark in
+  its corner: click it or drop a PNG, JPG or WebP on it. Without a picture it shows the
+  name's initial. A picked image previews at once and uploads on **Save changes**.
+- **Wide column:** the system's sheet, then Story (bio, quote).
+- **Narrow column, 320px:** Details, the Player block for a player character, and GM notes
+  marked *Private*. Below 1000px it moves above the sheet.
+
+There is no separate edit mode. Every value is typed over in place: it reads as text until
+hovered or focused. The first change brings up a bar pinned to the bottom of the view with
+**Discard** and **Save changes**; nothing is saved before that, and leaving with unsaved
+changes asks first.
+
+The stat block is drawn from the campaign system's sheet
+([ADR-0030](../adr/adr-0030-sheet-schemas.md)): `int` fields as a row of tiles
+(`--surface-elevated`, mono label over a Newsreader value), `text` fields as labelled lines,
+`list` fields as tables with add and remove row. Sections sit two abreast; one with more
+than four numbers, more than four columns or three columns of text spans the full width. A
+system with no saved sheet shows a note in place of the block. Cards show the portrait too.
+Not built yet: connections.
+
 **Faction detail** — name, type, influence, reach, motto, goal, members, connections,
 GM notes.
+
+Built: a faction card and **Add faction** open the same edit-in-place page as a character:
+motto and goal in the wide column, influence, reach and GM notes beside them, no stat block. Only the name is required. Not built yet: members and
+connections, so cards show no member count.
 
 ### Settings
 

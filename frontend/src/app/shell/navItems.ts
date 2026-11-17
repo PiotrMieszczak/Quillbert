@@ -11,9 +11,9 @@ export type NavItem = {
 
 const ALL_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", short: "Home" },
-  { id: "npcs", label: "NPCs" },
-  { id: "players", label: "Players", short: "Party" },
-  { id: "factions", label: "Factions" },
+  { id: "npcs", label: "NPCs", built: true },
+  { id: "players", label: "Players", short: "Party", built: true },
+  { id: "factions", label: "Factions", built: true },
   { id: "quests", label: "Quest Log", short: "Quests" },
   { id: "documents", label: "Documents", built: true },
   { id: "graph", label: "Knowledge Graph" },

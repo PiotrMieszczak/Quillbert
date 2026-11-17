@@ -6,12 +6,18 @@ import { CampaignPicker } from "../screens/campaigns/CampaignPicker";
 import { MyLibrary } from "../screens/library/MyLibrary";
 import { Login } from "../screens/login/Login";
 import { Documents, type DocumentFocus } from "../screens/workspace/Documents";
+import { Factions } from "../screens/workspace/Factions";
+import { Npcs } from "../screens/workspace/Npcs";
+import { Players } from "../screens/workspace/Players";
 import { AmbientCanvas } from "./ambient";
 import { WorkspaceShell } from "./shell";
 
 // shortcut: view and campaign live in state, not the URL; React Router replaces this in #7.
 // Overview is unlisted while it shows fixture data; see navItems `built`.
 const VIEWS: Record<string, ComponentType<{ campaign: Campaign; focus: DocumentFocus | null }>> = {
+  npcs: Npcs,
+  players: Players,
+  factions: Factions,
   documents: Documents,
 };
 

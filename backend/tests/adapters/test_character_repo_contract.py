@@ -46,6 +46,7 @@ def test_every_field_round_trips(character_repo: CharacterRepo) -> None:
         tags=("Healer", "Faith"),
         quote="The Light does not ask.",
         notes="Do not reveal before Session 15",
+        bio="Raised in the temple orphanage.",
         portrait_key="f" * 32,
         player_profile=PlayerProfile(player_name="Jordan Kim", xp="6,500"),
     )

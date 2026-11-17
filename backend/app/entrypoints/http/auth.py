@@ -25,9 +25,17 @@ def require_campaign(
 ) -> Identity:
     """Dependency for routes under /campaigns/{campaign_id}: the caller must own it,
     or the route answers 404 as if it did not exist (DEC-005)."""
-    request.app.state.get_campaign.execute(
+    # Kept for the route: character writes need the campaign's system (ADR-0030).
+    request.state.campaign = request.app.state.get_campaign.execute(
         owner_id=identity.user_id, campaign_id=campaign_id
     )
+    return identity
+
+
+def require_admin(identity: Identity = Depends(require_identity)) -> Identity:
+    """Dependency for /admin routes: 403 for anyone without the admin claim."""
+    if not identity.is_admin:
+        raise HTTPException(403, "admin only")
     return identity
 
 

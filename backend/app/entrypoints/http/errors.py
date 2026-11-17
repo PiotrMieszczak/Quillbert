@@ -9,6 +9,7 @@ from app.domain.shared import (
     UnsupportedFileType,
     ValidationFailed,
 )
+from app.domain.sheets import StatsInvalid
 
 
 def register_error_handlers(app: FastAPI) -> None:
@@ -22,6 +23,10 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(UnknownSystem)
     async def unknown_system(_request: Request, exc: UnknownSystem) -> JSONResponse:
+        return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(StatsInvalid)
+    async def stats_invalid(_request: Request, exc: StatsInvalid) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": str(exc)})
 
     @app.exception_handler(UnsupportedFileType)

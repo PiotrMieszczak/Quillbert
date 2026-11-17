@@ -69,6 +69,46 @@ class CampaignRow(Base):
     system: Mapped[SystemRow] = relationship()
 
 
+class FactionRow(Base):
+    """A power in a campaign. See docs/data-model.md `faction`."""
+
+    __tablename__ = "faction"
+    __table_args__ = (
+        CheckConstraint(
+            "relationship IN ('ally', 'enemy', 'family', 'professional', 'neutral')",
+            name="relationship",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    campaign_id: Mapped[str] = mapped_column(
+        ForeignKey("campaign.id", ondelete="CASCADE"), index=True
+    )
+    # "C" sorts by code point, as Faction.sort_key does in Python.
+    name: Mapped[str] = mapped_column(Text(collation="C"))
+    relationship: Mapped[str] = mapped_column(Text)
+    type: Mapped[str | None] = mapped_column(Text)
+    influence: Mapped[str | None] = mapped_column(Text)
+    reach: Mapped[str | None] = mapped_column(Text)
+    motto: Mapped[str | None] = mapped_column(Text)
+    goal: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
+class SheetTemplateRow(Base):
+    """A system's one character sheet (ADR-0030); `sheet` is a dumped Sheet model."""
+
+    __tablename__ = "sheet_template"
+
+    system_id: Mapped[str] = mapped_column(
+        ForeignKey("system.id", ondelete="CASCADE"), primary_key=True
+    )
+    sheet: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    # The admin's Supabase Auth user id.
+    saved_by: Mapped[str] = mapped_column(Text)
+    saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class CharacterRow(Base):
     """An NPC or player character. See docs/data-model.md `character`."""
 
@@ -108,6 +148,7 @@ class CharacterRow(Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     quote: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
+    bio: Mapped[str | None] = mapped_column(Text)
     portrait_path: Mapped[str | None] = mapped_column(Text)
     player_profile: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 

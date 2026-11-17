@@ -7,7 +7,7 @@ from app.domain.shared import ValidationFailed
 MAX_TAGS = 20
 MAX_TAG = 40
 MAX_LEVEL = 99
-# shortcut: a size cap stands in for shape checks until sheets validate stats (#126).
+# The system's sheet checks the shape (ADR-0030); this cap holds with or without one.
 MAX_STATS_BYTES = 20_000
 
 

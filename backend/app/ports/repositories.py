@@ -1,10 +1,12 @@
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Protocol
 
 from app.domain.assistant import Conversation, Message
 from app.domain.campaigns import Campaign, System
-from app.domain.cast import Character, Relationship
+from app.domain.cast import Character, Faction, Relationship
 from app.domain.documents import Chunk, Document, Shelf
+from app.domain.sheets import Sheet
 
 
 class ConversationRepo(Protocol):
@@ -91,6 +93,41 @@ class CampaignRepo(Protocol):
         self, owner_id: str, campaign_id: str, image_key: str | None
     ) -> str | None:
         """Replace the banner key and return the previous one. Raises NotFound."""
+        ...
+
+
+class FactionRepo(Protocol):
+    """Every read takes the campaign id, as CharacterRepo does (DEC-005)."""
+
+    def next_faction_id(self) -> int: ...
+
+    def add(self, faction: Faction) -> None: ...
+
+    def get(self, campaign_id: str, faction_id: int) -> Faction | None: ...
+
+    def update(self, faction: Faction) -> None:
+        """Persist every field. Raises NotFound when its campaign has no such id."""
+        ...
+
+    def remove(self, campaign_id: str, faction_id: int) -> Faction | None:
+        """Delete and return the faction, or None when the campaign has none such."""
+        ...
+
+    def list(self, campaign_id: str) -> list[Faction]:
+        """The campaign's factions ordered by `Faction.sort_key`."""
+        ...
+
+
+class SheetRepo(Protocol):
+    """One character sheet per system (ADR-0030)."""
+
+    def get(self, system_id: str) -> Sheet | None: ...
+
+    def save(
+        self, system_id: str, sheet: Sheet, *, saved_by: str, saved_at: datetime
+    ) -> None:
+        """Insert or replace the system's sheet. Raises NotFound for an unknown
+        system."""
         ...
 
 
