@@ -9,6 +9,7 @@ from app.adapters.persistence.sqlalchemy.repositories.conversations import (
     SqlConversationRepo,
 )
 from app.adapters.persistence.sqlalchemy.repositories.documents import SqlDocumentRepo
+from app.adapters.persistence.sqlalchemy.repositories.sheets import SqlSheetRepo
 
 __all__ = [
     "SqlCampaignRepo",
@@ -16,4 +17,5 @@ __all__ = [
     "SqlChunkSearch",
     "SqlConversationRepo",
     "SqlDocumentRepo",
+    "SqlSheetRepo",
 ]

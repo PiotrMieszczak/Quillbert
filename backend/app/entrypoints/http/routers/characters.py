@@ -46,6 +46,7 @@ def _fields(view: CharacterView) -> dict:
         "stats": view.stats,
         "quote": view.quote,
         "notes": view.notes,
+        "bio": view.bio,
     }
 
 
@@ -66,6 +67,7 @@ def create_character(
     profile = body.player_profile
     view = create.execute(
         campaign_id=campaign_id,
+        system_id=request.state.campaign.system.id,
         name=body.name,
         is_player=body.is_player,
         relationship=body.relationship,
@@ -78,6 +80,7 @@ def create_character(
         tags=body.tags,
         quote=body.quote,
         notes=body.notes,
+        bio=body.bio,
         player_profile=None
         if profile is None
         else PlayerProfile(**profile.model_dump(by_alias=False)),
@@ -128,7 +131,10 @@ def update_character(
     if changes.get("player_profile") is not None:
         changes["player_profile"] = PlayerProfile(**changes["player_profile"])
     view = update.execute(
-        campaign_id=campaign_id, character_id=character_id, changes=changes
+        campaign_id=campaign_id,
+        system_id=request.state.campaign.system.id,
+        character_id=character_id,
+        changes=changes,
     )
     return _out(view)
 

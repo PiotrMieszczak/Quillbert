@@ -3,17 +3,20 @@ from typing import Any
 from app.application.cast.views import character_view
 from app.application.dto import CharacterView
 from app.domain.cast import Character, PlayerProfile, Relationship, clean_character
-from app.ports.repositories import CharacterRepo
+from app.domain.sheets import validate_stats
+from app.ports.repositories import CharacterRepo, SheetRepo
 
 
 class CreateCharacter:
-    def __init__(self, repo: CharacterRepo) -> None:
+    def __init__(self, repo: CharacterRepo, sheets: SheetRepo) -> None:
         self._repo = repo
+        self._sheets = sheets
 
     def execute(
         self,
         *,
         campaign_id: str,
+        system_id: str,
         name: str,
         is_player: bool,
         relationship: Relationship,
@@ -26,6 +29,7 @@ class CreateCharacter:
         tags: list[str] | None = None,
         quote: str | None = None,
         notes: str | None = None,
+        bio: str | None = None,
         player_profile: PlayerProfile | None = None,
     ) -> CharacterView:
         character = clean_character(
@@ -44,9 +48,14 @@ class CreateCharacter:
                 tags=tuple(tags or ()),
                 quote=quote,
                 notes=notes,
+                bio=bio,
                 player_profile=player_profile,
             )
         )
+        # Without a sheet, stats stay a free object (DEC-002).
+        sheet = self._sheets.get(system_id)
+        if sheet is not None:
+            validate_stats(sheet, character.stats)
         # The id is taken only once the character is valid, so a rejected one uses none.
         character.id = self._repo.next_character_id()
         self._repo.add(character)

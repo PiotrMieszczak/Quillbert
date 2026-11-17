@@ -47,6 +47,8 @@ class Character:
     quote: str | None = None
     # GM-private: never in assistant context unless asked for (DEC-004).
     notes: str | None = None
+    # The character's story; unlike notes, not GM-private.
+    bio: str | None = None
     portrait_key: str | None = None
     # Present only when is_player.
     player_profile: PlayerProfile | None = None
@@ -74,6 +76,7 @@ def clean_character(character: Character) -> Character:
         tags=clean_tags(list(character.tags)),
         quote=clean_text(character.quote),
         notes=clean_text(character.notes),
+        bio=clean_text(character.bio),
         player_profile=_clean_profile(character.player_profile)
         if character.is_player
         else None,

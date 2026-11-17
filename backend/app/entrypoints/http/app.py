@@ -9,6 +9,7 @@ from app.entrypoints.http.routers.campaigns import router as campaigns_router
 from app.entrypoints.http.routers.characters import router as characters_router
 from app.entrypoints.http.routers.documents import library_router
 from app.entrypoints.http.routers.documents import router as documents_router
+from app.entrypoints.http.routers.sheets import router as sheets_router
 
 
 def create_http_app(
@@ -28,4 +29,5 @@ def create_http_app(
     app.include_router(documents_router)
     app.include_router(library_router)
     app.include_router(characters_router)
+    app.include_router(sheets_router)
     return app

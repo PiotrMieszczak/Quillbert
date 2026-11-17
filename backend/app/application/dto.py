@@ -56,6 +56,7 @@ class CharacterView:
     tags: tuple[str, ...]
     quote: str | None
     notes: str | None
+    bio: str | None
     player_profile: PlayerProfile | None
 
 

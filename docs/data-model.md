@@ -104,6 +104,7 @@ renders them through different views but shares stats, connections, and portrait
 | `stats` | json | `{characteristics:{STR:7,…}, skills:{skills:[…]}}` — keyed by the system's sheet, validated against it when one exists (DEC-002). Combat values (AC, HP, Speed) live here too, since systems differ: Traveller has none of them |
 | `quote` | text? | |
 | `notes` | text? | GM-private notes |
+| `bio` | text? | The character's story, in every system; not GM-private |
 | `portrait_path` | text? | |
 | `tags` | json | `["Healer","Faith"]` |
 

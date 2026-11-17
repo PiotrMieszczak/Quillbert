@@ -17,5 +17,6 @@ def character_view(character: Character) -> CharacterView:
         tags=character.tags,
         quote=character.quote,
         notes=character.notes,
+        bio=character.bio,
         player_profile=character.player_profile,
     )

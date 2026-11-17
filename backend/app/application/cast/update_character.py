@@ -5,7 +5,8 @@ from app.application.cast.views import character_view
 from app.application.dto import CharacterView
 from app.domain.cast import clean_character
 from app.domain.shared import NotFound, ValidationFailed
-from app.ports.repositories import CharacterRepo
+from app.domain.sheets import validate_stats
+from app.ports.repositories import CharacterRepo, SheetRepo
 
 # Fields a character always has: sending null for one is an error, not a clear.
 REQUIRED = {"name", "is_player", "relationship", "stats", "tags"}
@@ -17,6 +18,7 @@ EDITABLE = REQUIRED | {
     "last_seen",
     "quote",
     "notes",
+    "bio",
     "player_profile",
 }
 
@@ -24,11 +26,17 @@ EDITABLE = REQUIRED | {
 class UpdateCharacter:
     """Changes only the fields given; a field given as None is cleared."""
 
-    def __init__(self, repo: CharacterRepo) -> None:
+    def __init__(self, repo: CharacterRepo, sheets: SheetRepo) -> None:
         self._repo = repo
+        self._sheets = sheets
 
     def execute(
-        self, *, campaign_id: str, character_id: int, changes: dict[str, Any]
+        self,
+        *,
+        campaign_id: str,
+        system_id: str,
+        character_id: int,
+        changes: dict[str, Any],
     ) -> CharacterView:
         unknown = changes.keys() - EDITABLE
         if unknown:
@@ -46,5 +54,11 @@ class UpdateCharacter:
         if "tags" in changes:
             changes["tags"] = tuple(changes["tags"])
         character = clean_character(dataclasses.replace(current, **changes))
+        # Only when stats are sent: stats saved under an older sheet stay editable
+        # elsewhere and are fixed on their next stats edit (ADR-0030 NEG-002).
+        if "stats" in changes:
+            sheet = self._sheets.get(system_id)
+            if sheet is not None:
+                validate_stats(sheet, character.stats)
         self._repo.update(character)
         return character_view(character)

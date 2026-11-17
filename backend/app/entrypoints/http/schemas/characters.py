@@ -37,6 +37,7 @@ class CreateCharacterBody(BaseModel):
     tags: list[str] = Field(default_factory=list)
     quote: str | None = Field(None, max_length=LONG)
     notes: str | None = Field(None, max_length=20_000)
+    bio: str | None = Field(None, max_length=20_000)
     player_profile: PlayerProfileIO | None = Field(None, alias="playerProfile")
 
 
@@ -57,6 +58,7 @@ class UpdateCharacterBody(BaseModel):
     tags: list[str] | None = None
     quote: str | None = Field(None, max_length=LONG)
     notes: str | None = Field(None, max_length=20_000)
+    bio: str | None = Field(None, max_length=20_000)
     player_profile: PlayerProfileIO | None = Field(None, alias="playerProfile")
 
 
@@ -83,6 +85,7 @@ class CharacterOut(CharacterListItemOut):
     stats: dict[str, Any]
     quote: str | None
     notes: str | None
+    bio: str | None
 
 
 class CharacterPageOut(BaseModel):

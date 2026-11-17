@@ -70,6 +70,7 @@ def test_create_returns_the_detail_with_text_cleaned(gm: TestClient, url: str) -
         stats={"abilities": {"STR": 14}},
         tags=["Healer", " Healer ", "Faith"],
         notes="",
+        bio=" Raised in the temple. ",
         playerProfile={"playerName": "Jordan Kim", "class": "Cleric (Light)"},
     )
 
@@ -97,6 +98,7 @@ def test_create_returns_the_detail_with_text_cleaned(gm: TestClient, url: str) -
         "stats": {"abilities": {"STR": 14}},
         "quote": None,
         "notes": None,
+        "bio": "Raised in the temple.",
     }
 
 

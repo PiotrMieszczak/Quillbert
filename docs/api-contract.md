@@ -185,6 +185,7 @@ Covers NPCs and player characters; `isPlayer` selects the list.
   "tags": ["Healer", "Faith"],
   "quote": "The Light does not ask who deserves it.",
   "notes": "Ties the party to Mother Ansel's temple faction.",
+  "bio": "Raised in the temple orphanage at Ashfall…",
   "portraitUrl": null,
   "playerProfile": { "playerName": "Jordan Kim", "class": "Cleric (Light)",
                      "race": "Human", "background": "Acolyte", "xp": "6,500",
@@ -198,7 +199,7 @@ The list is paged, because a campaign holds many NPCs. It answers
 then id. Pass `nextCursor` back as `cursor` for the next page; a malformed cursor is a
 `400`. `limit` is 1–200 (default 50), and `q` matches part of the name, ignoring case.
 Each item is the card's slim row: `id`, `name`, `isPlayer`, `relationship`, `role`,
-`level`, `location`, `tags`, `portraitUrl` and `playerProfile`. `stats`, `notes`,
+`level`, `location`, `tags`, `portraitUrl` and `playerProfile`. `stats`, `notes`, `bio`,
 `quote` and `connections` come only with the detail.
 
 `name` is cleaned like a campaign name (`400` when empty or over 120 characters). Tags
@@ -225,6 +226,13 @@ does not fit the sheet answers `422`. Without a sheet it is a free object (DEC-0
 | `PUT` | `/admin/sheets/{systemId}` | admin | Save the reviewed sheet; `422` if it does not validate |
 
 A GM token gets `403` on both admin routes.
+
+Built so far: `GET` and `PUT`. The draft route waits for the vault source (#125), so until
+then an admin writes the sheet by hand. `PUT` replaces the system's one sheet and answers
+`404` for an unknown system. In `stats`, a field may be left out or `null`; an unknown
+section or field, a wrong type or an out-of-range number is the `422`. `PATCH` checks
+`stats` only when it sends them, so a character saved under an older sheet stays editable
+(ADR-0030 NEG-002).
 
 ```jsonc
 // GET /systems/traveller-2e/sheet

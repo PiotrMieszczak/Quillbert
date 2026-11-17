@@ -46,6 +46,15 @@ def test_valid_token_yields_identity(verifier, private_key) -> None:
     identity = verifier.verify(_token(private_key))
     assert identity.user_id == "user-1"
     assert identity.email == "gm@ashfall.table"
+    assert identity.is_admin is False
+
+
+def test_only_the_app_metadata_role_makes_an_admin(verifier, private_key) -> None:
+    admin = _token(private_key, app_metadata={"role": "admin"})
+    assert verifier.verify(admin).is_admin is True
+    # user_metadata is editable by the user, so it must not count.
+    forged = _token(private_key, user_metadata={"role": "admin"})
+    assert verifier.verify(forged).is_admin is False
 
 
 @pytest.mark.parametrize(

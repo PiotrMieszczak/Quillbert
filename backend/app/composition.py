@@ -23,6 +23,7 @@ from app.adapters.persistence.memory.characters import InMemoryCharacterRepo
 from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
+from app.adapters.persistence.memory.sheets import InMemorySheetRepo
 from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_space
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
 from app.adapters.persistence.sqlalchemy.repositories import (
@@ -31,6 +32,7 @@ from app.adapters.persistence.sqlalchemy.repositories import (
     SqlChunkSearch,
     SqlConversationRepo,
     SqlDocumentRepo,
+    SqlSheetRepo,
 )
 from app.application.assistant import (
     ListConversations,
@@ -60,6 +62,7 @@ from app.application.documents import (
     ListDocuments,
     UploadDocument,
 )
+from app.application.sheets import GetSheet, SaveSheet
 from app.config import Settings
 from app.entrypoints.http.app import create_http_app
 from app.entrypoints.worker import IngestionWorker
@@ -74,6 +77,7 @@ from app.ports.repositories import (
     CharacterRepo,
     ConversationRepo,
     DocumentRepo,
+    SheetRepo,
 )
 from app.ports.search import ChunkSearch
 
@@ -96,6 +100,8 @@ class UseCases:
     get_character: GetCharacter
     update_character: UpdateCharacter
     delete_character: DeleteCharacter
+    get_sheet: GetSheet
+    save_sheet: SaveSheet
     start_conversation: StartConversation
     run_turn: RunAssistantTurn
     list_conversations: ListConversations
@@ -181,6 +187,7 @@ def build_use_cases(
     extractor: TextExtractor | None = None,
     campaigns: CampaignRepo | None = None,
     characters: CharacterRepo | None = None,
+    sheets: SheetRepo | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
@@ -198,6 +205,9 @@ def build_use_cases(
     )
     character_repo: CharacterRepo = characters or (
         InMemoryCharacterRepo() if sessions is None else SqlCharacterRepo(sessions)
+    )
+    sheet_repo: SheetRepo = sheets or (
+        InMemorySheetRepo() if sessions is None else SqlSheetRepo(sessions)
     )
     store: FileStore = files or LocalDiskFileStore(Path(settings.file_store_path))
     provider = llm or _llm(settings)
@@ -219,11 +229,13 @@ def build_use_cases(
             store, campaign_repo, max_bytes=MAX_IMAGE_BYTES
         ),
         get_campaign_image=GetCampaignImage(store, campaign_repo),
-        create_character=CreateCharacter(character_repo),
+        create_character=CreateCharacter(character_repo, sheet_repo),
         list_characters=ListCharacters(character_repo),
         get_character=GetCharacter(character_repo),
-        update_character=UpdateCharacter(character_repo),
+        update_character=UpdateCharacter(character_repo, sheet_repo),
         delete_character=DeleteCharacter(character_repo),
+        get_sheet=GetSheet(sheet_repo),
+        save_sheet=SaveSheet(sheet_repo, time),
         start_conversation=StartConversation(conversations, time),
         list_conversations=ListConversations(conversations),
         run_turn=RunAssistantTurn(
@@ -285,6 +297,8 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.get_character = cases.get_character
     app.state.update_character = cases.update_character
     app.state.delete_character = cases.delete_character
+    app.state.get_sheet = cases.get_sheet
+    app.state.save_sheet = cases.save_sheet
     app.state.start_conversation = cases.start_conversation
     app.state.run_turn = cases.run_turn
     app.state.list_conversations = cases.list_conversations

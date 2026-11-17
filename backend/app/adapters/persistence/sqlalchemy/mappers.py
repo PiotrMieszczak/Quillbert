@@ -178,6 +178,7 @@ def character_to_row(character: Character) -> CharacterRow:
         tags=list(character.tags),
         quote=character.quote,
         notes=character.notes,
+        bio=character.bio,
         portrait_path=character.portrait_key,
         player_profile=None if profile is None else dataclasses.asdict(profile),
     )
@@ -200,6 +201,7 @@ def character_from_row(row: CharacterRow) -> Character:
         tags=tuple(row.tags),
         quote=row.quote,
         notes=row.notes,
+        bio=row.bio,
         portrait_key=row.portrait_path,
         player_profile=None if profile is None else PlayerProfile(**profile),
     )
