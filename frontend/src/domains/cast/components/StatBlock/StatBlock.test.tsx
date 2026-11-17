@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Sheet } from "../../model/types";
+import type { Sheet, Stats } from "../../model/types";
 import { StatBlock } from "./StatBlock";
 
 afterEach(cleanup);
@@ -38,6 +38,14 @@ describe("StatBlock", () => {
     expect(screen.getByText("Strength").nextElementSibling?.textContent).toBe("—");
     expect(screen.getByText("Pilot")).toBeTruthy();
     expect(screen.queryByRole("spinbutton")).toBeNull();
+  });
+
+  it("shows stats saved before the sheet as empty instead of breaking", () => {
+    const legacy = { characteristics: 7, skills: { skills: "Pilot 1" } } as unknown as Stats;
+    render(<StatBlock sheet={SHEET} stats={legacy} />);
+
+    expect(screen.getByText("Strength").nextElementSibling?.textContent).toBe("—");
+    expect(screen.getByText("None yet.")).toBeTruthy();
   });
 
   it("writes a number under its section and drops a cleared field", () => {

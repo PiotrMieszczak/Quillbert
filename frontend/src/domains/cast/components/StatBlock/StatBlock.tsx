@@ -109,7 +109,10 @@ export function StatBlock({ sheet, stats, onChange }: StatBlockProps) {
   return (
     <>
       {sheet.sections.map((section) => {
-        const values = stats[section.key] ?? {};
+        // Stats saved before the sheet existed can hold any shape here (ADR-0030 NEG-002);
+        // what does not fit is shown as empty, never allowed to break the page.
+        const saved: unknown = stats[section.key];
+        const values = (saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {}) as Stats[string];
         const scalars = section.fields.filter((field) => field.type !== "list");
         return (
           <section key={section.key} className={styles.section} aria-label={section.label}>
@@ -134,7 +137,7 @@ export function StatBlock({ sheet, stats, onChange }: StatBlockProps) {
                 <Rows
                   key={field.key}
                   field={field}
-                  rows={(values[field.key] as StatRow[] | undefined) ?? []}
+                  rows={Array.isArray(values[field.key]) ? (values[field.key] as StatRow[]) : []}
                   onChange={onChange && ((rows) => set(section.key, field.key, rows.length > 0 ? rows : undefined))}
                 />
               ))}
