@@ -212,6 +212,11 @@ cleared (`400`). The same rules as create apply. Setting `isPlayer: false` demot
 player and drops its `playerProfile`; setting it to `true` promotes an NPC, which gets an
 empty profile unless one is sent. `DELETE` answers `204`.
 
+The portrait is a PNG, JPEG or WebP of at most 10 MB, checked by its bytes (`415`
+otherwise). `POST …/portrait` replaces any earlier one and answers the character; its
+`portraitUrl` carries a version, so a cached image is never stale. `GET …/portrait` serves
+the bytes to the campaign's owner only. Deleting the character deletes the file.
+
 `notes` is GM-private and excluded from assistant context by default (DEC-004).
 
 `stats` is keyed by section and field of the campaign system's sheet, and a write that

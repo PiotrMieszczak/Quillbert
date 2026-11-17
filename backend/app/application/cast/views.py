@@ -18,5 +18,8 @@ def character_view(character: Character) -> CharacterView:
         quote=character.quote,
         notes=character.notes,
         bio=character.bio,
+        portrait_version=None
+        if character.portrait_key is None
+        else character.portrait_key[:8],
         player_profile=character.player_profile,
     )

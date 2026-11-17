@@ -9,6 +9,7 @@ from app.application.cast.factions import (
 )
 from app.application.cast.get_character import GetCharacter
 from app.application.cast.list_characters import ListCharacters
+from app.application.cast.portrait import GetCharacterPortrait, SetCharacterPortrait
 from app.application.cast.update_character import UpdateCharacter
 
 __all__ = [
@@ -17,9 +18,11 @@ __all__ = [
     "DeleteCharacter",
     "DeleteFaction",
     "GetCharacter",
+    "GetCharacterPortrait",
     "GetFaction",
     "ListCharacters",
     "ListFactions",
+    "SetCharacterPortrait",
     "UpdateCharacter",
     "UpdateFaction",
 ]

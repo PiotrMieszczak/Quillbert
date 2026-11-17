@@ -56,9 +56,11 @@ from app.application.cast import (
     DeleteCharacter,
     DeleteFaction,
     GetCharacter,
+    GetCharacterPortrait,
     GetFaction,
     ListCharacters,
     ListFactions,
+    SetCharacterPortrait,
     UpdateCharacter,
     UpdateFaction,
 )
@@ -91,7 +93,7 @@ from app.ports.search import ChunkSearch
 
 logger = logging.getLogger(__name__)
 
-# A banner is shown at card size; nothing needs more than this.
+# Banners and portraits are shown at card size; nothing needs more than this.
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 
@@ -108,6 +110,8 @@ class UseCases:
     get_character: GetCharacter
     update_character: UpdateCharacter
     delete_character: DeleteCharacter
+    set_character_portrait: SetCharacterPortrait
+    get_character_portrait: GetCharacterPortrait
     create_faction: CreateFaction
     list_factions: ListFactions
     get_faction: GetFaction
@@ -250,7 +254,11 @@ def build_use_cases(
         list_characters=ListCharacters(character_repo),
         get_character=GetCharacter(character_repo),
         update_character=UpdateCharacter(character_repo, sheet_repo),
-        delete_character=DeleteCharacter(character_repo),
+        delete_character=DeleteCharacter(character_repo, store),
+        set_character_portrait=SetCharacterPortrait(
+            store, character_repo, max_bytes=MAX_IMAGE_BYTES
+        ),
+        get_character_portrait=GetCharacterPortrait(store, character_repo),
         create_faction=CreateFaction(faction_repo),
         list_factions=ListFactions(faction_repo),
         get_faction=GetFaction(faction_repo),
@@ -319,6 +327,8 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.get_character = cases.get_character
     app.state.update_character = cases.update_character
     app.state.delete_character = cases.delete_character
+    app.state.set_character_portrait = cases.set_character_portrait
+    app.state.get_character_portrait = cases.get_character_portrait
     app.state.create_faction = cases.create_faction
     app.state.list_factions = cases.list_factions
     app.state.get_faction = cases.get_faction
