@@ -69,6 +69,32 @@ class CampaignRow(Base):
     system: Mapped[SystemRow] = relationship()
 
 
+class FactionRow(Base):
+    """A power in a campaign. See docs/data-model.md `faction`."""
+
+    __tablename__ = "faction"
+    __table_args__ = (
+        CheckConstraint(
+            "relationship IN ('ally', 'enemy', 'family', 'professional', 'neutral')",
+            name="relationship",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    campaign_id: Mapped[str] = mapped_column(
+        ForeignKey("campaign.id", ondelete="CASCADE"), index=True
+    )
+    # "C" sorts by code point, as Faction.sort_key does in Python.
+    name: Mapped[str] = mapped_column(Text(collation="C"))
+    relationship: Mapped[str] = mapped_column(Text)
+    type: Mapped[str | None] = mapped_column(Text)
+    influence: Mapped[str | None] = mapped_column(Text)
+    reach: Mapped[str | None] = mapped_column(Text)
+    motto: Mapped[str | None] = mapped_column(Text)
+    goal: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
 class SheetTemplateRow(Base):
     """A system's one character sheet (ADR-0030); `sheet` is a dumped Sheet model."""
 

@@ -23,6 +23,7 @@ from app.adapters.persistence.memory.characters import InMemoryCharacterRepo
 from app.adapters.persistence.memory.chunk_search import InMemoryChunkSearch
 from app.adapters.persistence.memory.conversations import InMemoryConversationRepo
 from app.adapters.persistence.memory.documents import InMemoryDocumentRepo
+from app.adapters.persistence.memory.factions import InMemoryFactionRepo
 from app.adapters.persistence.memory.sheets import InMemorySheetRepo
 from app.adapters.persistence.sqlalchemy.embedding_space import check_embedding_space
 from app.adapters.persistence.sqlalchemy.engine import create_session_factory
@@ -32,6 +33,7 @@ from app.adapters.persistence.sqlalchemy.repositories import (
     SqlChunkSearch,
     SqlConversationRepo,
     SqlDocumentRepo,
+    SqlFactionRepo,
     SqlSheetRepo,
 )
 from app.application.assistant import (
@@ -50,10 +52,15 @@ from app.application.campaigns import (
 )
 from app.application.cast import (
     CreateCharacter,
+    CreateFaction,
     DeleteCharacter,
+    DeleteFaction,
     GetCharacter,
+    GetFaction,
     ListCharacters,
+    ListFactions,
     UpdateCharacter,
+    UpdateFaction,
 )
 from app.application.documents import (
     DeleteDocument,
@@ -77,6 +84,7 @@ from app.ports.repositories import (
     CharacterRepo,
     ConversationRepo,
     DocumentRepo,
+    FactionRepo,
     SheetRepo,
 )
 from app.ports.search import ChunkSearch
@@ -100,6 +108,11 @@ class UseCases:
     get_character: GetCharacter
     update_character: UpdateCharacter
     delete_character: DeleteCharacter
+    create_faction: CreateFaction
+    list_factions: ListFactions
+    get_faction: GetFaction
+    update_faction: UpdateFaction
+    delete_faction: DeleteFaction
     get_sheet: GetSheet
     save_sheet: SaveSheet
     start_conversation: StartConversation
@@ -188,6 +201,7 @@ def build_use_cases(
     campaigns: CampaignRepo | None = None,
     characters: CharacterRepo | None = None,
     sheets: SheetRepo | None = None,
+    factions: FactionRepo | None = None,
 ) -> UseCases:
     settings = Settings()
     # One engine and pool shared by every SQL repository.
@@ -205,6 +219,9 @@ def build_use_cases(
     )
     character_repo: CharacterRepo = characters or (
         InMemoryCharacterRepo() if sessions is None else SqlCharacterRepo(sessions)
+    )
+    faction_repo: FactionRepo = factions or (
+        InMemoryFactionRepo() if sessions is None else SqlFactionRepo(sessions)
     )
     sheet_repo: SheetRepo = sheets or (
         InMemorySheetRepo() if sessions is None else SqlSheetRepo(sessions)
@@ -234,6 +251,11 @@ def build_use_cases(
         get_character=GetCharacter(character_repo),
         update_character=UpdateCharacter(character_repo, sheet_repo),
         delete_character=DeleteCharacter(character_repo),
+        create_faction=CreateFaction(faction_repo),
+        list_factions=ListFactions(faction_repo),
+        get_faction=GetFaction(faction_repo),
+        update_faction=UpdateFaction(faction_repo),
+        delete_faction=DeleteFaction(faction_repo),
         get_sheet=GetSheet(sheet_repo),
         save_sheet=SaveSheet(sheet_repo, time),
         start_conversation=StartConversation(conversations, time),
@@ -297,6 +319,11 @@ def build_app(use_cases: UseCases | None = None) -> FastAPI:
     app.state.get_character = cases.get_character
     app.state.update_character = cases.update_character
     app.state.delete_character = cases.delete_character
+    app.state.create_faction = cases.create_faction
+    app.state.list_factions = cases.list_factions
+    app.state.get_faction = cases.get_faction
+    app.state.update_faction = cases.update_faction
+    app.state.delete_faction = cases.delete_faction
     app.state.get_sheet = cases.get_sheet
     app.state.save_sheet = cases.save_sheet
     app.state.start_conversation = cases.start_conversation

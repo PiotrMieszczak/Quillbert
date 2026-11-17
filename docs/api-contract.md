@@ -259,6 +259,18 @@ section or field, a wrong type or an out-of-range number is the `422`. `PATCH` c
 | `DELETE` | `/campaigns/{cid}/factions/{id}` | Delete |
 | `PUT` | `/campaigns/{cid}/factions/{id}/members` | Replace membership (character ids) |
 
+```jsonc
+{ "id": 2, "name": "The Pale Court", "relationship": "enemy", "type": "Hidden cabal",
+  "influence": "High", "reach": "Old Quarter", "motto": "We keep the light.",
+  "goal": "Unseat the council", "notes": "Do not reveal before Session 15" }
+```
+
+Built: list, create, detail, update and delete; members and connections are not yet. The
+list is unpaged, ordered by name (case-insensitive) then id, and carries every field. Only
+`name` is required; `relationship` defaults to `neutral`. `PATCH` changes only the fields
+sent, `null` clears one, and `name` and `relationship` cannot be cleared (`400`). `notes`
+is GM-private, as on a character (DEC-004).
+
 ## Relationships
 
 | Method | Path | Purpose |

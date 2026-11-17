@@ -93,3 +93,41 @@ def _clean_profile(profile: PlayerProfile | None) -> PlayerProfile:
             for f in dataclasses.fields(profile)
         }
     )
+
+
+@dataclass
+class Faction:
+    """Mirrors docs/data-model.md `faction`. Belongs to one campaign. Only the name
+    is required: a GM noting a new power often knows nothing else yet."""
+
+    id: int
+    campaign_id: str
+    name: str
+    relationship: Relationship
+    type: str | None = None
+    influence: str | None = None
+    reach: str | None = None
+    motto: str | None = None
+    goal: str | None = None
+    # GM-private, as on a character (DEC-004).
+    notes: str | None = None
+
+    @property
+    def sort_key(self) -> tuple[str, int]:
+        """List order; the SQL repo orders by lower(name), id."""
+        return (self.name.lower(), self.id)
+
+
+def clean_faction(faction: Faction) -> Faction:
+    """The faction with its text cleaned, or ValidationFailed; create and update both
+    pass through here."""
+    return dataclasses.replace(
+        faction,
+        name=clean_name(faction.name, "faction name"),
+        type=clean_text(faction.type),
+        influence=clean_text(faction.influence),
+        reach=clean_text(faction.reach),
+        motto=clean_text(faction.motto),
+        goal=clean_text(faction.goal),
+        notes=clean_text(faction.notes),
+    )

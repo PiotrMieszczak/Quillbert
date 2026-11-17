@@ -8,11 +8,12 @@ from app.adapters.persistence.sqlalchemy.tables import (
     CitationRow,
     ConversationRow,
     DocumentRow,
+    FactionRow,
     MessageRow,
 )
 from app.domain.assistant import Citation, Conversation, Message, Mode, Role, Trace
 from app.domain.campaigns import Campaign, System
-from app.domain.cast import Character, PlayerProfile, Relationship
+from app.domain.cast import Character, Faction, PlayerProfile, Relationship
 from app.domain.documents import Document, DocumentKind, DocumentSource, DocumentStatus
 
 
@@ -204,4 +205,24 @@ def character_from_row(row: CharacterRow) -> Character:
         bio=row.bio,
         portrait_key=row.portrait_path,
         player_profile=None if profile is None else PlayerProfile(**profile),
+    )
+
+
+def faction_to_row(faction: Faction) -> FactionRow:
+    fields = dataclasses.asdict(faction)
+    return FactionRow(**fields | {"relationship": faction.relationship.value})
+
+
+def faction_from_row(row: FactionRow) -> Faction:
+    return Faction(
+        id=row.id,
+        campaign_id=row.campaign_id,
+        name=row.name,
+        relationship=Relationship(row.relationship),
+        type=row.type,
+        influence=row.influence,
+        reach=row.reach,
+        motto=row.motto,
+        goal=row.goal,
+        notes=row.notes,
     )

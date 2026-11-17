@@ -134,10 +134,10 @@ rules, saved by the admin.
 | `id` | int PK | |
 | `campaign_id` | text FK | |
 | `name` | text | "The Pale Court" |
-| `type` | text | "Hidden cabal", "Merchant guild" |
+| `type` | text? | "Hidden cabal", "Merchant guild" |
 | `relationship` | enum | same five values as Character |
-| `influence` | text | "High", "Unknown" |
-| `reach` | text | "Old Quarter", "Everywhere" |
+| `influence` | text? | "High", "Unknown" |
+| `reach` | text? | "Old Quarter", "Everywhere" |
 | `motto` | text? | |
 | `goal` | text? | |
 | `notes` | text? | GM-private |
