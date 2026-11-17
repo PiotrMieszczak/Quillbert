@@ -48,3 +48,7 @@ jobs:
           # LiteLLM does not carry a context window for every GLM id, so
           # state it explicitly rather than letting the call fail.
           CONFIG__CUSTOM_MODEL_MAX_TOKENS: "128000"
+          # pr-agent caps every model at max_model_tokens whatever its window;
+          # the run logs showed 32000, which dropped half of a 53k-token PR
+          # from review. Raise the cap to the window stated above.
+          CONFIG__MAX_MODEL_TOKENS: "128000"
