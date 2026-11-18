@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.4.0...v1.5.0) (2026-11-18)
+
+
+### Features
+
+* **cast:** characters, factions and per-system sheets ([#155](https://github.com/PiotrMieszczak/Quillbert/issues/155)) ([55dd10f](https://github.com/PiotrMieszczak/Quillbert/commit/55dd10fa9cb5326ca1d2557b258a0ecdde9b9a99))
+* **mcp:** add MCP client and address guard ([#162](https://github.com/PiotrMieszczak/Quillbert/issues/162)) ([42959e5](https://github.com/PiotrMieszczak/Quillbert/commit/42959e51fba6cd69a1267e1de97765448de818b2))
+
 ## [1.4.0](https://github.com/PiotrMieszczak/Quillbert/compare/v1.3.0...v1.4.0) (2026-11-13)
 
 
