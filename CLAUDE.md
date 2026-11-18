@@ -53,6 +53,7 @@ Index, titles and status: [docs/adr/README.md](docs/adr/README.md). Superseded â
 as current, cite what replaced them: 0003, 0005, 0006, 0007, 0008, 0010, 0013, 0014, 0016,
 0022, 0023, 0025. Partly replaced by 0026: 0012 (in-character mode stands) and 0024 (the
 profile split). Partly replaced by 0029: 0027 (its vault layer; campaign and GM library stand).
+Partly replaced by 0031: 0029 (its transport; the vault as a source stands).
 
 ### The four that break the product if broken
 

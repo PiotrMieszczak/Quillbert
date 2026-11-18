@@ -23,7 +23,7 @@ flowchart TB
         APP["application/<br/>use cases<br/><i>never imports an adapter</i>"]
         PORTS["ports/<br/>repositories · search · llm<br/>extraction · files · clock"]
         DOM["domain/<br/>entities · value objects · invariants<br/><i>pure — no I/O, no framework</i>"]
-        ADP["adapters/<br/>persistence: sqlalchemy + memory<br/>search: hybrid + memory<br/>llm: openrouter · fake<br/>extraction: pymupdf · ocr"]
+        ADP["adapters/<br/>persistence: sqlalchemy + memory<br/>search: hybrid + memory<br/>llm: openrouter · fake<br/>extraction: pymupdf · ocr<br/>mcp: client + address guard"]
         COMP["composition.py<br/><i>the ONLY module wiring<br/>ports to adapters</i>"]
 
         EP --> APP
@@ -101,6 +101,7 @@ backend/
 │   │   ├── extraction.py          # TextExtractor — bytes → pages
 │   │   ├── files.py               # FileStore — put(), get(), delete()
 │   │   ├── clock.py               # Clock — time is an injected dependency
+│   │   ├── mcp.py                 # McpClient — a GM's read-only source (ADR-0031)
 │   │   └── events.py              # EventPublisher — domain events out
 │   │
 │   ├── application/               # Use cases. One class or function per operation.
@@ -128,6 +129,9 @@ backend/
 │   │   │   ├── pymupdf.py     # PDF pages, headings by font size
 │   │   │   ├── ocr.py         # Tesseract, per-word confidence
 │   │   │   └── text.py        # Markdown, text, DOCX (stdlib)
+│   │   ├── mcp/
+│   │   │   ├── client.py          # streamable HTTP: initialize, tools/list, tools/call
+│   │   │   └── address_guard.py   # HTTPS, public addresses only, pinned to the checked IP
 │   │   └── files/local.py
 │   │
 │   ├── entrypoints/               # Driving adapters. Transport, nothing else.
