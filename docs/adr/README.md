@@ -38,6 +38,7 @@ knowing why it was made, it belongs in an ADR.
 | [0028](adr-0028-safety-without-surveillance.md) | Safety without surveillance | Accepted |
 | [0029](adr-0029-wizard-vault-service.md) | The shared vault is wizard-vault, a separate service read over MCP | Accepted |
 | [0030](adr-0030-sheet-schemas.md) | Character sheets per system, drafted from the vault's rules and saved by the admin | Accepted |
+| [0031](adr-0031-gm-connected-sources.md) | A GM connects read-only knowledge sources over MCP | Accepted |
 
 ## Format
 
